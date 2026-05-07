@@ -1,0 +1,267 @@
+name: Scheduled Agents
+
+on:
+  schedule:
+    # Weekly agents — Mondays at 9am UTC
+    - cron: '0 9 * * 1'
+    # Daily agents — every day at 8am UTC
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+    inputs:
+      agent:
+        description: 'Agent to run (leave blank to run all scheduled for today)'
+        required: false
+        type: choice
+        options:
+          - ''
+          - scrum_master
+          - market_watch
+          - hanging_refs
+          - naming_audit
+          - class_size_audit
+          - security_audit
+          - developer_agent
+          - story_groomer
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+
+jobs:
+  # ─── Weekly agents (run on Mondays only, or on manual dispatch) ─────────────
+
+  weekly-scrum-master:
+    if: >
+      (github.event_name == 'schedule' && github.event.schedule == '0 9 * * 1') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'scrum_master'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
+        env:
+          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+        run: |
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
+            exit 1
+          fi
+      - name: Run scrum_master
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --model sonnet
+            --effort medium
+          prompt: |
+            Invoke the scrum_master subagent.
+            The agent's full spec lives at .claude/agents/scrum_master.md — follow it exactly.
+            Return only the report file path.
+
+  weekly-market-watch:
+    if: >
+      (github.event_name == 'schedule' && github.event.schedule == '0 9 * * 1') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'market_watch'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
+        env:
+          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+        run: |
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
+            exit 1
+          fi
+      - name: Run market_watch
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --model sonnet
+            --effort medium
+          prompt: |
+            Invoke the market_watch subagent.
+            The agent's full spec lives at .claude/agents/market_watch.md — follow it exactly.
+            Return only the report file path.
+
+  weekly-hanging-refs:
+    if: >
+      (github.event_name == 'schedule' && github.event.schedule == '0 9 * * 1') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'hanging_refs'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
+        env:
+          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+        run: |
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
+            exit 1
+          fi
+      - name: Run hanging_refs
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --model sonnet
+            --effort medium
+          prompt: |
+            Invoke the hanging_refs subagent.
+            The agent's full spec lives at .claude/agents/hanging_refs.md — follow it exactly.
+            Return only the report file path.
+
+  weekly-naming-audit:
+    if: >
+      (github.event_name == 'schedule' && github.event.schedule == '0 9 * * 1') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'naming_audit'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
+        env:
+          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+        run: |
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
+            exit 1
+          fi
+      - name: Run naming_audit
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --model sonnet
+            --effort medium
+          prompt: |
+            Invoke the naming_audit subagent.
+            The agent's full spec lives at .claude/agents/naming_audit.md — follow it exactly.
+            Return only the report file path.
+
+  weekly-class-size-audit:
+    if: >
+      (github.event_name == 'schedule' && github.event.schedule == '0 9 * * 1') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'class_size_audit'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
+        env:
+          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+        run: |
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
+            exit 1
+          fi
+      - name: Run class_size_audit
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --model sonnet
+            --effort medium
+          prompt: |
+            Invoke the class_size_audit subagent.
+            The agent's full spec lives at .claude/agents/class_size_audit.md — follow it exactly.
+            Return only the report file path.
+
+  weekly-security-audit:
+    if: >
+      (github.event_name == 'schedule' && github.event.schedule == '0 9 * * 1') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'security_audit'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
+        env:
+          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+        run: |
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
+            exit 1
+          fi
+      - name: Run security_audit
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --model sonnet
+            --effort medium
+          prompt: |
+            Invoke the security_audit subagent.
+            The agent's full spec lives at .claude/agents/security_audit.md — follow it exactly.
+            Return only the report file path.
+
+  # ─── Daily agents (run every day) ───────────────────────────────────────────
+
+  daily-developer-agent:
+    if: >
+      (github.event_name == 'schedule' && github.event.schedule == '0 8 * * *') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'developer_agent'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
+        env:
+          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+        run: |
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
+            exit 1
+          fi
+      - name: Run developer_agent
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --model sonnet
+            --effort medium
+          prompt: |
+            Invoke the developer_agent subagent.
+            The agent's full spec lives at .claude/agents/developer_agent.md — follow it exactly.
+            Return only the PR URL, "no eligible issue found today", or "existing claude branch already in flight: <PR URL>".
+
+  daily-story-groomer:
+    if: >
+      (github.event_name == 'schedule' && github.event.schedule == '0 8 * * *') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'story_groomer'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
+        env:
+          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+        run: |
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
+            exit 1
+          fi
+      - name: Run story_groomer
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --model sonnet
+            --effort medium
+          prompt: |
+            Invoke the story_groomer subagent.
+            The agent's full spec lives at .claude/agents/story_groomer.md — follow it exactly.
+            Return only the report file path.

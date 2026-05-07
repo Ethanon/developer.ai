@@ -1,0 +1,98 @@
+name: PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [master]
+
+concurrency:
+  group: pr-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write
+
+jobs:
+  review:
+    # Skip PRs from forks. Repository secrets aren't exposed to fork workflows
+    # under plain pull_request events, which makes this safe to run on
+    # github-hosted runners. Fork PRs short-circuit before any agent runs.
+    # Also skip Renovate PRs: dependency bumps don't need agent review and burn
+    # Claude tokens for no signal. Standard CI still runs on those.
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'renovate[bot]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Use [bob_engineering_pwa, alice_security_pwa] for a React + BFF + OAuth/PKCE stack.
+        # Use [bob_engineering, alice_security] for a generic TypeScript project.
+        agent: [bob_engineering, alice_security]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
+        env:
+          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+        run: |
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set. Run 'claude setup-token' locally and add the value at Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          echo "CLAUDE_CODE_OAUTH_TOKEN is present."
+      - name: Run ${{ matrix.agent }}
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_bots: "renovate[bot]"
+          claude_args: |
+            --model sonnet
+            --effort medium
+          prompt: |
+            Invoke the ${{ matrix.agent }} subagent to review PR #${{ github.event.pull_request.number }}.
+            Use the Task tool with subagent_type "${{ matrix.agent }}" and pass the PR number as the target.
+            The agent's full spec lives at .claude/agents/${{ matrix.agent }}.md — follow it exactly.
+            Do not repeat findings that appear in the PR's existing reviews (the spec covers this).
+            Return only the review URL.
+
+  # Second pass: Jekyll (whitehat) and Hyde (blackhat) critique Alice's and
+  # Bob's posted findings. `needs: review` keeps them off the PR until both
+  # first-pass reviews have landed, so there's actually something to critique.
+  critique:
+    needs: review
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'renovate[bot]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        agent: [jekyll_critic, hyde_critic]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
+        env:
+          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+        run: |
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set. Run 'claude setup-token' locally and add the value at Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          echo "CLAUDE_CODE_OAUTH_TOKEN is present."
+      - name: Run ${{ matrix.agent }}
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_bots: "renovate[bot]"
+          claude_args: |
+            --model sonnet
+            --effort medium
+          prompt: |
+            Invoke the ${{ matrix.agent }} subagent to critique the review comments on PR #${{ github.event.pull_request.number }}.
+            Use the Task tool with subagent_type "${{ matrix.agent }}" and pass the PR number as the target.
+            The agent's full spec lives at .claude/agents/${{ matrix.agent }}.md — follow it exactly.
+            Alice and Bob have already posted their reviews; your job is to critique theirs, not re-review the diff from scratch.
+            Return only the review URL.
