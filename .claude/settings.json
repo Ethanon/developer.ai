@@ -34,9 +34,7 @@
       "Bash(mv *)",
       "Read",
       "Edit(C:\\Repos\\developer.ai\\*)",
-      "Edit(C:\\Repos\\Evertales\\*)",
-      "Write(C:\\Repos\\developer.ai\\*)",
-      "Write(C:\\Repos\\Evertales\\*)"
+      "Write(C:\\Repos\\developer.ai\\*)"
     ],
     "deny": [
       "Bash(git push *--force*main*)",
