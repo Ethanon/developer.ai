@@ -1,0 +1,48 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "additionalDirectories": ["C:\\Repos\\Evertales"],
+    "allow": [
+      "Bash(git *)",
+      "Bash(gh *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(bun *)",
+      "Bash(bunx *)",
+      "Bash(pnpm *)",
+      "Bash(yarn *)",
+      "Bash(tsc *)",
+      "Bash(eslint *)",
+      "Bash(prettier *)",
+      "Bash(docker *)",
+      "Bash(docker-compose *)",
+      "Bash(jq *)",
+      "Bash(curl *)",
+      "Bash(curl.exe *)",
+      "Bash(ls *)",
+      "Bash(ls)",
+      "Bash(dir *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(pwd)",
+      "Bash(echo *)",
+      "Bash(true)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Read",
+      "Edit(C:\\Repos\\developer.ai\\*)",
+      "Edit(C:\\Repos\\Evertales\\*)",
+      "Write(C:\\Repos\\developer.ai\\*)",
+      "Write(C:\\Repos\\Evertales\\*)"
+    ],
+    "deny": [
+      "Bash(git push *--force*main*)",
+      "Bash(git push *--force*master*)",
+      "Bash(git push *-f*main*)",
+      "Bash(git push *-f*master*)"
+    ]
+  }
+}
