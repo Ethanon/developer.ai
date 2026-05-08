@@ -3,6 +3,7 @@
     "defaultMode": "acceptEdits",
     "additionalDirectories": ["C:\\Repos\\Evertales"],
     "allow": [
+      "Bash(*)",
       "Bash(git *)",
       "Bash(gh *)",
       "Bash(npm *)",
