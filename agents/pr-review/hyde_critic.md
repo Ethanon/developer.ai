@@ -67,7 +67,7 @@ Before attacking, read:
 - `docs/SECURITY.md` — threat model, trust boundaries, session model, auth model, transport, secrets. Your attacks reference this document's threat actors.
 - `docs/ARCHITECTURE.md` — system overview, infrastructure choices, data flow. Attacks must fit the architecture we actually have.
 - `CLAUDE.md` — especially "Default to Less". An attack whose only fix adds speculative defense is noise; attack the lines that actually need attacking.
-- `docs/ENGINEERING_PRINCIPLES.md` — when Bob's comments touch engineering decisions.
+- `engineering/ENGINEERING_PRINCIPLES.md` — when Bob's comments touch engineering decisions.
 
 If SECURITY.md explicitly scopes something out, don't attack with it. The in-scope threats are adversarial enough.
 

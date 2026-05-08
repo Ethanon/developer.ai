@@ -23,10 +23,14 @@ Scope: the diff between the PR's base branch and its head. You read the full con
 Before making any findings, read:
 
 - `CLAUDE.md` — especially "The Prime Directive", "Default to Less", "Design Review Checklist", and "What Not To Do".
-- `docs/ENGINEERING_PRINCIPLES.md` — KISS, SOLID, DRY, YAGNI, naming conventions, failure policy, CSS hierarchy.
+- `engineering/ENGINEERING_PRINCIPLES.md` — KISS, SOLID, DRY, YAGNI, naming conventions, failure policy, CSS hierarchy.
 - `docs/ARCHITECTURE.md` — system overview, layer responsibilities, data flow.
 
 If CLAUDE.md or ENGINEERING_PRINCIPLES.md contradict these instructions, they win. Report the contradiction in your summary so the PR author knows.
+
+## Refactoring smells — out of scope
+
+Generic refactoring smells (Long Method, Nested Conditionals, Primitive Obsession, Feature Envy, etc.) are fully covered by the project-installed `code-refactoring` skill. Do not restate those rules in your review. Your scope is the structural and engineering-principle checks below. If you believe a refactoring smell rises to the level of an engineering violation (e.g. a 500-line method that violates the god-class threshold), flag it under the relevant numbered check rather than as a free-standing refactoring note.
 
 ## Architectural envelope
 
@@ -47,6 +51,8 @@ Apply these seven checks to the full diff. A finding from this section usually g
 3. **Duplication scan and prior-art check.** Look for duplication the TypeScript compiler cannot detect:
    - Within the diff: two interfaces with identical structure in different files; two configuration types with identical fields.
    - Against the existing codebase: before approving a new `interface`, search for interfaces with the same contract elsewhere.
+   
+   Suggest reuse only when it preserves functionality. If the existing op or interface would force a regression — a different return shape, different error semantics, different domain semantics — the new addition is justified; flag it as a "justified duplicate" and move on.
 
 4. **Concrete-consumer check.** For each new CLI tool, filter field, configuration option, or generic type parameter: which existing consumer reads or uses this *today*? If the answer is "none yet, but we may need it later," flag as speculative. Cite CLAUDE.md "Default to Less" → "Anticipatory engineering".
 
@@ -55,6 +61,8 @@ Apply these seven checks to the full diff. A finding from this section usually g
 6. **Decision-document status.** If the PR implements a decision document, check the document's `**Status:**` field. `Proposed` / `Exploring` means the document is a draft; if the diff includes speculative infrastructure, say so explicitly.
 
 7. **Diff scope vs PR title.** If the diff includes work that the title does not name, flag scope creep with one sentence in the review body.
+
+8. **Cosmetic symmetry across boundaries.** When two pieces of code in different execution contexts (e.g. client vs server, build-time vs runtime, test vs production) align in shape but execute under different rules, flag the alignment as a smell. Symmetry that spans a boundary often means one side is wrong, or one side will diverge and the symmetry will silently rot.
 
 The output of the structural review goes at the top of the review body. If this section produces no findings, skip it silently.
 
@@ -92,7 +100,7 @@ Skip anything not in these eight categories. If you notice something outside the
 1. Resolve the PR: if the invocation has a PR number argument, use it. Otherwise find the open PR whose `head` matches `git branch --show-current` via `mcp__github__list_pull_requests` with `state: open`.
 2. Read the PR: `mcp__github__pull_request_read` with methods `get`, `get_diff`, `get_files`, `get_reviews`, and `get_review_comments`.
 3. Read each changed file in full via `Read`. Follow imports for one-hop context when a finding needs it.
-4. Read `CLAUDE.md`, `docs/ENGINEERING_PRINCIPLES.md`, and `docs/ARCHITECTURE.md`.
+4. Read `CLAUDE.md`, `engineering/ENGINEERING_PRINCIPLES.md`, and `docs/ARCHITECTURE.md`.
 5. Produce findings. Cap at 15 line comments. Anything beyond rolls into the review body.
 6. Post **one** review via `mcp__github__pull_request_review_write` with method `create`:
    - `event`: `APPROVE` if zero findings of any kind; `COMMENT` otherwise. Never `REQUEST_CHANGES`.

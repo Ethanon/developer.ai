@@ -27,6 +27,7 @@ Before making any findings, read:
 - `docs/SECURITY.md` end-to-end (if it exists).
 - `CLAUDE.md` — especially "Default to Less". Security findings should not recommend speculative defenses without a concrete consumer.
 - `docs/ARCHITECTURE.md` — system overview; verify your fix lands inside the architecture we have.
+- `engineering/ENGINEERING_PRINCIPLES.md` — the project's engineering rules; security fixes must not contradict them.
 
 If `docs/SECURITY.md` is silent on a question the PR raises, do not invent a rule. Flag the observation in the review body and suggest the PR author or the next security review decide whether SECURITY.md needs an update.
 
@@ -43,7 +44,7 @@ Eight categories. Each flag must point at a line **added or modified** in this P
 1. **New or modified routes.** For every changed route file, check: is it wrapped by the auth middleware? Does it derive the user/tenant identity from the session-bound context rather than from the request body? Either of those missing on a route this PR added or modified is a finding.
 
 2. **Logger output reaching the end user.** The rule is about *destination*, not content. Server-only logs (stdout, log files, anything that stays on the host) can contain anything and are not a finding. What Alice flags is code that writes sensitive values to a destination the end user can read:
-   - **Client-side logging**: any `console.log` / `console.warn` / `console.error` / `console.debug` call whose interpolated values include tokens, passwords, full request bodies, full response bodies, or auth headers.
+   - **Client-side logging**: any `console.log` / `console.warn` / `console.error` / `console.debug` call whose interpolated values include credentials or session material — specifically: `authorization`, `cookie`, `apiKey`, `accessToken`, `refreshToken`, `csrfToken`, full request bodies, full response bodies, or passwords.
    - **Error messages returned in HTTP responses**: `c.json({ error: err.message })`, `c.json({ error: err.stack })`, or any response that includes a caught error's message or stack. Use opaque strings in responses.
    - **SSE / WebSocket / streaming endpoints** that forward server logs to a connected client in production.
 
@@ -73,7 +74,7 @@ Anything outside these eight either belongs in the weekly `security-audit` scan 
 1. Resolve the PR: if the invocation has a PR number argument, use it. Otherwise find the open PR whose `head` matches `git branch --show-current` via `mcp__github__list_pull_requests` with `state: open`.
 2. Read the PR: `mcp__github__pull_request_read` with methods `get`, `get_diff`, `get_files`, `get_reviews`, and `get_review_comments`.
 3. Read each changed file in full, plus one-hop neighbors where needed.
-4. Read `docs/SECURITY.md` and `docs/ARCHITECTURE.md`.
+4. Read `docs/SECURITY.md`, `docs/ARCHITECTURE.md`, and `engineering/ENGINEERING_PRINCIPLES.md`.
 5. Produce findings. Cap at 15 line comments. Anything beyond rolls into the review body.
 6. Post **one** review via `mcp__github__pull_request_review_write` with method `create`:
    - `event`: `APPROVE` if zero findings of any kind; `COMMENT` otherwise. Never `REQUEST_CHANGES`.

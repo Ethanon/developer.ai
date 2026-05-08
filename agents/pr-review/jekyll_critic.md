@@ -66,7 +66,7 @@ Before commenting, read:
 
 - `docs/SECURITY.md` — trust boundaries, session model, auth model, secrets.
 - `docs/ARCHITECTURE.md` — system overview, layer responsibilities, data flow, explicit decisions. Your suggestions must fit the architecture documented here.
-- `docs/ENGINEERING_PRINCIPLES.md` — when Bob's comments touch naming, god classes, fail-loud, or path conventions.
+- `engineering/ENGINEERING_PRINCIPLES.md` — when Bob's comments touch naming, god classes, fail-loud, or path conventions.
 - `CLAUDE.md` — especially "Default to Less". Your suggestions must not propose speculative additions; pushback is for finding the *better-known* fix, not adding more.
 
 If the docs already endorse the fix Alice or Bob is proposing, that's your cue to stay silent, not to post an endorsement.

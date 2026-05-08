@@ -1,50 +1,110 @@
 # developer.ai
 
-A collection of Claude Code agents, engineering principles, automation workflows, and CI pipelines for TypeScript projects. Fork it, configure it for your repo, and get a production-quality AI-assisted development pipeline.
+A ready-to-fork collection of Claude Code agents, engineering principles, automation workflows, and CI pipelines for TypeScript projects.
+
+Fork it, wire up a secret, and get a production-quality AI-assisted development pipeline on your next PR.
+
+---
 
 ## What's included
 
-**PR review pipeline** — Four agents review every PR automatically via GitHub Actions:
+### PR review pipeline (4 agents, runs on every PR)
 
-- `alice_security` — security review: routes, secrets, cookies, XSS, SSRF, auth bypass, logger leaks
-- `bob_engineering` — engineering principles: naming, god classes, comments, over-abstraction, fail-loud
-- `jekyll_critic` — whitehat critic: challenges Alice and Bob's findings
-- `hyde_critic` — blackhat critic: attacks the code for bypasses and load failures
+| Agent | File | What it does |
+|---|---|---|
+| Alice | `agents/pr-review/alice_security.md` | Security review: routes, auth, secrets, cookies, XSS, SSRF, logger leaks |
+| Bob | `agents/pr-review/bob_engineering.md` | Engineering review: god classes, naming contracts, fail-loud, over-abstraction |
+| Jekyll | `agents/pr-review/jekyll_critic.md` | Whitehat critic: challenges Alice + Bob from a best-practices angle |
+| Hyde | `agents/pr-review/hyde_critic.md` | Blackhat critic: attacks Alice + Bob's proposed fixes for real bypasses |
 
-PWA variants (`alice_security_pwa`, `bob_engineering_pwa`) add React, CSS Modules, BFF, and OAuth/PKCE checks.
+Two tiers: **generic** (`alice_security`, `bob_engineering`) for any TypeScript project, and **PWA variants** (`alice_security_pwa`, `bob_engineering_pwa`) for a React + BFF + OAuth/PKCE stack.
 
-**Backlog automation** — Daily agents manage the issue lifecycle end-to-end:
+### Backlog automation (3 agents, run daily/on-demand)
 
-- `story_groomer` — decomposes approved decision docs into pickup-ready issues (7-point Definition of Ready)
-- `developer_agent` — picks up one `ready` issue per day, opens a PR, iterates on reviewer feedback
-- `scrum_master` — closes shipped issues, creates tracking issues for merged PRs, cleans the backlog
+| Agent | File | What it does |
+|---|---|---|
+| Developer | `agents/backlog/developer_agent.md` | Self-assigns a `ready` issue, opens a PR, shepherds it through review |
+| Scrum Master | `agents/backlog/scrum_master.md` | Closes shipped issues, auto-creates tracking issues, cleans up backlog |
+| Story Groomer | `agents/backlog/story_groomer.md` | Decomposes decision docs into stories; evaluates issues against Definition of Ready |
 
-**Weekly audits** — Read-only scanners that write Markdown reports to `.claude/reports/`:
+### Weekly audits (5 agents, run on a schedule)
 
-- `hanging_refs` — dead imports, unused exports, orphan routes, stale env vars, CSS dead classes
-- `naming_audit` — suffix/contract mismatches against the naming conventions in `ENGINEERING_PRINCIPLES.md`
-- `class_size_audit` — classes over 300 lines or 8+ methods, with cohesion-test self-classification
-- `security_audit` — schema validation gaps, hardcoded secrets, logger leaks, cookie hygiene, rate limiting
-- `market_watch` — engineering-practice and tech-ecosystem signals with opinionated recommendations
+| Agent | File | What it does |
+|---|---|---|
+| Hanging Refs | `agents/audits/hanging_refs.md` | Dead imports, unused exports, orphan routes, stale env vars |
+| Naming Audit | `agents/audits/naming_audit.md` | Suffix/contract mismatches against the naming rules |
+| Class Size Audit | `agents/audits/class_size_audit.md` | Flags classes >= 300 lines or >= 8 public methods |
+| Security Audit | `agents/audits/security_audit.md` | Auth routes, schema validation, secrets hygiene, logger leaks, cookie hygiene |
+| Market Watch | `agents/audits/market_watch.md` | Weekly engineering-tool signals and tech ecosystem scan |
 
-**Skill** — `receiving-code-review` — guides Claude through evaluating and responding to PR feedback.
+### Skills (copy to `.claude/skills/` in your project)
 
-## Setup
+| Skill | Path | When to use |
+|---|---|---|
+| Receiving code review | `skills/receiving-code-review/SKILL.md` | When Alice/Bob/Jekyll/Hyde review lands on your PR |
+| Test-driven development | `skills/test-driven-development/SKILL.md` | When implementing any feature or bugfix |
+| Code refactoring | `skills/code-refactoring/SKILL.md` | When cleaning up legacy code or reducing complexity |
+| Visual smoke testing | `skills/visual-smoke/SKILL.md` | When a fix touches client-side UI or styles |
 
-See [docs/ADAPTING.md](docs/ADAPTING.md) for the full setup guide. The short version:
+### Reference workflows (copy to `.github/workflows/` in your project)
 
-1. Fork or copy this repo.
-2. Replace `REPO_OWNER/REPO_NAME` in every agent and workflow file with your GitHub slug.
-3. Add `CLAUDE_CODE_OAUTH_TOKEN` to your repo secrets (Settings → Secrets and variables → Actions). Generate it with `claude setup-token`.
-4. Choose `[bob_engineering, alice_security]` (generic) or `[bob_engineering_pwa, alice_security_pwa]` (React PWA) in `.github/workflows/pr-review.yml`.
-5. Push to your default branch.
+| File | What it does |
+|---|---|
+| `workflows/pr-review.yml` | Triggers Alice + Bob on every PR, then Jekyll + Hyde after |
+| `workflows/scheduled-agents.yml` | Cron schedules for audit and backlog agents |
 
-Alice, Bob, Jekyll, and Hyde will post on every PR automatically. The scheduled agents run via the cron jobs in `.github/workflows/scheduled-agents.yml`.
+### Engineering docs (copy to `engineering/` in your project)
 
-## Engineering principles
+- `engineering/ENGINEERING_PRINCIPLES.md` — KISS, SOLID, DRY, YAGNI, naming, failure policy, CSS hierarchy
+- `engineering/PR_WORKFLOW.md` — opening PRs, greening CI, responding to review
+- `engineering/BACKLOG_WORKFLOW.md` — issue lifecycle, Definition of Ready, story format
 
-The agents enforce the rules in [docs/ENGINEERING_PRINCIPLES.md](docs/ENGINEERING_PRINCIPLES.md): naming conventions, failure policy, YAGNI, no backwards compatibility, no inline timeouts, deterministic tests. Read it before making changes — the agents will cite it in their reviews.
+---
+
+## Quick start
+
+**To get the full pipeline on your TypeScript project:**
+
+1. Copy `agents/` into `.claude/agents/` in your target repo.
+2. Copy `skills/` into `.claude/skills/` in your target repo.
+3. Copy `engineering/` into your target repo.
+4. Copy `workflows/pr-review.yml` into `.github/workflows/pr-review.yml`.
+5. Run `claude setup-token` and add the token as `CLAUDE_CODE_OAUTH_TOKEN` in GitHub Secrets.
+6. Replace `REPO_OWNER/REPO_NAME` in the workflow and backlog agent files.
+7. Add `docs/ARCHITECTURE.md` and `docs/SECURITY.md` describing your system.
+8. Push.
+
+Alice and Bob post reviews on your next PR. Jekyll and Hyde follow.
+
+**Full setup guide:** [ADAPTING.md](ADAPTING.md)
+
+---
+
+## Minimal viable setup (PR review only)
+
+```bash
+# In your target repo:
+mkdir -p .claude/agents .github/workflows
+
+# Copy the four PR-review agents
+cp /path/to/developer.ai/agents/pr-review/*.md .claude/agents/
+
+# Copy the workflow
+cp /path/to/developer.ai/workflows/pr-review.yml .github/workflows/pr-review.yml
+```
+
+Then add the `CLAUDE_CODE_OAUTH_TOKEN` secret and update the branch/repo references in the workflow.
+
+---
+
+## Adopting the engineering principles
+
+The principles in `engineering/ENGINEERING_PRINCIPLES.md` work standalone. Copy the file into your repo, reference it in your CLAUDE.md, and the PR review agents will find it automatically.
+
+The condensed version of the rules is in `CLAUDE.md`.
+
+---
 
 ## License
 
-MIT
+MIT. Fork, extend, ship.

@@ -26,7 +26,7 @@ When finished, return ONLY the report file path to the caller. No summary, no na
 
 Before scanning, write a stub at `.claude/reports/security-audit-<YYYY-MM-DD>.md` containing just `# Security Audit - <YYYY-MM-DD>\n\n_Scan in progress..._\n`. If this Write fails, exit immediately with an error message naming the permission that is blocked. Do not start the scan. You will overwrite the stub with the real report when the scan completes.
 
-Then read `docs/SECURITY.md` end-to-end. The categories below mirror that document; if it has been revised, your report uses the revised rules.
+Then read `docs/SECURITY.md` end-to-end (if it exists). The categories below mirror that document; if it has been revised, your report uses the revised rules. If `docs/SECURITY.md` does not exist yet, continue the scan using the built-in category rules and note its absence in the report.
 
 ## Severity levels
 
@@ -81,11 +81,19 @@ Grep for patterns:
 
 Never include the secret value in the report. Write `<redacted, see file:line>` and let the reviewer open the file.
 
+### Auth route identity binding (HIGH bias)
+
+For every route handler that reads or writes user data, verify that user identity is derived from a session-bound source (e.g. a validated session token, a signed cookie, a middleware-injected context object). A route that derives user identity from a request-body field or a query parameter that the caller supplies is a HIGH finding: callers can impersonate any user.
+
+- Routes that read `req.body.userId`, `req.query.userId`, or equivalent to determine who the operation acts on: HIGH.
+- Routes that derive tenant or org context from a request header the client sets freely (not a signed JWT or session-bound value): HIGH.
+- Routes that pass a caller-supplied ID straight into a database query without cross-checking the session identity: HIGH.
+
 ### Logger leak risk (MEDIUM bias)
 
 The Logger should have (or will have) a redaction allowlist. Until one is confirmed implemented:
 
-- Grep for logger calls (e.g. `Logger.error`, `Logger.warn`, `logger.info`, `console.log`) whose payload includes literal keys: `password`, `passwordHash`, `refreshToken`, `accessToken`, `csrfToken`, `cookie`, `authorization`. Flag MEDIUM.
+- Grep for logger calls (e.g. `Logger.error`, `Logger.warn`, `logger.info`, `console.log`) whose payload includes literal keys: `authorization`, `cookie`, `apiKey`, `accessToken`, `refreshToken`, `csrfToken`, `password`, `passwordHash`. Flag MEDIUM.
 - Grep for logger calls inside auth-related route handlers that include the full request body. Flag MEDIUM.
 
 Once a redaction wrapper is confirmed in place, missing wrapper usage becomes HIGH.
@@ -200,6 +208,7 @@ What belongs in this agent's TLDR:
 |---|---:|---:|---:|---:|
 | Schema validation | N | N | N | N |
 | Hardcoded secrets | N | N | N | N |
+| Auth route identity binding | N | N | N | N |
 | Logger leak risk | N | N | N | N |
 | React XSS surface | N | N | N | N |
 | Cookie hygiene | N | N | N | N |

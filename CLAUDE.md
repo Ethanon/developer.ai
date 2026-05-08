@@ -1,6 +1,6 @@
 # developer.ai: Agent Guide
 
-This file is the entry point. Real content lives in focused docs under `docs/`. Read those for the rule you need.
+This file is the entry point. Real content lives in focused docs under `engineering/`. Read those for the rule you need.
 
 If you are an agent: read this in full once, then read the linked doc(s) for the task you are about to do.
 
@@ -18,7 +18,7 @@ The agents cover:
 
 Two tiers of agents exist: **generic** (any TypeScript project) and **_pwa** variants (React + CSS Modules + BFF + OAuth/PKCE stack).
 
-See [docs/ADAPTING.md](docs/ADAPTING.md) for the one-time setup steps to point everything at your repo.
+See [ADAPTING.md](ADAPTING.md) for the one-time setup steps to point everything at your repo.
 
 ---
 
@@ -26,13 +26,12 @@ See [docs/ADAPTING.md](docs/ADAPTING.md) for the one-time setup steps to point e
 
 | Task | Required reading |
 |---|---|
-| Any code change | [`docs/ENGINEERING_PRINCIPLES.md`](docs/ENGINEERING_PRINCIPLES.md) |
-| Architecture / data flow | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (add your own) |
-| AI agents (all roles, variants) | [`.claude/agents/`](.claude/agents/) |
-| Editing or adding any agent prompt | [`docs/PROMPT_RULES.md`](docs/PROMPT_RULES.md) |
-| PR lifecycle | [`docs/PR_WORKFLOW.md`](docs/PR_WORKFLOW.md) |
-| Backlog / issue lifecycle | [`docs/BACKLOG_WORKFLOW.md`](docs/BACKLOG_WORKFLOW.md) |
-| Adapting this repo to your project | [`docs/ADAPTING.md`](docs/ADAPTING.md) |
+| Any code change | [`engineering/ENGINEERING_PRINCIPLES.md`](engineering/ENGINEERING_PRINCIPLES.md) |
+| Architecture / data flow | `docs/ARCHITECTURE.md` (add your own) |
+| AI agents (all roles, variants) | [`agents/`](agents/) |
+| PR lifecycle | [`engineering/PR_WORKFLOW.md`](engineering/PR_WORKFLOW.md) |
+| Backlog / issue lifecycle | [`engineering/BACKLOG_WORKFLOW.md`](engineering/BACKLOG_WORKFLOW.md) |
+| Adapting this repo to your project | [`ADAPTING.md`](ADAPTING.md) |
 
 ---
 
@@ -40,13 +39,13 @@ See [docs/ADAPTING.md](docs/ADAPTING.md) for the one-time setup steps to point e
 
 > **The preferred number of lines of code is zero.**
 
-Every line is a liability. Write the minimum that correctly solves the problem. When in doubt, delete. Full anti-patterns and the design-review checklist live in [`docs/ENGINEERING_PRINCIPLES.md`](docs/ENGINEERING_PRINCIPLES.md) → "Default to Less" and "Design Review Checklist".
+Every line is a liability. Write the minimum that correctly solves the problem. When in doubt, delete. Full anti-patterns and the design-review checklist live in [`engineering/ENGINEERING_PRINCIPLES.md`](engineering/ENGINEERING_PRINCIPLES.md) → "Default to Less" and "Design Review Checklist".
 
 ---
 
 ## Headline rules: the ones agents violate most often
 
-These are pointers to the full rules in [`docs/ENGINEERING_PRINCIPLES.md`](docs/ENGINEERING_PRINCIPLES.md).
+These are pointers to the full rules in [`engineering/ENGINEERING_PRINCIPLES.md`](engineering/ENGINEERING_PRINCIPLES.md).
 
 - **Fail loud, never fabricate.** Critical-path errors throw; client retries. No placeholder data, no synthetic ops, no "graceful degradation" that hides real failures. → "Failure Policy".
 - **No interim implementations.** If the design picked a shape, build to that shape. "Phase 1 easy, phase 2 real" is a smell. → "YAGNI".
@@ -60,7 +59,7 @@ These are pointers to the full rules in [`docs/ENGINEERING_PRINCIPLES.md`](docs/
 
 ## Quick "What Not To Do" reminders
 
-The full rules each link out from [`docs/ENGINEERING_PRINCIPLES.md`](docs/ENGINEERING_PRINCIPLES.md).
+The full rules each link out from [`engineering/ENGINEERING_PRINCIPLES.md`](engineering/ENGINEERING_PRINCIPLES.md).
 
 - Do not put business logic inside React components: UI is display-only.
 - Do not use `any` to bypass type errors.
@@ -79,21 +78,21 @@ The full rules each link out from [`docs/ENGINEERING_PRINCIPLES.md`](docs/ENGINE
 
 ## Conventions (quick reference)
 
-The full rules are in [`docs/ENGINEERING_PRINCIPLES.md`](docs/ENGINEERING_PRINCIPLES.md).
+The full rules are in [`engineering/ENGINEERING_PRINCIPLES.md`](engineering/ENGINEERING_PRINCIPLES.md).
 
 - **Naming** (enforced by ESLint): no dashes or underscores in filenames. Class files PascalCase matching the class (`GameClient.ts`). Utility/config files camelCase (`context.ts`). Suffixes are contracts: see "Naming Conventions" in ENGINEERING_PRINCIPLES.md.
 - **One class per file**, named to match the filename. No free-standing exported functions.
 - **Barrel exports (`index.ts`) per folder only when the folder is stable.** A barrel for a folder still in flux just adds an extra edit per change.
 - **`Result<T, E>` for fallible operations**: no throwing from business logic.
 - **Format**: Prettier defaults (2-space indent, single quotes, trailing commas). Never align values across lines with extra whitespace.
-- **No em-dashes, no emoji/icons in prose.** Applies to new code, comments, commit messages, PR descriptions, and `docs/`. Use a colon, parentheses, or a new sentence.
+- **No em-dashes, no emoji/icons in prose.** Applies to new code, comments, commit messages, PR descriptions, and `engineering/`. Use a colon, parentheses, or a new sentence.
 
 ### PWA / React conventions (applies when using `*_pwa` agent variants)
 
 - **CSS hierarchy**: a single `global.css` is the source of truth for tokens and shared utilities. Component `.module.css` files use `composes` from global, never duplicate. See "CSS" in ENGINEERING_PRINCIPLES.md.
 - **Storage keys**: any new `localStorage` / `sessionStorage` key MUST be prefixed with your app namespace AND classified in a State Purge Contract doc.
 - **Navigation**: UI components use a `NavigationService` / `useNavigation()` hook. Direct `react-router-dom` imports outside the navigation layer are a layering violation.
-- **Auth**: PKCE flow only (no implicit grant). Token storage: memory only (never `localStorage`). Refresh tokens: `HttpOnly` cookie set by the BFF. See [docs/SECURITY.md](docs/SECURITY.md).
+- **Auth**: PKCE flow only (no implicit grant). Token storage: memory only (never `localStorage`). Refresh tokens: `HttpOnly` cookie set by the BFF. See `docs/SECURITY.md`.
 
 ---
 
@@ -122,20 +121,20 @@ The full rules are in [`docs/ENGINEERING_PRINCIPLES.md`](docs/ENGINEERING_PRINCI
 
 Both are bot-managed. Read these before opening an issue or PR:
 
-- [`docs/BACKLOG_WORKFLOW.md`](docs/BACKLOG_WORKFLOW.md): how issues come into existence, the Definition of Ready, the `[story]` heading convention.
-- [`docs/PR_WORKFLOW.md`](docs/PR_WORKFLOW.md): opening, greening CI, responding to review.
+- [`engineering/BACKLOG_WORKFLOW.md`](engineering/BACKLOG_WORKFLOW.md): how issues come into existence, the Definition of Ready, the `[story]` heading convention.
+- [`engineering/PR_WORKFLOW.md`](engineering/PR_WORKFLOW.md): opening, greening CI, responding to review.
 
-The agent fleet is documented in [`.claude/agents/`](.claude/agents/) and orchestrated by GitHub Actions in [`.github/workflows/`](.github/workflows/).
+The agent fleet is documented in [`agents/`](agents/) and the reference workflows are in [`workflows/`](workflows/).
 
 ---
 
 ## Adapting this repo
 
-See [`docs/ADAPTING.md`](docs/ADAPTING.md) for the full checklist. The short version:
+See [`ADAPTING.md`](ADAPTING.md) for the full checklist. The short version:
 
 1. Fork or copy this repo.
 2. Replace `REPO_OWNER/REPO_NAME` in every agent and workflow file with your GitHub repo slug.
-3. Add the `ANTHROPIC_API_KEY` secret to your GitHub repo (Settings → Secrets).
-4. Choose which agent variants to use (generic or `_pwa`) and update `.github/workflows/pr-review.yml` accordingly.
+3. Add the `CLAUDE_CODE_OAUTH_TOKEN` secret to your GitHub repo (Settings → Secrets).
+4. Choose which agent variants to use (generic or `_pwa`) and update `workflows/pr-review.yml` accordingly.
 5. Add your own `docs/ARCHITECTURE.md` describing your stack.
 6. Optionally extend `alice_security_pwa.md` / `bob_engineering_pwa.md` with project-specific rules by appending a "Project-specific extensions" section at the bottom.

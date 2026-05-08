@@ -17,22 +17,22 @@ Every agent that interacts with GitHub has a hardcoded `REPO_OWNER/REPO_NAME` pl
 **Find all occurrences:**
 
 ```bash
-grep -r "REPO_OWNER/REPO_NAME" .claude/agents/ .github/workflows/
+grep -r "REPO_OWNER/REPO_NAME" agents/ workflows/
 ```
 
 **Replace with your GitHub repo slug** (e.g. `myorg/myproject`):
 
 Files to update:
-- `.claude/agents/scrum-master.md` — repo identity section
-- `.claude/agents/developer-agent.md` — repo identity section
-- `.claude/agents/story-groomer.md` — repo identity section
-- `.github/workflows/pr-review.yml` — fork guard condition
+- `agents/backlog/scrum_master.md` — repo identity section
+- `agents/backlog/developer_agent.md` — repo identity section
+- `agents/backlog/story_groomer.md` — repo identity section
+- `workflows/pr-review.yml` — fork guard condition
 
 Also update the default branch name if yours is not `master` (e.g. change to `main`):
-- `.claude/agents/scrum-master.md`
-- `.claude/agents/developer-agent.md`
-- `.claude/agents/story-groomer.md`
-- `.github/workflows/pr-review.yml`
+- `agents/backlog/scrum_master.md`
+- `agents/backlog/developer_agent.md`
+- `agents/backlog/story_groomer.md`
+- `workflows/pr-review.yml`
 
 ---
 
@@ -58,7 +58,7 @@ Two tiers:
 - **Generic** (`alice_security.md`, `bob_engineering.md`): any TypeScript project.
 - **PWA** (`alice_security_pwa.md`, `bob_engineering_pwa.md`): React + CSS Modules + BFF + OAuth/PKCE stack.
 
-Update `.github/workflows/pr-review.yml` to use the right variants:
+Update `workflows/pr-review.yml` to use the right variants:
 
 ```yaml
 matrix:
@@ -101,7 +101,7 @@ Create `docs/SECURITY.md` covering:
 
 ## Step 7: Update the CI workflow if needed
 
-`.github/workflows/pr-review.yml` defaults to:
+`workflows/pr-review.yml` defaults to:
 - `runs-on: ubuntu-latest` — change to `self-hosted` if you have your own runners
 - `branches: [master]` — change to match your default branch
 - Fork guard: the existing guard skips forks. Keep this; fork PRs can't safely access repo secrets.
@@ -150,9 +150,11 @@ Or invoke manually via the Agent tool: `Agent({ subagent_type: 'scrum-master' })
 
 ## Minimal viable setup (if you want just the PR review)
 
-1. Replace `REPO_OWNER/REPO_NAME` in `.github/workflows/pr-review.yml`.
-2. Add the `CLAUDE_CODE_OAUTH_TOKEN` secret.
-3. Choose `[bob, alice]` or `[bob_pwa, alice_pwa]` in the matrix.
-4. Push to your default branch.
+1. Copy `agents/pr-review/` into `.claude/agents/` in your target repo.
+2. Copy `workflows/pr-review.yml` into `.github/workflows/pr-review.yml`.
+3. Replace `REPO_OWNER/REPO_NAME` in `workflows/pr-review.yml`.
+4. Add the `CLAUDE_CODE_OAUTH_TOKEN` secret.
+5. Choose `[bob_engineering, alice_security]` or `[bob_engineering_pwa, alice_security_pwa]` in the matrix.
+6. Push to your default branch.
 
 That's it. Alice and Bob will post on every PR automatically. Jekyll and Hyde follow once alice and bob have run.
