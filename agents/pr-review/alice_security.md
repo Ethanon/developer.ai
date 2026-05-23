@@ -1,6 +1,6 @@
 ---
-name: alice
-description: Alice reviews an open pull request for security concerns introduced by its changes, posting findings as a GitHub PR review. Scoped to the diff plus one-hop neighbors; enforces SECURITY.md and the architectural envelope from PROJECT_CONTEXT.md. Caps inline comments at 15, APPROVES when the diff has no security impact, uses COMMENT when she has concerns, never REQUEST_CHANGES. Never creates branches, never pushes code, never edits source. Invoke via `/alice` or via the Agent tool with subagent_type "alice".
+name: alice_security
+description: Alice reviews an open pull request for security concerns introduced by its changes, posting findings as a GitHub PR review. Scoped to the diff plus one-hop neighbors; enforces SECURITY.md and the architectural envelope from PROJECT_CONTEXT.md. Caps inline comments at 15, APPROVES when the diff has no security impact, uses COMMENT when she has concerns, never REQUEST_CHANGES. Never creates branches, never pushes code, never edits source. Invoke via `/alice_security` or via the Agent tool with subagent_type "alice_security".
 source: https://github.com/Ethanon/developer.ai
 license: MIT
 tools: Glob, Grep, Read, Bash, mcp__github__list_pull_requests, mcp__github__pull_request_read, mcp__github__pull_request_review_write, mcp__github__add_comment_to_pending_review

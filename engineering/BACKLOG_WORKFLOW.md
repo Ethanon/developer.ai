@@ -35,7 +35,7 @@ When a planning session produces an approved implementation plan, **save it as a
 | Audit Groomer | `audit-groomer` agent | Weekly | Reads the latest `security-audit`, `hanging-refs`, and `naming-audit` reports. Files one issue per CERTAIN finding. Issues are shaped to pass story-groomer's DoR so developer-agent can pick them up. |
 | Audit bots | `security-audit` / `hanging-refs` / `naming-audit` / `class-size-audit` agents | Weekly | Read-only scanners. Write timestamped reports to `.claude/reports/`. |
 | Developer | `developer-agent` agent | Daily | Pickup. Pulls one `ready`-tagged issue, opens a PR, applies review feedback up to a 3-cycle cap. Never merges. |
-| Reviewer | `alice` / `bob` / `jekyll` / `hyde` agents | On PR open | Auto-review the PR per `.github/workflows/pr-review.yml`. |
+| Reviewer | `alice_security` / `bob_engineering` / `jekyll_whitehat` / `hyde_blackhat` agents (plus optional `gomez_cleancode`, `carl_ux`) | On PR open | Auto-review the PR per `.github/workflows/pr-review.yml`. |
 
 The human writes the design, sets `**Status:** Approved`, reviews the resulting PRs, and merges. Nothing else is required.
 

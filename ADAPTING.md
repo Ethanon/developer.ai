@@ -57,37 +57,35 @@ The workflow checks for this secret and prints an error if missing.
 
 ---
 
-## Step 4: Choose your agent variants
+## Step 4: Choose which review agents to include
 
-### Core review agents (Alice, Bob)
+Six PR-review agents ship in this kit. No generic-vs-PWA variants any more — frontend-specific rules live inline in each file, tagged Architecture-Conditional, and either survive or get stripped at install time based on whether your project has a frontend.
 
-Two tiers:
+### Core review agents (always on)
 
-- **Generic** (`alice_security.md`, `bob_engineering.md`): any project.
-- **PWA-flavored** (`alice_security_pwa.md`, `bob_engineering_pwa.md`): React frontend plus a backend-auth-gateway pattern (the backend holds the session, the browser only has a cookie).
-
-Update `workflows/pr-review.yml` to use the right variants:
+- **Alice** (`alice_security.md`): security review.
+- **Bob** (`bob_engineering.md`): engineering-principles review.
 
 ```yaml
 matrix:
-  agent: [bob_engineering_pwa, alice_security_pwa]   # or [bob_engineering, alice_security] for generic
+  agent: [bob_engineering, alice_security]
 ```
 
-### Optional extra reviewers (Gomez, Carl)
+### Optional extra reviewers
 
 - **Gomez** (`gomez_cleancode.md`): line-level density and naming-for-intent. Useful for any codebase; especially valuable on AI-generated code that passes the suffix contract but tells a human reader nothing.
-- **Carl** (`carl_ux_pwa.md`): UX review. Only useful for projects with a user interface; PWA-flavored.
+- **Carl** (`carl_ux.md`): UX review. Only useful for projects with a user interface; the installer omits Carl entirely for backend-only projects.
 
 Add either or both to the workflow matrix:
 
 ```yaml
 matrix:
-  agent: [bob_engineering_pwa, alice_security_pwa, gomez_cleancode, carl_ux_pwa]
+  agent: [bob_engineering, alice_security, gomez_cleancode, carl_ux]
 ```
 
 ### Critique agents (Jekyll, Hyde)
 
-These are generic — no variants needed. They critique whatever the first-pass reviewers post.
+`jekyll_whitehat.md` and `hyde_blackhat.md` critique whatever the first-pass reviewers post. They run in the second job, after the review job finishes.
 
 ---
 
@@ -107,7 +105,7 @@ This is the highest-ROI setup step. Agents that know your architecture post far 
 
 ## Step 6: Add your own SECURITY.md (for security-audit and alice)
 
-`alice.md` and `security-audit.md` read `docs/SECURITY.md` as the source of truth for your security model. Without it, alice falls back to generic OWASP guidance.
+`alice_security.md` and `security_audit.md` read `docs/SECURITY.md` as the source of truth for your security model. Without it, Alice falls back to generic OWASP guidance.
 
 Create `docs/SECURITY.md` covering:
 - Trust boundaries and threat actors
@@ -159,7 +157,7 @@ You can skip CALIBRATE for the first PR review and the agents will still post so
 
 ## Step 10: Extend `_pwa` variants for your stack (optional)
 
-If your project has conventions beyond what the PWA-flavored agents already cover — a specific state management library, a particular API pattern, internal naming conventions — add a `## Project-specific extensions` section at the bottom of `alice_security_pwa.md` and `bob_engineering_pwa.md`.
+If your project has conventions beyond what Alice and Bob already cover — a specific state-management library, a particular API pattern, internal naming conventions — add a `## Project-specific extensions` section at the bottom of `alice_security.md` and `bob_engineering.md`.
 
 Keep it focused: only rules that would catch real bugs in your codebase, not style preferences.
 
@@ -187,7 +185,7 @@ Or invoke manually via the Agent tool: `Agent({ subagent_type: 'scrum-master' })
 2. Copy `workflows/pr-review.yml` into `.github/workflows/pr-review.yml`.
 3. Replace `REPO_OWNER/REPO_NAME` in `workflows/pr-review.yml`.
 4. Add the `CLAUDE_CODE_OAUTH_TOKEN` secret.
-5. Choose `[bob_engineering, alice_security]` or `[bob_engineering_pwa, alice_security_pwa]` in the matrix.
+5. Confirm the `[bob_engineering, alice_security]` matrix is what you want (add `gomez_cleancode` and `carl_ux` if your project needs them).
 6. Push to your default branch.
 
 That's it. Alice and Bob will post on every PR automatically. Jekyll and Hyde follow once alice and bob have run.

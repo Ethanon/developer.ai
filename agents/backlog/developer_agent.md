@@ -1,6 +1,6 @@
 ---
 name: developer_agent
-description: Daily code-fix agent that picks up one open issue carrying the `ready` label (added by `story_groomer` after a 7-point Definition of Ready), opens a PR with `Closes #N`, then waits for alice_security, bob_engineering, jekyll_critic, and hyde_critic to finish posting reviews before applying feedback. Hard-capped at 3 fix cycles per PR. Files follow-up issues with `**Origin:** PR #N` for any genuine out-of-scope work discovered mid-fix. Never pushes to master, never merges, never force-pushes, never picks up an issue without `ready`. Invoke daily via remote routine or `/developer_agent`.
+description: Daily code-fix agent that picks up one open issue carrying the `ready` label (added by `story_groomer` after a 7-point Definition of Ready), opens a PR with `Closes #N`, then waits for alice_security, bob_engineering, jekyll_whitehat, and hyde_blackhat to finish posting reviews before applying feedback. Hard-capped at 3 fix cycles per PR. Files follow-up issues with `**Origin:** PR #N` for any genuine out-of-scope work discovered mid-fix. Never pushes to master, never merges, never force-pushes, never picks up an issue without `ready`. Invoke daily via remote routine or `/developer_agent`.
 source: https://github.com/Ethanon/developer.ai
 license: MIT
 tools: Glob, Grep, Read, Bash, Write, Edit, mcp__github__list_pull_requests, mcp__github__pull_request_read, mcp__github__list_issues, mcp__github__search_issues, mcp__github__issue_read, mcp__github__issue_write, mcp__github__add_issue_comment
@@ -141,7 +141,7 @@ One per run. Drop the rest. The next daily run picks up the next.
 
 ## Review cycle protocol
 
-The four review bots (alice_security, bob_engineering, jekyll_critic, hyde_critic) trigger automatically on `pull_request: opened, synchronize, reopened`. The agent never invokes the reviewers manually.
+The four review bots (alice_security, bob_engineering, jekyll_whitehat, hyde_blackhat) trigger automatically on `pull_request: opened, synchronize, reopened`. The agent never invokes the reviewers manually.
 
 ### Cycle definition
 
@@ -159,7 +159,7 @@ Before reading any review feedback, ALL of the following must be true on the cur
 
 1. CI workflow run on the head commit: `status: 'completed'` AND `conclusion: 'success'`.
 2. PR Review `review` job (bob_engineering + alice_security matrix): both matrix entries `status: 'completed'`.
-3. PR Review `critique` job (jekyll_critic + hyde_critic matrix): both matrix entries `status: 'completed'`.
+3. PR Review `critique` job (jekyll_whitehat + hyde_blackhat matrix): both matrix entries `status: 'completed'`.
 4. The PR has at least four review submissions on the current head SHA, one each whose body opens with each of:
    - `### Alice — Security Review`
    - `### Bob — Engineering Principles Review`

@@ -27,7 +27,7 @@ Two failure modes follow:
 1. **The pipeline pauses whenever the maintainer's machine is off.** The backlog (issues filed by groomers, PRs opened by the developer-agent) is the spine of how work flows through this project; pausing it pauses everything else.
 2. **Onboarding a second maintainer means re-creating the routines on their box.** The schedule is not in the repo, so it cannot be reviewed, version-controlled, or transferred.
 
-We already invoke our PR-review bots (alice, bob, jekyll, hyde) from a GitHub Actions workflow on `pull_request`. The same action accepts a `schedule:` trigger; the migration is mechanical.
+We already invoke our PR-review bots (alice_security, bob_engineering, jekyll_whitehat, hyde_blackhat) from a GitHub Actions workflow on `pull_request`. The same action accepts a `schedule:` trigger; the migration is mechanical.
 
 ## Decision
 

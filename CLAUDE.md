@@ -96,24 +96,29 @@ The full rules are in [`engineering/ENGINEERING_PRINCIPLES.md`](engineering/ENGI
 
 ---
 
-## Agent variants
+## Agents
 
-| Agent | Scope | Notes |
-|---|---|---|
-| `alice_security.md` | Generic TypeScript | Security review: routes, logger output, secrets, cookies, XSS, SSRF, auth bypass |
-| `alice_security_pwa.md` | React PWA + BFF | Adds: PKCE/OAuth flows, service workers, CSP headers, manifest security |
-| `bob_engineering.md` | Generic TypeScript | Engineering principles: god classes, naming, comments, over-abstraction, fail-loud |
-| `bob_engineering_pwa.md` | React PWA | Adds: React-specific patterns, hooks, CSS modules, layering violations |
-| `jekyll_critic.md` | Any | Whitehat critic of Alice + Bob findings |
-| `hyde_critic.md` | Any | Blackhat critic of Alice + Bob findings |
-| `developer_agent.md` | Any | Self-assigns a `ready` issue, opens PR, shepherds through review |
-| `scrum_master.md` | Any | Closes shipped issues, auto-creates tracking issues, cleans up backlog |
-| `story_groomer.md` | Any | Decomposes decision docs into stories; evaluates issues against Definition of Ready |
-| `hanging_refs.md` | TypeScript | Dead imports, unused exports, orphan routes, stale env vars, CSS dead classes |
-| `naming_audit.md` | TypeScript | Suffix/contract mismatches against ENGINEERING_PRINCIPLES naming rules |
-| `class_size_audit.md` | TypeScript | Flags classes >= 300 lines or >= 8 public methods |
-| `security_audit.md` | TypeScript | Auth middleware, schema validation, secret hygiene, logger leaks, cookie hygiene |
-| `market_watch.md` | Any | Weekly engineering-tool signals + tech ecosystem scan |
+No PWA / generic variants — single file per agent. Frontend-specific rules live inline in each file, tagged `Architecture-Conditional`, and the installer strips them at install time for backend-only projects.
+
+| Agent file | What it does |
+|---|---|
+| `alice_security.md` | Security review on every PR: routes, auth, secrets, cookies, log-leak hygiene; frontend categories when applicable (OAuth flow, service worker, CSP, IndexedDB) |
+| `bob_engineering.md` | Engineering-principles review on every PR: god classes, naming contracts, fail-loud, over-abstraction; frontend categories when applicable (React component design, hooks, CSS modules) |
+| `gomez_cleancode.md` | Line-level clean-code review on every PR: names that communicate intent, density, idiom |
+| `carl_ux.md` | UX review on every PR; installer omits the file entirely for backend-only projects |
+| `jekyll_whitehat.md` | Whitehat critic of Alice/Bob findings, runs in the second review job |
+| `hyde_blackhat.md` | Blackhat critic of Alice/Bob findings, runs in the second review job |
+| `developer_agent.md` | Self-assigns a `ready` issue, opens a PR, shepherds it through review |
+| `scrum_master.md` | Closes shipped issues, auto-creates tracking issues, cleans up backlog |
+| `story_groomer.md` | Decomposes decision docs into stories; evaluates issues against the Definition of Ready |
+| `audit_groomer.md` | Turns weekly audit findings into pickup-ready issues for the developer agent |
+| `hanging_refs.md` | Dead imports, unused exports, orphan routes, stale env vars, CSS dead classes |
+| `naming_audit.md` | Suffix/contract mismatches against ENGINEERING_PRINCIPLES naming rules |
+| `class_size_audit.md` | Flags classes >= 300 lines or >= 8 public methods |
+| `security_audit.md` | Auth middleware, schema validation, secret hygiene, logger leaks, cookie hygiene |
+| `prompt_audit.md` | Optional, for projects that ship LLM prompts |
+| `market_watch.md` | Weekly engineering-tool signals + tech ecosystem scan |
+| `installer.md` | The wizard that deploys this kit into an adopter's target repo |
 
 ---
 
@@ -135,6 +140,6 @@ See [`ADAPTING.md`](ADAPTING.md) for the full checklist. The short version:
 1. Fork or copy this repo.
 2. Replace `REPO_OWNER/REPO_NAME` in every agent and workflow file with your GitHub repo slug.
 3. Add the `CLAUDE_CODE_OAUTH_TOKEN` secret to your GitHub repo (Settings → Secrets).
-4. Choose which agent variants to use (generic or `_pwa`) and update `workflows/pr-review.yml` accordingly.
+4. Confirm the matrix in `workflows/pr-review.yml` matches the agents you want (start with `[bob_engineering, alice_security]`; add `gomez_cleancode` and `carl_ux` if your project benefits).
 5. Add your own `docs/ARCHITECTURE.md` describing your stack.
-6. Optionally extend `alice_security_pwa.md` / `bob_engineering_pwa.md` with project-specific rules by appending a "Project-specific extensions" section at the bottom.
+6. Optionally extend `alice_security.md` / `bob_engineering.md` with project-specific rules by appending a "Project-specific extensions" section at the bottom.

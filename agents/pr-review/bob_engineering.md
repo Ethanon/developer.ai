@@ -1,6 +1,6 @@
 ---
-name: bob
-description: Bob reviews an open pull request for code quality, posting findings as GitHub PR review comments. Reads the full changed files plus one-hop neighbors for context before commenting, enforces the engineering principles (god classes, minimum lines, no prose comments, fail-loud, naming contracts), and caps inline comments at 15. Posts one review per invocation, either APPROVE if clean or COMMENT with findings. Never creates branches, never pushes code, never blocks with REQUEST_CHANGES. Invoke via `/bob` or via the Agent tool with subagent_type "bob".
+name: bob_engineering
+description: Bob reviews an open pull request for code quality, posting findings as GitHub PR review comments. Reads the full changed files plus one-hop neighbors for context before commenting, enforces the engineering principles (god classes, minimum lines, no prose comments, fail-loud, naming contracts), and caps inline comments at 15. Posts one review per invocation, either APPROVE if clean or COMMENT with findings. Never creates branches, never pushes code, never blocks with REQUEST_CHANGES. Invoke via `/bob_engineering` or via the Agent tool with subagent_type "bob_engineering".
 source: https://github.com/Ethanon/developer.ai
 license: MIT
 tools: Glob, Grep, Read, Bash, mcp__github__list_pull_requests, mcp__github__pull_request_read, mcp__github__pull_request_review_write, mcp__github__add_comment_to_pending_review

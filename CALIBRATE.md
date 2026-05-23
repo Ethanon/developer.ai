@@ -94,7 +94,7 @@ The slots are short and specific:
 - **Alice (`agents/pr-review/alice_security.md`):** routes folder, auth middleware name, where the tenant ID comes from, sanitizer name (if any), refresh-cookie path.
 - **Bob (`agents/pr-review/bob_engineering.md`):** class-size thresholds, naming-conventions link, banned patterns specific to your codebase.
 - **Gomez (`agents/pr-review/gomez_cleancode.md`):** source folder globs, naming collisions to watch for.
-- **Carl (`agents/pr-review/carl_ux_pwa.md`):** frontend folder, global stylesheet path, target form factor, target session length.
+- **Carl (`agents/pr-review/carl_ux.md`):** frontend folder, global stylesheet path, target form factor, target session length.
 - **Audit bots** (`agents/audits/*.md`): source folder globs, allowlist file paths, report folder.
 - **Backlog bots** (`agents/backlog/*.md`): repo owner/name, default branch, label names.
 

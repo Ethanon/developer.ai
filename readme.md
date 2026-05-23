@@ -214,12 +214,12 @@ flowchart TD
 
 | Agent | File | What it does |
 |---|---|---|
-| Alice | `agents/pr-review/alice.md` | Security review: routes, auth, secrets, cookies, log-leak hygiene; frontend sections (OAuth, service worker, CSP) when applicable |
-| Bob | `agents/pr-review/bob.md` | Engineering review: god classes, naming contracts, fail-loud, over-abstraction; frontend sections when applicable |
-| Gomez | `agents/pr-review/gomez.md` | Line-level clean-code review: names that communicate intent, density, idiom |
-| Carl | `agents/pr-review/carl.md` | UX review: mobile fit, copy quality, latency masking, studio-quality polish. Skipped for projects with no frontend. |
-| Jekyll | `agents/pr-review/jekyll.md` | Whitehat critic: challenges the first-pass reviews from a best-practices angle |
-| Hyde | `agents/pr-review/hyde.md` | Blackhat critic: attacks the first-pass fixes for real bypasses |
+| Alice | `agents/pr-review/alice_security.md` | Security review: routes, auth, secrets, cookies, log-leak hygiene; frontend sections (OAuth, service worker, CSP) when applicable |
+| Bob | `agents/pr-review/bob_engineering.md` | Engineering review: god classes, naming contracts, fail-loud, over-abstraction; frontend sections when applicable |
+| Gomez | `agents/pr-review/gomez_cleancode.md` | Line-level clean-code review: names that communicate intent, density, idiom |
+| Carl | `agents/pr-review/carl_ux.md` | UX review: mobile fit, copy quality, latency masking, studio-quality polish. Skipped for projects with no frontend. |
+| Jekyll | `agents/pr-review/jekyll_whitehat.md` | Whitehat critic: challenges the first-pass reviews from a best-practices angle |
+| Hyde | `agents/pr-review/hyde_blackhat.md` | Blackhat critic: attacks the first-pass fixes for real bypasses |
 
 There are no PWA / non-PWA variants — Alice and Bob contain frontend-specific sections inline, tagged Architecture-Conditional. The installer strips them at install time if your project has no frontend.
 
