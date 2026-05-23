@@ -68,45 +68,94 @@ If you want a per-agent skip (run Alice but not Bob, for example), edit the matr
 
 Two workflow files in `workflows/`. Copy both into your repo's `.github/workflows/` folder. They are minimal reference implementations — they work, but most adopters end up customizing the cron schedules and the runner labels.
 
+### The whole system, end to end
+
+Before drilling into either workflow, here's how the pieces interlock. Two workflows, four "agent fleets", connected by GitHub Issues and Pull Requests as the shared substrate. Human at the corners; everything in between is automation.
+
+```mermaid
+flowchart LR
+    classDef human   fill:#fef3c7,stroke:#92400e,color:#78350f
+    classDef workflow fill:#dbeafe,stroke:#1e40af,color:#1e3a8a
+    classDef artifact fill:#f3f4f6,stroke:#6b7280,color:#111827
+
+    Codebase[(your codebase)]:::artifact
+    Decisions[(decision docs)]:::artifact
+    Issues[(GitHub Issues)]:::artifact
+    PRs[(Pull Requests)]:::artifact
+
+    Human(["you<br/>(write decisions,<br/>merge PRs)"]):::human
+
+    Human -->|writes / approves| Decisions
+    Human -->|merges| PRs
+
+    subgraph Scheduled ["workflows/scheduled-agents.yml<br/>(cron + dispatch)"]
+        Scanners["audit scanners<br/>(weekly Mon 09:00)"]:::workflow
+        AG["audit_groomer<br/>(weekly Mon 12:00)"]:::workflow
+        SG["story_groomer<br/>(daily 08:00)"]:::workflow
+        DA["developer_agent<br/>(daily 08:00)"]:::workflow
+        SM["scrum_master<br/>(weekly Mon)"]:::workflow
+    end
+
+    subgraph PRReview ["workflows/pr-review.yml<br/>(on every PR)"]
+        L1["Layer 1<br/>Alice / Bob / Gomez / Carl"]:::workflow
+        L2["Layer 2<br/>Jekyll / Hyde"]:::workflow
+    end
+
+    Codebase -.->|scanned by| Scanners
+    Scanners -->|write reports| AG
+    AG -->|files| Issues
+    Decisions -.->|scanned by| SG
+    SG -->|files [story] issues<br/>+ adds 'ready' label| Issues
+    Issues -->|picks one| DA
+    DA -->|opens| PRs
+    PRs --> L1
+    L1 --> L2
+    L2 -->|reviews ready to read| Human
+
+    Human -.->|opens own PRs| PRs
+    SM -.->|closes shipped issues<br/>tracks drift| Issues
+```
+
+The two boxes at the top are the two workflow files in this repo. The artifacts in the middle column (issues, PRs) are where the workflows hand off to each other. The human appears twice — at the start (writing decision docs and opening PRs of their own) and at the end (merging). Everything else is hands-off.
+
 ### `workflows/pr-review.yml`
 
 **When it fires:** every `opened` / `synchronize` / `reopened` event on a pull request targeting the default branch. (Edit the `branches:` field if your default isn't `master`.)
 
 **What it does:** two layers, in sequence. The first layer is the reviewers; the second layer is the critics, which read the first layer's posted reviews and challenge any findings that don't hold up.
 
-```
-PR opened / new commit pushed
-            │
-            ▼
-┌───────────────────────────────────────────────────────────────┐
-│  LAYER 1 — first-pass reviewers (all fire in parallel)        │
-│                                                               │
-│    Alice          Bob             [Gomez]        [Carl]       │
-│    security       engineering     clean-code     UX           │
-│                                                               │
-│  Each reads the full diff plus one-hop context, then posts    │
-│  one PR review (up to 15 inline comments, or APPROVE if the   │
-│  diff is clean in their lane). Gomez and Carl run only if     │
-│  they're in your matrix configuration.                        │
-└───────────────────────────────────────────────────────────────┘
-            │
-            │  needs: review  (all first-pass jobs must finish)
-            ▼
-┌───────────────────────────────────────────────────────────────┐
-│  LAYER 2 — critics (fire in parallel after Layer 1)           │
-│                                                               │
-│    Jekyll                       Hyde                          │
-│    whitehat critic              blackhat critic               │
-│                                                               │
-│  Each reads the diff PLUS the reviews Alice and Bob just      │
-│  posted, then challenges findings that don't hold up — Jekyll │
-│  from a best-practices angle, Hyde from an attacker's. If     │
-│  the first-pass advice is sound, they post APPROVE with no    │
-│  inline comments.                                             │
-└───────────────────────────────────────────────────────────────┘
+```mermaid
+sequenceDiagram
+    actor Author
+    participant GH as GitHub PR
+    participant L1 as Layer 1<br/>reviewers
+    participant L2 as Layer 2<br/>critics
+
+    Author->>GH: open PR / push commit
+
+    Note over L1: review job fires (parallel)
+    par
+        L1->>GH: Alice — security
+    and
+        L1->>GH: Bob — engineering
+    and
+        L1->>GH: Gomez — clean code<br/>(optional)
+    and
+        L1->>GH: Carl — UX<br/>(optional)
+    end
+
+    Note over L2: critique job waits for review job<br/>(needs: review)
+    GH-->>L2: posted reviews + diff
+    par
+        L2->>GH: Jekyll — whitehat critic
+    and
+        L2->>GH: Hyde — blackhat critic
+    end
+
+    GH-->>Author: 4-6 reviews ready to read
 ```
 
-End-to-end takes a few minutes wall-clock (the two layers run sequentially, but each layer's jobs run in parallel). On a noisy PR you may see Alice + Bob's reviews land first, then Jekyll + Hyde land a minute or two later. The order is sometimes useful when reading — start with Layer 1 to see the findings, then read Layer 2 to see which findings survived attack.
+End-to-end takes a few minutes wall-clock (the two layers run sequentially, but each layer's jobs run in parallel). On a noisy PR you may see Alice and Bob's reviews land first, then Jekyll and Hyde land a minute or two later. The order is sometimes useful when reading — start with Layer 1 to see the findings, then read Layer 2 to see which findings survived attack.
 
 **Skip conditions:** fork PRs, Renovate PRs, and PRs with the `skip-ci` label. See "The PR labels" above.
 
@@ -121,50 +170,53 @@ End-to-end takes a few minutes wall-clock (the two layers run sequentially, but 
 
 **When it fires:** the bots are layered across the week so the outputs of one feed the inputs of the next. Three cron schedules plus a manual `workflow_dispatch` trigger.
 
+```mermaid
+flowchart TD
+    classDef scanner fill:#dbeafe,stroke:#1e40af,color:#1e3a8a
+    classDef groomer fill:#fde68a,stroke:#92400e,color:#78350f
+    classDef worker  fill:#bbf7d0,stroke:#166534,color:#14532d
+    classDef artifact fill:#f3f4f6,stroke:#6b7280,color:#111827
+
+    subgraph WeeklyMon09 ["Mondays 09:00 UTC — audit scanners (run in parallel)"]
+        HR[hanging_refs]:::scanner
+        NA[naming_audit]:::scanner
+        CS[class_size_audit]:::scanner
+        SA[security_audit]:::scanner
+        PA[prompt_audit<br/>optional]:::scanner
+        SM[scrum_master]:::scanner
+        MW[market_watch<br/>Fridays only]:::scanner
+    end
+
+    Reports[(.claude/reports/<br/>timestamped audit reports)]:::artifact
+
+    HR --> Reports
+    NA --> Reports
+    CS --> Reports
+    SA --> Reports
+    PA --> Reports
+
+    subgraph WeeklyMon12 ["Mondays 12:00 UTC — 3h gap absorbs schedule skew"]
+        AG[audit_groomer]:::groomer
+    end
+    Reports --> AG
+
+    Issues[(GitHub Issues<br/>labeled audit-finding)]:::artifact
+    AG --> Issues
+
+    subgraph Daily08 ["Daily 08:00 UTC"]
+        SGRM[story_groomer]:::groomer
+        DEV[developer_agent]:::worker
+    end
+
+    SGRM -->|adds 'ready' label| Issues
+    Issues -->|picks one ready issue| DEV
+
+    PR[/GitHub PR opened<br/>by developer_agent/]
+    DEV --> PR
+    PR -.->|triggers pr-review.yml| PRRev[[PR review pipeline<br/>see diagram above]]
 ```
-─── Weekly layer (Mondays) ──────────────────────────────────────
 
-09:00 UTC ─┬─ hanging_refs        ┐
-           ├─ naming_audit        │
-           ├─ class_size_audit    │  Audit scanners write timestamped
-           ├─ security_audit      │  reports to .claude/reports/.
-           ├─ [prompt_audit]      ┘
-           │
-           ├─ scrum_master           Closes shipped issues, opens
-           │                        drift-tracking issues.
-           │
-           └─ market_watch (Fri)    Ecosystem scan. Writes a report
-                                    for human review; never files
-                                    issues.
-
-           ───── 3-hour gap ─────   Absorbs GitHub Actions schedule
-                                    skew so reports finish writing
-                                    before the groomer reads them.
-
-12:00 UTC ─── audit_groomer         Reads the latest report from
-                                    each scanner above. Files one
-                                    GitHub issue per actionable
-                                    finding. Marks each report
-                                    finding with [#NN] or [skip]
-                                    for idempotency.
-
-─── Daily layer ─────────────────────────────────────────────────
-
-08:00 UTC ─┬─ story_groomer         Mode A: scans approved decision
-           │                        docs and files [story] issues.
-           │                        Mode B: applies the `ready`
-           │                        label when an issue passes the
-           │                        7-point Definition of Ready.
-           │
-           └─ developer_agent       Picks one open issue with the
-                                    `ready` label, branches, fixes,
-                                    opens a PR. The pr-review
-                                    workflow above then fires on
-                                    that PR — the agents review
-                                    other agents' code.
-```
-
-The data flow is the point: the audit scanners produce reports, the audit-groomer turns those reports into issues, the story-groomer labels them `ready`, the developer-agent picks one up and opens a PR, the PR-review workflow's first-pass reviewers post their findings, and the critics challenge those. End to end, an audit finding becomes shipped code with no human touch except merge approval at the very end.
+The data flow is the point: scanners write reports → audit-groomer turns them into issues → story-groomer labels them `ready` → developer-agent picks one up and opens a PR → the PR-review workflow fires on it and the reviewer fleet posts findings. End to end, an audit finding becomes shipped code with no human touch except merge approval at the end.
 
 The three cron schedules in the file:
 - **Mondays at 09:00 UTC** — the audit scanners, `scrum_master`, `market_watch` (Fridays only).
