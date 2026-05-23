@@ -2,8 +2,10 @@ name: Scheduled Agents
 
 on:
   schedule:
-    # Weekly agents — Mondays at 9am UTC
+    # Weekly audit scanners — Mondays at 9am UTC
     - cron: '0 9 * * 1'
+    # Audit-groomer — Mondays at noon UTC (3 hours after scanners; absorbs schedule skew)
+    - cron: '0 12 * * 1'
     # Daily agents — every day at 8am UTC
     - cron: '0 8 * * *'
   workflow_dispatch:
@@ -20,6 +22,8 @@ on:
           - naming_audit
           - class_size_audit
           - security_audit
+          - prompt_audit
+          - audit_groomer
           - developer_agent
           - story_groomer
 
@@ -204,6 +208,70 @@ jobs:
           prompt: |
             Invoke the security_audit subagent.
             The agent's full spec lives at .claude/agents/security_audit.md — follow it exactly.
+            Return only the report file path.
+
+  weekly-prompt-audit:
+    # Optional: only runs if your project ships LLM prompts. Skip otherwise.
+    if: >
+      (github.event_name == 'schedule' && github.event.schedule == '0 9 * * 1') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'prompt_audit'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
+        env:
+          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+        run: |
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
+            exit 1
+          fi
+      - name: Run prompt_audit
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --model sonnet
+            --effort medium
+          prompt: |
+            Invoke the prompt_audit subagent.
+            The agent's full spec lives at .claude/agents/prompt_audit.md — follow it exactly.
+            If the project does not ship LLM prompts, the agent exits early; that's expected.
+            Return only the report file path.
+
+  # ─── Audit-groomer (turns audit reports into ready issues) ──────────────────
+  # Runs Mondays at noon UTC — three hours after the audit scanners, so all
+  # reports are in place before the groomer reads them.
+
+  weekly-audit-groomer:
+    if: >
+      (github.event_name == 'schedule' && github.event.schedule == '0 12 * * 1') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'audit_groomer'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
+        env:
+          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+        run: |
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
+            exit 1
+          fi
+      - name: Run audit_groomer
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --model sonnet
+            --effort medium
+          prompt: |
+            Invoke the audit_groomer subagent.
+            The agent's full spec lives at .claude/agents/audit_groomer.md — follow it exactly.
             Return only the report file path.
 
   # ─── Daily agents (run every day) ───────────────────────────────────────────

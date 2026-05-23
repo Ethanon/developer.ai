@@ -27,8 +27,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Use [bob_engineering_pwa, alice_security_pwa] for a React + BFF + OAuth/PKCE stack.
-        # Use [bob_engineering, alice_security] for a generic TypeScript project.
+        # Generic stack: [bob_engineering, alice_security]
+        # Generic stack + clean-code reviewer: [bob_engineering, alice_security, gomez_cleancode]
+        # React frontend + backend auth gateway: [bob_engineering_pwa, alice_security_pwa]
+        # All five (PWA stack with UX reviewer too): [bob_engineering_pwa, alice_security_pwa, gomez_cleancode, carl_ux_pwa]
         agent: [bob_engineering, alice_security]
     steps:
       - uses: actions/checkout@v4
