@@ -17,12 +17,19 @@ permissions:
 
 jobs:
   review:
-    # Skip PRs from forks. Repository secrets aren't exposed to fork workflows
-    # under plain pull_request events, which makes this safe to run on
-    # github-hosted runners. Fork PRs short-circuit before any agent runs.
-    # Also skip Renovate PRs: dependency bumps don't need agent review and burn
-    # Claude tokens for no signal. Standard CI still runs on those.
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'renovate[bot]'
+    # Three skip conditions:
+    #   1. Fork PRs — repo secrets aren't exposed to fork workflows under plain
+    #      pull_request events. Fork PRs short-circuit before any agent runs.
+    #   2. Renovate PRs — dependency bumps don't need agent review and burn
+    #      Claude tokens for no signal. Standard CI still runs on those.
+    #   3. PRs with the `skip-ci` label — large infrastructure or doc PRs
+    #      where agent review burns tokens without exercising any code path
+    #      the change touches. Add the label on the PR to skip; remove it
+    #      and push an empty commit to re-fire.
+    if: |
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login != 'renovate[bot]' &&
+      !contains(github.event.pull_request.labels.*.name, 'skip-ci')
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -65,7 +72,13 @@ jobs:
   # first-pass reviews have landed, so there's actually something to critique.
   critique:
     needs: review
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'renovate[bot]'
+    # Same three skip conditions as the review job. The label check is
+    # technically redundant (critique needs review, which already skipped),
+    # but keeping it explicit makes the workflow readable on its own.
+    if: |
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login != 'renovate[bot]' &&
+      !contains(github.event.pull_request.labels.*.name, 'skip-ci')
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
