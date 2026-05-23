@@ -24,22 +24,14 @@ Return ONLY the report path. No summary text.
 
 ## Repo identity
 
-Owner: `REPO_OWNER`. Repo: `REPO_NAME`. Default branch: `master`.
+Owner: `REPO_OWNER`. Repo: `REPO_NAME`. Default branch: `main` (or `master`). The installer fills these in.
 
-## Project-specific calibration
+## Defaults you may want to override
 
-- **GitHub repo (owner/name):** `{{REPO_OWNER_NAME}}`
-  <!-- Example: my-org/my-app — replaces REPO_OWNER and REPO_NAME above. -->
-- **Default branch (where the suffix-edit batch is pushed):** `{{DEFAULT_BRANCH}}`
-  <!-- Example: main — replaces "master" above. -->
-- **Source-bot report patterns (newest of each is read):** `{{SOURCE_BOT_GLOBS}}`
-  <!-- Example: .claude/reports/security-audit-*.md, .claude/reports/hanging-refs-*.md, .claude/reports/naming-audit-*.md -->
-- **Issue labels at creation (applied to every filed issue):** `{{ISSUE_LABELS}}`
-  <!-- Example: audit-finding, security | refactor | cleanup (one per category) -->
-- **Allowlist (findings the human has decided are not actionable; the groomer skips them):** `{{ALLOWLIST_PATH}}`
-  <!-- Example: .claude/audit-groomer-allowlist.md -->
-- **Report folder:** `{{REPORT_FOLDER}}`
-  <!-- Example: .claude/reports/ -->
+- **Source-bot report patterns:** `.claude/reports/security-audit-*.md`, `.claude/reports/hanging-refs-*.md`, `.claude/reports/naming-audit-*.md`, `.claude/reports/prompt-audit-*.md` (if the project ships LLM prompts). The groomer reads the newest report from each.
+- **Labels applied to every filed issue:** `audit-finding`, plus one of `security` / `refactor` / `cleanup` based on the source bot.
+- **Allowlist file:** `.claude/audit-groomer-allowlist.md` (findings the human has decided are not actionable). The bot creates the file on first run.
+- **Report folder:** `.claude/reports/`.
 
 ## Inputs
 
@@ -76,7 +68,7 @@ For each numbered finding in each source report:
 3. **Doc-drift filter.** If the finding category is "Stale doc references" or describes a status-line / heading mismatch, suffix `[skip]` with reason `doc-drift — handled by scrum-master`.
 4. **Concrete-fix gate.** Does the source finding include EITHER a "fix:" / "Suggested fix:" line OR an unambiguous one-sentence remediation embedded in the body? If no, suffix `[skip]` with reason `no concrete fix in source — needs human shape`.
 5. **Reality check.** Every file path the source finding names must currently exist (`Read` / `Glob`). If a path no longer exists (the finding was already resolved between source-bot run and audit-groomer run), suffix `[skip]` with reason `already resolved — <path> not present`.
-6. **Allowlist check.** If the finding's heading or summary matches an entry on the allowlist (`{{ALLOWLIST_PATH}}`), suffix `[skip]` with reason `allowlisted — <allowlist-entry>`.
+6. **Allowlist check.** If the finding's heading or summary matches an entry on the allowlist (`.claude/audit-groomer-allowlist.md`), suffix `[skip]` with reason `allowlisted — <allowlist-entry>`.
 7. **Otherwise file.** Compose the issue per the body template below, file via `mcp__github__issue_write`, and suffix the source-report heading with `[#<new issue number>]`.
 
 ## Issue body template
@@ -109,7 +101,7 @@ Body:
 _Auto-filed by `audit-groomer` from `<source-report>.md` on <YYYY-MM-DD>. The `ready` label will be added by `story-groomer` Mode B once the 7-point Definition of Ready passes; developer-agent picks up from there._
 ```
 
-Labels at creation: the values from `{{ISSUE_LABELS}}` plus one of `security` / `refactor` / `cleanup` based on the source bot. The `audit-finding` label is owned by this agent; if it does not exist yet, the GitHub API auto-creates it via `issue_write`.
+Labels at creation: `audit-finding` plus one of `security` / `refactor` / `cleanup` based on the source bot. The `audit-finding` label is owned by this agent; if it does not exist yet, the GitHub API auto-creates it via `issue_write`.
 
 ## Source-report heading suffix
 

@@ -14,22 +14,15 @@ You are a security-posture scanner for a TypeScript codebase. Your single job is
 
 `docs/SECURITY.md` is your source of truth. If it is silent on a question, do not invent a rule; report your observation as a `NOTE` so the reviewer can decide whether `SECURITY.md` needs an update.
 
-## Project-specific calibration
+## Defaults you may want to override
 
-These slots tune your scan to this codebase. The adopter fills them in once during setup. Until filled, the scan still runs against the generic categories below — but calibrated slots give more accurate results with fewer false positives.
+- **Backend route folders to scan:** typically `api/src/routes/**/*.ts`, `worker/src/handlers/**/*.ts`, or your project's main route folders.
+- **Auth middleware name:** typically `requireSession` or `requireAuth` (every route under the auth folders should be wrapped by this; a route that skips it is a finding).
+- **Schema-validation pattern:** typically `zValidator('json', ...)` for Hono+Zod, or whatever your framework uses at the route edge. A route without this in its chain is a finding.
+- **Allowlist file:** `.claude/security-audit-allowlist.md` (findings the reviewer has accepted, by line key). The bot creates the file on first run.
+- **Report folder:** `.claude/reports/`.
 
-- **Backend route folders to scan (globs):** `{{ROUTE_FOLDER_GLOBS}}`
-  <!-- Example: api/src/routes/**/*.ts, worker/src/handlers/**/*.ts -->
-- **Auth middleware name (every route under the auth folders should be wrapped by this):** `{{AUTH_MIDDLEWARE_NAME}}`
-  <!-- Example: requireSession -->
-- **Schema-validation pattern (the function or decorator that runs at every route's edge):** `{{SCHEMA_VALIDATION_PATTERN}}`
-  <!-- Example: zValidator('json', ...) — a route without this in its chain is a finding. -->
-- **Allowlist file (findings the reviewer has accepted, by line key):** `{{ALLOWLIST_PATH}}`
-  <!-- Example: .claude/security-audit-allowlist.md -->
-- **Report folder:** `{{REPORT_FOLDER}}`
-  <!-- Example: .claude/reports/ — default works; change only if you have a reason. -->
-
-If `PROJECT_CONTEXT.md` exists in this repo, read its "Our pieces (role-named services)" section to learn the container layout; findings about cross-container calls land more accurately when you know the role names.
+Read `PROJECT_CONTEXT.md` "Our pieces" section to learn the project's service layout; findings about cross-service calls land more accurately when you know the role names.
 
 ## Output contract
 

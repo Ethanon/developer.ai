@@ -21,36 +21,27 @@ Two buckets per finding:
 
 Findings that cannot be self-classified into either bucket (genuine judgment calls) go in a `judgment-calls` section of the report for human spot-check; they do NOT escalate.
 
-## Project-specific calibration
+## Defaults you may want to override
 
-This agent is more dependent on per-project setup than any of the others. Without these slots filled, the scan has very little to act on.
+This agent depends on per-project setup more than any of the others. Without a project-specific prompt-rules doc, the scan has very little to act on.
 
-- **Prompt rules doc (this project's source of truth for how prompts are constructed):** `{{PROMPT_RULES_DOC}}`
-  <!-- Example: docs/design/PROMPT_RULES.md — must exist. The scanner reads it on every run. -->
-- **Prompt-catalog doc (where every prompt is indexed, with intent and shape):** `{{PROMPT_CATALOG_DOC}}`
-  <!-- Example: docs/design/prompt-flows.md — used to scan for drift between code and docs. -->
-- **Prompt template folder globs:** `{{PROMPT_TEMPLATE_GLOBS}}`
-  <!-- Example: api/src/prompts/**/*.ts -->
-- **Shared fragment folder (reusable prompt pieces that templates compose from):** `{{PROMPT_FRAGMENT_GLOB}}`
-  <!-- Example: api/src/prompts/fragments/*.ts -->
-- **Chat call sites (where prompts get sent to a model):** `{{CHAT_CALL_PATTERN}}`
-  <!-- Example: clients.*.chat( — the scanner verifies every call passes a typed prompt object, not a raw string. -->
-- **Narrative-prompt classifier (how to identify "narrative" prompts that follow stricter rules; usually "no `options.schema` declared"):** `{{NARRATIVE_PROMPT_CLASSIFIER}}`
-  <!-- Example: prompts without `options.schema` are narrative; prompts with one are structured. -->
-- **Classifier-prompt allowlist (prompts that are exempt from no-negative-form rules because they classify by example):** `{{CLASSIFIER_PROMPT_LIST}}`
-  <!-- Example: pushback, mechanics-classifier, injection-guard — these may contain "Don't" / "Never" directives by design. -->
-- **Allowlist file (findings the reviewer has already accepted):** `{{ALLOWLIST_PATH}}`
-  <!-- Example: .claude/prompt-audit-allowlist.md -->
-- **Report folder:** `{{REPORT_FOLDER}}`
-  <!-- Example: .claude/reports/ -->
+- **Prompt rules doc:** `docs/PROMPT_RULES.md`. The scanner reads it on every run; the rules in *that doc* are the spec.
+- **Prompt-catalog doc:** `docs/prompt-flows.md` (or wherever your project indexes its prompts). Used for drift checks between code and docs.
+- **Prompt template folder:** `api/src/prompts/**/*.ts` (or your project's prompt-template path).
+- **Shared fragment folder:** `api/src/prompts/fragments/*.ts` (where reusable prompt pieces live).
+- **Chat call sites:** `clients.*.chat(` — the scanner verifies every match passes a typed prompt object, not a raw string.
+- **Narrative-prompt classifier:** prompts without `options.schema` are narrative (free-prose output); prompts with one are structured (JSON output).
+- **Classifier-prompt allowlist:** prompts that may contain "Don't" / "Never" directives by design — typically `pushback`, `mechanics-classifier`, `injection-guard`. Customize per your project.
+- **Allowlist file:** `.claude/prompt-audit-allowlist.md` (findings the reviewer has accepted). The bot creates the file on first run.
+- **Report folder:** `.claude/reports/`.
 
-If `{{PROMPT_RULES_DOC}}` does not exist, the scanner exits early with a report noting that no prompt rules are defined for this project.
+If the prompt-rules doc does not exist, the scanner exits early with a report noting that no prompt rules are defined for this project.
 
 ## Source of truth
 
-Read `{{PROMPT_RULES_DOC}}` in full at the start of every run. The rules in *that doc* are the spec. If it changes, your rules change. The generic rule list below is a starting point — the project's own doc takes precedence on any conflict.
+Read `docs/PROMPT_RULES.md` in full at the start of every run. The rules in *that doc* are the spec. If it changes, your rules change. The generic rule list below is a starting point — the project's own doc takes precedence on any conflict.
 
-Also read `{{PROMPT_CATALOG_DOC}}` for the prompt catalog used in drift checks.
+Also read `docs/prompt-flows.md` for the prompt catalog used in drift checks.
 
 ## Output contract
 
@@ -62,7 +53,7 @@ When finished, return ONLY the report file path. No summary text.
 
 ## Generic rules to scan
 
-These are common patterns worth checking in any codebase that builds prompts. The project's own `{{PROMPT_RULES_DOC}}` may add to or override these. For each rule, the report names the rule number for traceability.
+These are common patterns worth checking in any codebase that builds prompts. The project's own `docs/PROMPT_RULES.md` may add to or override these. For each rule, the report names the rule number for traceability.
 
 ### Rule 1 — Shared fragments loaded at every relevant call site
 
@@ -72,7 +63,7 @@ Every prompt that should carry the project's craft conventions (typically narrat
 
 Prompt template content MUST NOT duplicate text that already lives in a shared fragment. Detection:
 
-- For each fragment under `{{PROMPT_FRAGMENT_GLOB}}`, extract distinctive 5-10 word phrases.
+- For each fragment under `the prompt-fragments folder (typically `api/src/prompts/fragments/*.ts`)`, extract distinctive 5-10 word phrases.
 - Grep template files for those phrases.
 - Flag any prompt that hand-rolls a rule the shared fragment already covers.
 
@@ -89,7 +80,7 @@ Any `additionalProperties: true` or other loose schema construct MUST have a com
 
 ### Rule 5 — TASK placement (project-convention dependent)
 
-Many projects place the call-to-action ("TASK:") at the end of the user message, after all context. If `{{PROMPT_RULES_DOC}}` names this convention, verify every prompt follows it.
+Many projects place the call-to-action ("TASK:") at the end of the user message, after all context. If `docs/PROMPT_RULES.md` names this convention, verify every prompt follows it.
 
 ### Rule 6 — No em-dashes, no emoji, no markdown fences
 
@@ -99,14 +90,14 @@ In the prompt text itself. Markdown fences inside the system message confuse the
 
 Narrative prompts (output is free prose) work better with positive instructions than with negations ("Never volunteer hidden information" → "Reveal hidden information only when the character chooses to"). Detection:
 
-- Identify narrative prompts via `{{NARRATIVE_PROMPT_CLASSIFIER}}`.
+- Identify narrative prompts via `the narrative-prompt classifier (typically: prompts without `options.schema` declared are narrative; prompts with one are structured)`.
 - Grep for `Never`, `Don't`, `NEVER`, `Do NOT`, `Avoid`.
 - Flag one finding per file (not per directive) — group all negatives in a file into a single finding with line numbers.
-- **Auto-allowlist:** classifier prompts on `{{CLASSIFIER_PROMPT_LIST}}` may use negatives by design (their job is disambiguation).
+- **Auto-allowlist:** classifier prompts on `the classifier-prompt list (typically `pushback`, `mechanics-classifier`, `injection-guard`)` may use negatives by design (their job is disambiguation).
 
 ### Rule 8 — Fragment catalog matches docs
 
-The list of fragments in code MUST match what `{{PROMPT_RULES_DOC}}` and `{{PROMPT_CATALOG_DOC}}` describe. Flag any drift.
+The list of fragments in code MUST match what `docs/PROMPT_RULES.md` and `docs/prompt-flows.md` describe. Flag any drift.
 
 ### Rule 9 — Duplicated constants across prompt-adjacent files
 
@@ -114,11 +105,11 @@ Length descriptors ("1-2 sentences", "1 paragraph"), enum-shaped lists (severity
 
 ### Rule 10 — All chat calls go through the typed prompt object
 
-Every call matching `{{CHAT_CALL_PATTERN}}` MUST receive a typed prompt object (typically a `PromptDraft` or `PromptBuilder` chain), not a raw `messages: [...]` array literal. Untyped call sites bypass the project's prompt construction rules and are a finding.
+Every call matching `the chat-call pattern (typically `clients.*.chat(`)` MUST receive a typed prompt object (typically a `PromptDraft` or `PromptBuilder` chain), not a raw `messages: [...]` array literal. Untyped call sites bypass the project's prompt construction rules and are a finding.
 
 ### Rule 11 — Prompt catalog drift
 
-Every prompt ID registered in code MUST appear in `{{PROMPT_CATALOG_DOC}}`, and vice versa. Diff both directions and flag missing entries.
+Every prompt ID registered in code MUST appear in `docs/prompt-flows.md`, and vice versa. Diff both directions and flag missing entries.
 
 ## Self-classification
 
@@ -140,7 +131,7 @@ Per finding, in order:
 
 ## Allowlist
 
-Read `{{ALLOWLIST_PATH}}` on every run. The allowlist has three sections (the bot writes to the third; the human writes to the first two):
+Read ``.claude/prompt-audit-allowlist.md`` on every run. The allowlist has three sections (the bot writes to the third; the human writes to the first two):
 
 - **Manually-allowlisted findings** — specific prompt-rule pairs the human has accepted as carve-outs. Each entry: `<prompt-id or file path> — <rule number> — <reason>`. Human-curated.
 - **Rule exemptions (categories)** — "Classifier prompts exempt from Rule 7". The bot reads these as classification rules.
@@ -151,8 +142,8 @@ The bot edits ONLY the third section, ONLY by appending. If the file does not ex
 ## Method
 
 1. Write a stub report at `.claude/reports/prompt-audit-<YYYY-MM-DD>.md` containing `# Prompt Audit Report — <YYYY-MM-DD>\n\n_Scan in progress..._\n`. Exit on permission failure.
-2. Read `{{PROMPT_RULES_DOC}}` and `{{PROMPT_CATALOG_DOC}}` end-to-end.
-3. Walk the prompt template folder globs from `{{PROMPT_TEMPLATE_GLOBS}}` and the fragment glob from `{{PROMPT_FRAGMENT_GLOB}}`. For each file, apply every rule that's in scope.
+2. Read `docs/PROMPT_RULES.md` and `docs/prompt-flows.md` end-to-end.
+3. Walk the prompt template folder globs from `the prompt-template folder (typically `api/src/prompts/**/*.ts`)` and the fragment glob from `the prompt-fragments folder (typically `api/src/prompts/fragments/*.ts`)`. For each file, apply every rule that's in scope.
 4. For each finding, run self-classification. Tag `auto-allowlisted` / `flagged` / `judgment-call`.
 5. Write the final report using the template below. Overwrite the stub.
 

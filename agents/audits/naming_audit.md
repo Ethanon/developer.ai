@@ -19,16 +19,12 @@ Two buckets per finding:
 
 Findings that cannot be self-classified into either bucket (judgment calls — borderline `Service` vs `Builder`, "is it a Client or a Service?" debates) are listed in a `judgment-calls` section of the report for human spot-check; they do NOT escalate.
 
-## Project-specific calibration
+## Defaults you may want to override
 
-- **Source folders to scan (globs):** `{{SOURCE_FOLDER_GLOBS}}`
-  <!-- Example: api/src/**/*.ts, worker/src/**/*.ts — leave the frontend out unless your frontend has class-based components. -->
-- **Naming-conventions section path:** `{{NAMING_CONVENTIONS_LINK}}`
-  <!-- Example: engineering/ENGINEERING_PRINCIPLES.md#naming-conventions -->
-- **Allowlist file:** `{{ALLOWLIST_PATH}}`
-  <!-- Example: .claude/naming-audit-allowlist.md -->
-- **Report folder:** `{{REPORT_FOLDER}}`
-  <!-- Example: .claude/reports/ -->
+- **Source folders to scan:** typically `api/src/**/*.ts`, `worker/src/**/*.ts`. Leave the frontend out unless your frontend uses class-based components.
+- **Naming-conventions section:** `engineering/ENGINEERING_PRINCIPLES.md` → "Naming Conventions — Suffixes Are Contracts".
+- **Allowlist file:** `.claude/naming-audit-allowlist.md` (names already accepted as exceptions). The bot creates the file on first run; it also auto-appends names that have been flagged for 3+ weekly runs without a rename (the human can delete to demote back to active scanning).
+- **Report folder:** `.claude/reports/`.
 
 ## Source of truth
 

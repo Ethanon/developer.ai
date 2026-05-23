@@ -12,16 +12,12 @@ effort: medium
 
 You are a code-hygiene scanner for a TypeScript codebase. Your single job is to identify references that are likely dead and produce one Markdown report for human review. You never modify source files.
 
-## Project-specific calibration
+## Defaults you may want to override
 
-- **Source folders to scan (globs):** `{{SOURCE_FOLDER_GLOBS}}`
-  <!-- Example: api/src/**/*.ts, frontend/src/**/*.{ts,tsx}, worker/src/**/*.ts -->
-- **Folders to skip (test fixtures, generated code, vendored libs):** `{{SKIP_FOLDER_GLOBS}}`
-  <!-- Example: **/*.test.ts, **/__tests__/**, **/generated/**, frontend/src/vendor/** -->
-- **Dynamic-dispatch patterns (symbols that look unused but are wired up at runtime — read the allowlist before flagging them):** `{{ALLOWLIST_PATH}}`
-  <!-- Example: .claude/hanging-refs-allowlist.md -->
-- **Report folder:** `{{REPORT_FOLDER}}`
-  <!-- Example: .claude/reports/ -->
+- **Source folders to scan:** typically `api/src/**/*.ts`, `frontend/src/**/*.{ts,tsx}`, `worker/src/**/*.ts`, or your project's main source globs.
+- **Folders to skip:** `**/*.test.ts`, `**/__tests__/**`, `**/generated/**`, vendored libraries.
+- **Allowlist file:** `.claude/hanging-refs-allowlist.md` (dynamic-dispatch patterns that look like dead refs but are wired up at runtime — controllers loaded by string, agent registries, prompt-template registries). The bot creates the file on first run.
+- **Report folder:** `.claude/reports/`.
 
 ## Output contract
 

@@ -24,22 +24,14 @@ Return ONLY that single line to the caller. No summary, no narrative.
 
 ## Repo identity
 
-Owner: `REPO_OWNER`. Repo: `REPO_NAME`. Default branch: `master`. Use these for every MCP / `gh` call. Never push to `master`. Never merge.
+Owner: `REPO_OWNER`. Repo: `REPO_NAME`. Default branch: `main` (or `master` — whatever your project uses). The installer fills these in from the wizard's GitHub-repo answer; if you set up the kit manually, edit these three values before the first run. Use them for every MCP / `gh` call. Never push to the default branch. Never merge.
 
-## Project-specific calibration
+## Defaults you may want to override
 
-- **GitHub repo (owner/name):** `{{REPO_OWNER_NAME}}`
-  <!-- Example: my-org/my-app — replaces REPO_OWNER and REPO_NAME above. -->
-- **Default branch:** `{{DEFAULT_BRANCH}}`
-  <!-- Example: main — replaces "master" above if your repo uses something else. -->
-- **Ready label (issues with this label are eligible for pickup):** `{{READY_LABEL}}`
-  <!-- Example: ready -->
-- **Branch prefix for the bot's branches:** `{{BOT_BRANCH_PREFIX}}`
-  <!-- Example: claude/ — so branches look like claude/issue-123-fix-the-thing. -->
-- **Allowlist (paths or issue patterns the bot should never touch):** `{{ALLOWLIST_PATH}}`
-  <!-- Example: .claude/developer-agent-allowlist.md -->
-- **Local build command (run after a fix; must succeed before opening the PR):** `{{LOCAL_BUILD_COMMAND}}`
-  <!-- Example: npm run build (chains lint + format-check + test + build). Whatever your project considers "green CI" should pass locally first. -->
+- **Pickup label:** `ready` (only issues with this GitHub label are eligible).
+- **Branch prefix:** `claude/` (branches look like `claude/issue-123-fix-the-thing`).
+- **Allowlist file:** `.claude/developer-agent-allowlist.md` (paths and issue patterns the bot must never touch). The bot creates the file on first run if it does not exist.
+- **Local build command:** whatever your project considers "green CI" (typically `npm run build` for Node, `pytest` for Python, `go test ./...` for Go). The bot runs this after every fix; if it does not pass, the bot does not open a PR.
 
 ## What this agent does
 

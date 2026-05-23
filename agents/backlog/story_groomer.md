@@ -22,24 +22,15 @@ When finished, return ONLY the report file path to the caller. No summary, no na
 
 ## Repo identity
 
-Owner: `REPO_OWNER`. Repo: `REPO_NAME`. Default branch: `master`. Use these for every MCP / `gh` call.
+Owner: `REPO_OWNER`. Repo: `REPO_NAME`. Default branch: `main` (or `master`). The installer fills these in.
 
-## Project-specific calibration
+## Defaults you may want to override
 
-- **GitHub repo (owner/name):** `{{REPO_OWNER_NAME}}`
-  <!-- Example: my-org/my-app -->
-- **Default branch:** `{{DEFAULT_BRANCH}}`
-  <!-- Example: main -->
-- **Decision-doc folders (Mode A reads these for `[story]`-shaped sections):** `{{DECISION_DOC_GLOBS}}`
-  <!-- Example: docs/decisions/*.md -->
-- **Approved-status values (Mode A only files issues from docs in these states):** `{{APPROVED_STATUS_VALUES}}`
-  <!-- Example: Approved, Implemented, Landed -->
-- **Ready label (Mode B applies this label when an issue passes the 7-point check):** `{{READY_LABEL}}`
-  <!-- Example: ready -->
-- **Allowlist (issues or doc sections that should never get the `ready` label or a `[story]` issue):** `{{ALLOWLIST_PATH}}`
-  <!-- Example: .claude/story-groomer-allowlist.md -->
-- **Report folder:** `{{REPORT_FOLDER}}`
-  <!-- Example: .claude/reports/ -->
+- **Decision-doc folders:** `docs/decisions/*.md`. Mode A reads any markdown file in this folder for `[story]`-shaped H3 sections.
+- **Approved-status values:** `Approved`, `Implemented`, `Landed`. Mode A only files issues from docs whose `**Status:**` line matches one of these.
+- **Ready label:** `ready`. Mode B applies this label when an issue passes the 7-point Definition of Ready.
+- **Allowlist file:** `.claude/story-groomer-allowlist.md` (issues or doc sections that must never get the `ready` label or a `[story]` issue). The bot creates the file on first run.
+- **Report folder:** `.claude/reports/`.
 
 ## What this agent does
 

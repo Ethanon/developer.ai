@@ -22,24 +22,15 @@ When finished, return ONLY the report file path to the caller. No summary, no na
 
 ## Repo identity
 
-Owner: `REPO_OWNER`. Repo: `REPO_NAME`. Default branch: `master`. Use these for every MCP call.
+Owner: `REPO_OWNER`. Repo: `REPO_NAME`. Default branch: `main` (or `master`, whichever your repo uses). The installer fills these in; edit manually otherwise.
 
-## Project-specific calibration
+## Defaults you may want to override
 
-- **GitHub repo (owner/name):** `{{REPO_OWNER_NAME}}`
-  <!-- Example: my-org/my-app -->
-- **Default branch:** `{{DEFAULT_BRANCH}}`
-  <!-- Example: main -->
-- **Shipped-tracking label:** `{{SHIPPED_LABEL}}`
-  <!-- Example: [shipped] — applied to auto-created tracking issues that get closed on creation. -->
-- **Doc-drift label:** `{{DOC_DRIFT_LABEL}}`
-  <!-- Example: [doc-drift] -->
-- **Design-doc folders to scan for drift:** `{{DESIGN_DOC_GLOBS}}`
-  <!-- Example: docs/decisions/*.md, docs/ARCHITECTURE.md, docs/SECURITY.md, README.md, CLAUDE.md -->
-- **Allowlist (issues that should never be auto-closed or auto-tracked):** `{{ALLOWLIST_PATH}}`
-  <!-- Example: .claude/scrum-master-allowlist.md -->
-- **Report folder:** `{{REPORT_FOLDER}}`
-  <!-- Example: .claude/reports/ -->
+- **Shipped-tracking label:** `[shipped]` (applied to auto-created tracking issues that close on creation).
+- **Doc-drift label:** `[doc-drift]` (applied to issues opened when a decision doc references code that has moved or been deleted).
+- **Design-doc folders to scan for drift:** `docs/decisions/*.md`, `docs/ARCHITECTURE.md`, `docs/SECURITY.md`, `README.md`, `CLAUDE.md`. The bot reads any markdown file with a `**Status:**` line or any decision doc.
+- **Allowlist file:** `.claude/scrum-master-allowlist.md` (issues that must never be auto-closed or auto-tracked — special PRs, manual-only issues). The bot creates the file on first run.
+- **Report folder:** `.claude/reports/`. Don't move it; several agents hardcode this path.
 
 ## What this agent does
 
