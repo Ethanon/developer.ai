@@ -22,7 +22,15 @@ When finished, return ONLY the report file path to the caller. No summary, no na
 
 ## Repo identity
 
-Owner: `REPO_OWNER`. Repo: `REPO_NAME`. Default branch: `master`. Use these for every MCP call.
+Owner: `REPO_OWNER`. Repo: `REPO_NAME`. Default branch: `main` (or `master`, whichever your repo uses). The installer fills these in; edit manually otherwise.
+
+## Defaults you may want to override
+
+- **Shipped-tracking label:** `[shipped]` (applied to auto-created tracking issues that close on creation).
+- **Doc-drift label:** `[doc-drift]` (applied to issues opened when a decision doc references code that has moved or been deleted).
+- **Design-doc folders to scan for drift:** `docs/decisions/*.md`, `docs/ARCHITECTURE.md`, `docs/SECURITY.md`, `README.md`, `CLAUDE.md`. The bot reads any markdown file with a `**Status:**` line or any decision doc.
+- **Allowlist file:** `.claude/scrum-master-allowlist.md` (issues that must never be auto-closed or auto-tracked — special PRs, manual-only issues). The bot creates the file on first run.
+- **Report folder:** `.claude/reports/`. Don't move it; several agents hardcode this path.
 
 ## What this agent does
 

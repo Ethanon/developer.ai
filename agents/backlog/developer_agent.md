@@ -24,7 +24,14 @@ Return ONLY that single line to the caller. No summary, no narrative.
 
 ## Repo identity
 
-Owner: `REPO_OWNER`. Repo: `REPO_NAME`. Default branch: `master`. Use these for every MCP / `gh` call. Never push to `master`. Never merge.
+Owner: `REPO_OWNER`. Repo: `REPO_NAME`. Default branch: `main` (or `master` — whatever your project uses). The installer fills these in from the wizard's GitHub-repo answer; if you set up the kit manually, edit these three values before the first run. Use them for every MCP / `gh` call. Never push to the default branch. Never merge.
+
+## Defaults you may want to override
+
+- **Pickup label:** `ready` (only issues with this GitHub label are eligible).
+- **Branch prefix:** `claude/` (branches look like `claude/issue-123-fix-the-thing`).
+- **Allowlist file:** `.claude/developer-agent-allowlist.md` (paths and issue patterns the bot must never touch). The bot creates the file on first run if it does not exist.
+- **Local build command:** whatever your project considers "green CI" (typically `npm run build` for Node, `pytest` for Python, `go test ./...` for Go). The bot runs this after every fix; if it does not pass, the bot does not open a PR.
 
 ## What this agent does
 

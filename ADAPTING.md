@@ -1,6 +1,10 @@
 # Adapting developer.ai to Your Project
 
-This document walks through the one-time setup required to point the agent fleet at your GitHub repo. Most changes are search-and-replace; a few require decisions about your stack.
+This document walks through the **mechanical setup** required to point the agent fleet at your GitHub repo. It's the "copy these files, set these secrets, replace these placeholders" guide.
+
+Once the agents are wired up and firing, see [CALIBRATE.md](CALIBRATE.md) to make them accurate for your specific project (the part that fills in templates and per-agent calibration slots).
+
+Total time for ADAPTING: 15-30 minutes. Total time for CALIBRATE: 1-2 hours, spreadable across a few days.
 
 ---
 
@@ -26,13 +30,17 @@ Files to update:
 - `agents/backlog/scrum_master.md` — repo identity section
 - `agents/backlog/developer_agent.md` — repo identity section
 - `agents/backlog/story_groomer.md` — repo identity section
+- `agents/backlog/audit_groomer.md` — repo identity section
 - `workflows/pr-review.yml` — fork guard condition
+- `workflows/scheduled-agents.yml` — fork guard condition (if used)
 
 Also update the default branch name if yours is not `master` (e.g. change to `main`):
 - `agents/backlog/scrum_master.md`
 - `agents/backlog/developer_agent.md`
 - `agents/backlog/story_groomer.md`
+- `agents/backlog/audit_groomer.md`
 - `workflows/pr-review.yml`
+- `workflows/scheduled-agents.yml`
 
 ---
 
@@ -51,12 +59,12 @@ The workflow checks for this secret and prints an error if missing.
 
 ## Step 4: Choose your agent variants
 
-### PR review agents (alice, bob)
+### Core review agents (Alice, Bob)
 
 Two tiers:
 
-- **Generic** (`alice_security.md`, `bob_engineering.md`): any TypeScript project.
-- **PWA** (`alice_security_pwa.md`, `bob_engineering_pwa.md`): React + CSS Modules + BFF + OAuth/PKCE stack.
+- **Generic** (`alice_security.md`, `bob_engineering.md`): any project.
+- **PWA-flavored** (`alice_security_pwa.md`, `bob_engineering_pwa.md`): React frontend plus a backend-auth-gateway pattern (the backend holds the session, the browser only has a cookie).
 
 Update `workflows/pr-review.yml` to use the right variants:
 
@@ -65,9 +73,21 @@ matrix:
   agent: [bob_engineering_pwa, alice_security_pwa]   # or [bob_engineering, alice_security] for generic
 ```
 
-### Critique agents (jekyll, hyde)
+### Optional extra reviewers (Gomez, Carl)
 
-These are generic — no variants needed. They critique whatever alice and bob post.
+- **Gomez** (`gomez_cleancode.md`): line-level density and naming-for-intent. Useful for any codebase; especially valuable on AI-generated code that passes the suffix contract but tells a human reader nothing.
+- **Carl** (`carl_ux_pwa.md`): UX review. Only useful for projects with a user interface; PWA-flavored.
+
+Add either or both to the workflow matrix:
+
+```yaml
+matrix:
+  agent: [bob_engineering_pwa, alice_security_pwa, gomez_cleancode, carl_ux_pwa]
+```
+
+### Critique agents (Jekyll, Hyde)
+
+These are generic — no variants needed. They critique whatever the first-pass reviewers post.
 
 ---
 
@@ -114,27 +134,40 @@ Several agents read allowlist files to skip known-good patterns:
 
 | File | Agent | Purpose |
 |---|---|---|
-| `.claude/hanging-refs-allowlist.md` | `hanging-refs` | Dynamic-dispatch patterns that look like dead refs |
-| `.claude/naming-audit-allowlist.md` | `naming-audit` | Accepted non-standard names (domain nouns, React components) |
-| `.claude/scrum-master-allowlist.md` | `scrum-master` | Issues/PRs that should never be auto-closed or auto-tracked |
-| `.claude/developer-agent-allowlist.md` | `developer-agent` | Issues/paths the agent should never touch |
-| `.claude/story-groomer-allowlist.md` | `story-groomer` | Issues or doc sections that should never get the `ready` label |
+| `.claude/hanging-refs-allowlist.md` | `hanging_refs` | Dynamic-dispatch patterns that look like dead refs |
+| `.claude/naming-audit-allowlist.md` | `naming_audit` | Accepted non-standard names (domain nouns, React components) |
+| `.claude/security-audit-allowlist.md` | `security_audit` | Findings the reviewer has accepted (by line key) |
+| `.claude/prompt-audit-allowlist.md` | `prompt_audit` | Prompt-rule carve-outs |
+| `.claude/scrum-master-allowlist.md` | `scrum_master` | Issues/PRs that should never be auto-closed or auto-tracked |
+| `.claude/developer-agent-allowlist.md` | `developer_agent` | Issues/paths the agent should never touch |
+| `.claude/story-groomer-allowlist.md` | `story_groomer` | Issues or doc sections that should never get the `ready` label |
+| `.claude/audit-groomer-allowlist.md` | `audit_groomer` | Audit findings that should not be converted into issues |
 
 These files are created by agents when needed. You can also create them manually before the first run. Format is described in each agent's spec.
 
 ---
 
-## Step 9: Extend alice_pwa / bob_pwa for your stack (optional)
+## Step 9: Calibrate the agents to your project
 
-If your project has conventions beyond the generic PWA defaults — a specific state management library, a particular API pattern, internal naming conventions — add a `## Project-specific extensions` section at the bottom of `alice_security_pwa.md` and `bob_engineering_pwa.md`.
+This is the big payoff step, but it's its own document because it's the most substantive. See **[CALIBRATE.md](CALIBRATE.md)** for the walkthrough.
+
+The short version: fill in `templates/PROJECT_CONTEXT.md`, `templates/SECURITY.md`, and `templates/ARCHITECTURE.md`, then fill the per-agent calibration slots inside each `agents/*.md` file. Without this, the agents fall back to generic advice; with it, you get findings that name your actual code.
+
+You can skip CALIBRATE for the first PR review and the agents will still post something useful. But every hour you spend on calibration cuts the agents' false-positive rate by roughly the same amount.
+
+---
+
+## Step 10: Extend `_pwa` variants for your stack (optional)
+
+If your project has conventions beyond what the PWA-flavored agents already cover — a specific state management library, a particular API pattern, internal naming conventions — add a `## Project-specific extensions` section at the bottom of `alice_security_pwa.md` and `bob_engineering_pwa.md`.
 
 Keep it focused: only rules that would catch real bugs in your codebase, not style preferences.
 
 ---
 
-## Step 10: Wire up scheduled agents (optional)
+## Step 11: Wire up scheduled agents (optional)
 
-The weekly agents (`scrum-master`, `market-watch`, `hanging-refs`, `naming-audit`, `class-size-audit`, `security-audit`) and the daily agents (`developer-agent`, `story-groomer`) can be triggered by GitHub Actions cron jobs or by Claude Code remote routines.
+The weekly agents (`scrum_master`, `market_watch`, `hanging_refs`, `naming_audit`, `class_size_audit`, `security_audit`, optionally `prompt_audit`, plus `audit_groomer` which depends on the others) and the daily agents (`developer_agent`, `story_groomer`) can be triggered by GitHub Actions cron jobs or by Claude Code remote routines.
 
 Example cron workflow for weekly agents:
 
