@@ -32,7 +32,7 @@ Small to medium teams (3 to 50 people). Each team has one shared workspace. Memb
 
 ## How big it needs to be
 
-> Override the band below if your project's scale is different. Findings that only matter at 10x or 100x your stated scale are noise — the agents check this before suggesting "this will fail at scale" rewrites.
+> Override the band below if your project's scale is different. Findings that only matter at 10x or 100x your stated scale are noise; the agents check this before suggesting "this will fail at scale" rewrites.
 
 We are designing for around 10,000 active users across a few thousand workspaces. Findings that only matter at extreme scale (millions of users, multi-region active-active deploys) are noise unless the change in front of us actually crosses that boundary.
 <!-- tag: Personal Preference; default-on -->
@@ -72,7 +72,7 @@ Every service has a **role name** that does not change even if we swap out the t
 - We don't use managed databases as a service (Supabase-hosted, Neon, PlanetScale).
 - We don't deploy on serverless platforms (Lambda, Cloud Functions).
 - We don't add a new microservice when we can extend an existing one.
-- We don't build for backwards compatibility across our own clients — one frontend, always at the latest version.
+- We don't build for backwards compatibility across our own clients. One frontend, always at the latest version.
 - We don't add optional parameters "so old callers keep working." The compiler finds them all.
 - We don't allow secrets in `.env` files committed to the repo; secrets live in the secrets service.
 
@@ -108,4 +108,4 @@ The backlog agents key off labels. Defaults below; override only if your repo al
 |---|---|
 | Report folder | `.claude/reports/` |
 
-The folder is gitignored except for `.claude/reports/.keep`, so reports stay local unless a workflow uploads them as an artifact. Don't change the path unless you have a reason — several agents hard-code it.
+The folder is gitignored except for `.claude/reports/.keep`, so reports stay local unless a workflow uploads them as an artifact. Don't change the path unless you have a reason; several agents hard-code it.

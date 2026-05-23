@@ -79,6 +79,8 @@ In template prose, every slot has a one-sentence lead-in explaining what the slo
 
 This is the difference between a template a reader fills in confidently and one they fill in by guessing.
 
-## 6. No em-dashes, no emoji, no aphorisms
+## 6. Prefer colons and full stops over em-dashes; no emoji; no aphorisms
 
-Same as the engineering principles: colons, parentheses, and full stops carry the same meaning as em-dashes and read more directly. No emoji or icons in templates or setup docs. No aphorism-shaped closers ("at the end of the day...", "the rest is just plumbing").
+Em-dashes are a stylistic tic that compound in AI-written prose. The default rule: try a colon, a parenthesis, or a new sentence first. Reserve em-dashes for cases where the alternatives genuinely read worse (long parenthetical asides where parens would nest awkwardly, for instance).
+
+No emoji or icons in templates or setup docs. No aphorism-shaped closers ("at the end of the day...", "the rest is just plumbing"). Those read as filler when a reader is trying to extract meaning.

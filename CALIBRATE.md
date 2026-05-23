@@ -1,6 +1,6 @@
 # Calibrating the Agents to Your Project
 
-The agents in this repo work out of the box — they ship with sensible defaults — but they get noticeably more useful when you fill in a small set of project-specific facts. This document walks you through that process in priority order, so you spend your time on the highest-payoff calibration first.
+The agents in this repo work out of the box; they ship with sensible defaults. They get noticeably more useful when you fill in a small set of project-specific facts. This document walks you through that process in priority order, so you spend your time on the highest-payoff calibration first.
 
 > Estimated time: **1-2 hours total** for the full pass. You can stop after Step 2 and still get a real improvement on day one.
 
@@ -14,13 +14,13 @@ Two layers of project context live in this repo:
 
 1. **Templates** (`templates/`): three short documents you fill in and copy into your project's `docs/` folder. The agents read these as their source of truth. Most of the calibration happens here.
 
-2. **Per-agent calibration blocks** (inside each `agents/*.md` file, near the top): a small set of slots that tune a specific agent to your codebase — folder paths, middleware names, label values. These are filled directly inside the agent file once.
+2. **Per-agent calibration blocks** (inside each `agents/*.md` file, near the top): a small set of slots that tune a specific agent to your codebase. Folder paths, middleware names, label values. These are filled directly inside the agent file once.
 
 You **read** the agent files; you don't usually edit anything inside them except the calibration block.
 
 ---
 
-## Step 1 — Fill `PROJECT_CONTEXT.md` (15-30 minutes, highest payoff)
+## Step 1: Fill `PROJECT_CONTEXT.md` (15-30 minutes, highest payoff)
 
 Open `templates/PROJECT_CONTEXT.md` and copy it to `docs/PROJECT_CONTEXT.md` in your project. Fill in every slot. The inline `<!-- Example: -->` comments show what a filled answer looks like; delete each comment after you've filled the slot.
 
@@ -29,16 +29,16 @@ The slots that move the dial the most:
 - **What this project is.** One paragraph. Every agent reads this to ground its judgment.
 - **How big it needs to be.** Tells Jekyll and Hyde whether a "this will fail at scale" critique is real or hypothetical.
 - **How we host it.** Tells Jekyll not to recommend a managed service that your project has ruled out.
-- **Our pieces (role-named services).** The list of containers (or services, or modules — whatever your project calls them) and the role each one plays. Alice and Bob use this to ground every architectural finding.
+- **Our pieces (role-named services).** The list of containers (or services, or modules; whatever your project calls them) and the role each one plays. Alice and Bob use this to ground every architectural finding.
 - **What we don't do.** Saves the agents from re-litigating decisions you've already made. The single highest-ROI section.
 
-> Tip: skim `examples/PROJECT_CONTEXT.md` first for shape. It's a filled-in version using a generic team-collaboration-app example — your project will substitute its own names and details.
+> Tip: the template itself ships with opinionated defaults pre-filled. Read it through once; the `## What this project is`, `## Who uses it`, and `## How we host it` paragraphs are placeholders you replace with your own. Other sections (the labels table, the bot identity table) only need editing if your project differs from the defaults.
 
 After this step, every agent already has more context to work with. You could stop here and the kit would be useful.
 
 ---
 
-## Step 2 — Fill `SECURITY.md` (20-40 minutes, second-highest payoff)
+## Step 2: Fill `SECURITY.md` (20-40 minutes, second-highest payoff)
 
 Open `templates/SECURITY.md`, copy it to `docs/SECURITY.md` in your project. Fill it in.
 
@@ -53,11 +53,11 @@ This document calibrates Alice (the security review agent) and the security audi
 - **What we log, and where.** The destination matters more than the content; this section names what's allowed to reach the browser console vs the server logs.
 - **What we don't defend against (yet).** Risks you've accepted. Saves the agents from raising findings on these.
 
-> Tip: read `examples/SECURITY.md` first. The example shows a backend-auth-gateway pattern (the backend holds the session, the browser only has a cookie) — adapt it to whatever your project actually does.
+> Tip: the template ships pre-filled with a backend-auth-gateway pattern (the backend holds the session, the browser only has a cookie). If that matches your project, you mostly need to edit names and paths. If your auth shape is different, replace the affected paragraphs.
 
 ---
 
-## Step 3 — Fill `ARCHITECTURE.md` (20-40 minutes)
+## Step 3: Fill `ARCHITECTURE.md` (20-40 minutes)
 
 Open `templates/ARCHITECTURE.md`, copy it to `docs/ARCHITECTURE.md`. Fill it in.
 
@@ -68,24 +68,24 @@ Bob (the engineering review agent) and the audit bots read this. The most-levera
 - **Layer responsibilities.** Who owns what kind of logic. Bob flags PRs that put business logic in the frontend, frontend logic in the backend, etc.
 - **Decisions already made.** Index of your decision docs.
 
-> Tip: read `examples/ARCHITECTURE.md`. The "Layer responsibilities" section is the one Bob leans on most; write it carefully.
+> Tip: the "Layer responsibilities" section is the one Bob leans on most. Write it carefully; vague layer rules produce vague layer findings.
 
 ---
 
-## Step 4 — Read one or two of the example decision docs (10 minutes)
+## Step 4: Read one or two of the example decision docs (10 minutes)
 
 Skim `examples/decisions/`. Four worked examples are included:
 
-- `004-auth-gateway.md` — a security/vendor decision.
-- `028-client-layer.md` — an architectural layering decision.
-- `037-fail-loud.md` — an engineering-philosophy decision.
-- `071-scheduled-bots-on-github-actions.md` — an ops decision.
+- `004-auth-gateway.md`: a security/vendor decision.
+- `028-client-layer.md`: an architectural layering decision.
+- `037-fail-loud.md`: an engineering-philosophy decision.
+- `071-scheduled-bots-on-github-actions.md`: an ops decision.
 
 You don't have to write your own decision docs today. But knowing what one looks like means that the first time you want to record a decision, you have a model to copy. Use `templates/decisions/DECISION_TEMPLATE.md` for new ones.
 
 ---
 
-## Step 5 — Walk through each agent's calibration block (5-15 minutes per agent)
+## Step 5: Walk through each agent's calibration block (5-15 minutes per agent)
 
 For each agent you're using, open its file in `agents/` and find the `## Project-specific calibration` section near the top. Fill in every slot.
 
@@ -102,18 +102,18 @@ You can fill these in over time as you start using each agent. Day-one priority:
 
 ---
 
-## Step 6 — Open a throwaway PR and watch the agents post (15-30 minutes)
+## Step 6: Open a throwaway PR and watch the agents post (15-30 minutes)
 
-Open a small PR — a one-line README edit is fine — and watch the agents fire. You'll see:
+Open a small PR (a one-line README edit is fine) and watch the agents fire. You'll see:
 
 - Alice and Bob post reviews. If they're either silent or noisy, your `PROJECT_CONTEXT.md` and `SECURITY.md` probably need more detail. Adjust and try again.
-- Jekyll and Hyde post critique replies. If they're silent, that's fine — it means Alice and Bob's advice holds up.
+- Jekyll and Hyde post critique replies. If they're silent, that's fine: it means Alice and Bob's advice holds up.
 
 A common iteration: Alice raises a finding that's correct in the abstract but doesn't apply to your stack. Find the relevant section in your `SECURITY.md` or `PROJECT_CONTEXT.md` "What we don't do" list, make it more explicit, and run the PR again. Each round of this tightens the agents to your codebase.
 
 ---
 
-## Step 7 — Schedule the weekly bots (5 minutes)
+## Step 7: Schedule the weekly bots (5 minutes)
 
 If you copied `workflows/scheduled-agents.yml` (or split it into the per-bot files described in `ADAPTING.md`), check that the cron schedules make sense for your timezone. Defaults: weekly bots fire Monday 09:00 UTC, daily bots fire 08:00 UTC.
 
@@ -125,8 +125,8 @@ If you're in a heavily off-UTC timezone, edit the cron expressions so reports ar
 
 Calibration drifts as your project evolves. Re-read your `PROJECT_CONTEXT.md` quarterly. Specifically check:
 
-- The **scale target** — did you cross from "a few hundred users" to "thousands"? Findings that were noise before may be real now.
-- The **services table** — did you add a new container or rename one? The agents won't know unless this table says so.
-- The **"what we don't do" list** — have any of those decisions softened? Time to update.
+- The **scale target.** Did you cross from "a few hundred users" to "thousands"? Findings that were noise before may be real now.
+- The **services table.** Did you add a new container or rename one? The agents won't know unless this table says so.
+- The **"what we don't do" list.** Have any of those decisions softened? Time to update.
 
 The agents are advisory; they always tell you what they think. Calibration is how you tell them what you think.

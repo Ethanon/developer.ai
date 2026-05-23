@@ -12,11 +12,11 @@ You clone this repo, open Claude Code in it, and run `/install`. The installer a
 
 ## What this repo is, and what it isn't
 
-**This repo is a kit.** It contains agent specs (markdown files Claude Code reads at runtime), reference GitHub Actions workflows, project-context templates, worked examples, and a small library of skills. It is not a service you sign up for — there's no SaaS dashboard, no API to call. Everything runs inside your own GitHub repo against your own Actions minutes (or self-hosted runners), and you pay Anthropic for the model calls the agents make.
+**This repo is a kit.** It contains agent specs (markdown files Claude Code reads at runtime), reference GitHub Actions workflows, project-context templates, worked examples, and a small library of skills. It is not a service you sign up for: there's no SaaS dashboard, no API to call. Everything runs inside your own GitHub repo against your own Actions minutes (or self-hosted runners), and you pay Anthropic for the model calls the agents make.
 
 **This repo is not the agents themselves.** The agents run inside Claude Code via the [`anthropics/claude-code-action`](https://github.com/anthropics/claude-code-action) GitHub Action. This repo is what tells those agents who they are, what to look for, and what your project's conventions are. Think of it as a job description plus a company handbook.
 
-**The kit ships opinionated defaults.** Most projects don't want to fill in 47 blank slots before the agents do anything useful. The templates, the engineering principles, and the agent rules ship with sensible defaults already in place — based on patterns from a real production codebase. The installer adjusts those defaults based on your wizard answers; you edit further if your project's reality differs. The kit is MIT-licensed; fork and modify freely.
+**The kit ships opinionated defaults.** Most projects don't want to fill in 47 blank slots before the agents do anything useful. The templates, the engineering principles, and the agent rules ship with sensible defaults already in place, based on patterns from a real production codebase. The installer adjusts those defaults based on your wizard answers; you edit further if your project's reality differs. The kit is MIT-licensed; fork and modify freely.
 
 ---
 
@@ -25,7 +25,7 @@ You clone this repo, open Claude Code in it, and run `/install`. The installer a
 - **Solo developers and small teams** who want code review without a second human. Alice and Bob catch most of what an experienced reviewer would catch, and Jekyll and Hyde catch the parts where Alice and Bob were wrong.
 - **Teams adopting AI-assisted development** who want guardrails on what the AI writes. The same review pipeline that reviews human PRs reviews AI-written PRs.
 - **Open-source maintainers** who want consistent automated review on contributor PRs.
-- **Anyone tired of manually filing tracking issues for shipped work** — the scrum-master agent does that bookkeeping autonomously.
+- **Anyone tired of manually filing tracking issues for shipped work.** The scrum-master agent does that bookkeeping autonomously.
 
 You should probably NOT use it if:
 
@@ -40,7 +40,7 @@ You should probably NOT use it if:
 1. **Day 1, morning** (~20 min): Clone this repo, open Claude Code in it, run `/install`. Answer the wizard. The installer commits the kit on a new branch in your target repo.
 2. **Day 1, mid-morning** (~5 min): Add the `CLAUDE_CODE_OAUTH_TOKEN` secret to your target repo's GitHub Secrets.
 3. **Day 1, afternoon** (~30 min): Read the templates the installer just created in your target repo. Tighten anything where your reality differs from the defaults the installer picked. See `docs/CALIBRATE.md` in your target repo for the walkthrough.
-4. **Day 1, evening**: Open a throwaway PR — even a one-line README edit. The agents should fire. Tune the templates if findings are noisy.
+4. **Day 1, evening**: Open a throwaway PR (even a one-line README edit). The agents should fire. Tune the templates if findings are noisy.
 5. **Day 2 onward**: Open PRs as you normally would. The agents fire automatically. On the rare PR where you don't want them (a giant infra refactor, an emergency hotfix), add the `skip-ci` label.
 6. **Once a week** (Mondays by default): The audit bots scan the codebase for drift, dead code, naming violations, security drift, and ecosystem changes. They write reports to `.claude/reports/`. The `audit-groomer` bot reads those reports the next day and files pickup-ready issues. The `developer-agent` bot picks one issue per day and opens a PR for it.
 7. **Once a quarter**: Re-read your templates. Update the parts that drifted (your scale target grew, you added a new service, you changed your hosting model). The agents pick up the new calibration on the next run.
@@ -221,7 +221,7 @@ flowchart TD
 | Jekyll | `agents/pr-review/jekyll_whitehat.md` | Whitehat critic: challenges the first-pass reviews from a best-practices angle |
 | Hyde | `agents/pr-review/hyde_blackhat.md` | Blackhat critic: attacks the first-pass fixes for real bypasses |
 
-There are no PWA / non-PWA variants — Alice and Bob contain frontend-specific sections inline, tagged Architecture-Conditional. The installer strips them at install time if your project has no frontend.
+There are no PWA / non-PWA variants. Alice and Bob contain frontend-specific sections inline, tagged Architecture-Conditional. The installer strips them at install time if your project has no frontend.
 
 ### Backlog automation (4 agents)
 
@@ -272,14 +272,14 @@ Four worked decision docs in different shapes (security / vendor, layering, phil
 
 ### Engineering docs (copy to `engineering/` in your project)
 
-- `engineering/ENGINEERING_PRINCIPLES.md` — KISS, SOLID, DRY, YAGNI, naming, failure policy. Pass-through port from a real production codebase, with all rules classified into Generic / Architecture-Conditional / Personal Preference / Domain-Specific tags so the installer can tailor it to your project.
-- `engineering/PR_WORKFLOW.md` — opening PRs, greening CI, responding to review.
-- `engineering/BACKLOG_WORKFLOW.md` — issue lifecycle, Definition of Ready.
+- `engineering/ENGINEERING_PRINCIPLES.md`: KISS, SOLID, DRY, YAGNI, naming, failure policy. Pass-through port from a real production codebase, with all rules classified into Generic, Architecture-Conditional, Personal Preference, or Domain-Specific tags so the installer can tailor it to your project.
+- `engineering/PR_WORKFLOW.md`: opening PRs, greening CI, responding to review.
+- `engineering/BACKLOG_WORKFLOW.md`: issue lifecycle, Definition of Ready.
 
 ### Reference docs (read; don't copy unless relevant)
 
-- `STYLE.md` — writing-style rules for templates and setup docs.
-- `DOMAIN_SPECIFIC.md` — worked examples of patterns that don't apply to every project (turn-based state machines, AI-narrative pipelines, memory strategies). Read the section that matches what you're building.
+- `STYLE.md`: writing-style rules for templates and setup docs.
+- `DOMAIN_SPECIFIC.md`: worked examples of patterns that don't apply to every project (turn-based state machines, AI-narrative pipelines, memory strategies). Read the section that matches what you're building.
 
 ---
 
@@ -299,12 +299,12 @@ Every rule in this kit carries a classification tag in an HTML comment. Tags are
 ```
 
 Four tags:
-- **`Generic`** — applies to any project. Kept verbatim.
-- **`Architecture-Conditional`** — applies under certain conditions (`has-frontend`, `has-auth`, `ships-llm-prompts`, etc.). Kept or stripped based on your wizard answers.
-- **`Personal Preference`** — strong opinion, reasonable to disagree. Kit's opinion by default; overridable.
-- **`Domain-Specific`** — content that didn't get a useful generalization. Lives in `DOMAIN_SPECIFIC.md` as a worked example; cross-referenced from generic files.
+- **`Generic`**: applies to any project. Kept verbatim.
+- **`Architecture-Conditional`**: applies under certain conditions (`has-frontend`, `has-auth`, `ships-llm-prompts`, etc.). Kept or stripped based on your wizard answers.
+- **`Personal Preference`**: strong opinion, reasonable to disagree. Kit's opinion by default; overridable.
+- **`Domain-Specific`**: content that didn't get a useful generalisation. Lives in `DOMAIN_SPECIFIC.md` as a worked example; cross-referenced from generic files.
 
-The full set of `applies-when` flags the installer recognizes is documented in `agents/installer.md`. You don't have to know them to install — the wizard collects everything you need to answer.
+The full set of `applies-when` flags the installer recognizes is documented in `agents/installer.md`. You don't have to know them to install; the wizard collects everything you need to answer.
 
 ---
 

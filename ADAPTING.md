@@ -27,12 +27,12 @@ grep -r "REPO_OWNER/REPO_NAME" agents/ workflows/
 **Replace with your GitHub repo slug** (e.g. `myorg/myproject`):
 
 Files to update:
-- `agents/backlog/scrum_master.md` — repo identity section
-- `agents/backlog/developer_agent.md` — repo identity section
-- `agents/backlog/story_groomer.md` — repo identity section
-- `agents/backlog/audit_groomer.md` — repo identity section
-- `workflows/pr-review.yml` — fork guard condition
-- `workflows/scheduled-agents.yml` — fork guard condition (if used)
+- `agents/backlog/scrum_master.md`: repo identity section
+- `agents/backlog/developer_agent.md`: repo identity section
+- `agents/backlog/story_groomer.md`: repo identity section
+- `agents/backlog/audit_groomer.md`: repo identity section
+- `workflows/pr-review.yml`: fork guard condition
+- `workflows/scheduled-agents.yml`: fork guard condition (if used)
 
 Also update the default branch name if yours is not `master` (e.g. change to `main`):
 - `agents/backlog/scrum_master.md`
@@ -59,7 +59,7 @@ The workflow checks for this secret and prints an error if missing.
 
 ## Step 4: Choose which review agents to include
 
-Six PR-review agents ship in this kit. No generic-vs-PWA variants any more — frontend-specific rules live inline in each file, tagged Architecture-Conditional, and either survive or get stripped at install time based on whether your project has a frontend.
+Six PR-review agents ship in this kit. There are no generic-vs-PWA variants any more. Frontend-specific rules live inline in each file, tagged Architecture-Conditional, and either survive or get stripped at install time based on whether your project has a frontend.
 
 ### Core review agents (always on)
 
@@ -120,8 +120,8 @@ Create `docs/SECURITY.md` covering:
 ## Step 7: Update the CI workflow if needed
 
 `workflows/pr-review.yml` defaults to:
-- `runs-on: ubuntu-latest` — change to `self-hosted` if you have your own runners
-- `branches: [master]` — change to match your default branch
+- `runs-on: ubuntu-latest`: change to `self-hosted` if you have your own runners
+- `branches: [master]`: change to match your default branch
 - Fork guard: the existing guard skips forks. Keep this; fork PRs can't safely access repo secrets.
 
 ---
@@ -157,7 +157,7 @@ You can skip CALIBRATE for the first PR review and the agents will still post so
 
 ## Step 10: Extend `_pwa` variants for your stack (optional)
 
-If your project has conventions beyond what Alice and Bob already cover — a specific state-management library, a particular API pattern, internal naming conventions — add a `## Project-specific extensions` section at the bottom of `alice_security.md` and `bob_engineering.md`.
+If your project has conventions beyond what Alice and Bob already cover (a specific state-management library, a particular API pattern, internal naming conventions), add a `## Project-specific extensions` section at the bottom of `alice_security.md` and `bob_engineering.md`.
 
 Keep it focused: only rules that would catch real bugs in your codebase, not style preferences.
 

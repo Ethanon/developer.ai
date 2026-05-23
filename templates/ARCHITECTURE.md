@@ -3,7 +3,7 @@
 <!--
 Bob (the engineering reviewer), the audit agents, and the backlog bots
 read this file as the source of truth for "what shape is this codebase?"
-Findings that contradict your stated architecture are off-target — so
+Findings that contradict your stated architecture are off-target, so
 the clearer this doc names your shape, the fewer false positives you
 get.
 
@@ -42,7 +42,7 @@ A typical "load my workspace" request:
 3. The route handler reads from `datastore`, scoped to the user's tenant.
 4. JSON response goes back to the browser.
 
-A typical write looks the same shape, with the route handler writing back to `datastore` before responding. If the write needs a background follow-up (sending an email, generating a report), the route handler enqueues a job and returns `202` — the `worker` picks it up.
+A typical write looks the same shape, with the route handler writing back to `datastore` before responding. If the write needs a background follow-up (sending an email, generating a report), the route handler enqueues a job and returns `202`; the `worker` picks it up.
 
 > Rewrite this section to walk through one common request in your project end-to-end. Concrete narrative beats an abstract diagram every time.
 <!-- tag: Generic -->

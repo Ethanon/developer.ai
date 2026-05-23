@@ -80,7 +80,7 @@ A new `Set-Cookie` header that misses `HttpOnly`, `Secure`, or `SameSite` is a f
 
 ## Untrusted-input boundaries
 
-Every API route has a request schema (we use Zod). The schema runs before the route handler — handlers never see un-validated input. A new route without a schema is a finding.
+Every API route has a request schema (we use Zod). The schema runs before the route handler; handlers never see un-validated input. A new route without a schema is a finding.
 
 If our project sends user input into an AI model (a prompt, a search query that becomes part of a prompt), it passes through `InputSanitizer.sanitize` first. This blocks the common prompt-injection patterns. A new path from user input to a model call that skips the sanitizer is a finding.
 <!-- tag: Generic -->

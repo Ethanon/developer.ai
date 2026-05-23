@@ -6,7 +6,7 @@ Total time: about 15 minutes for the wizard, plus 5 minutes to add a GitHub secr
 
 ## What you need before starting
 
-1. **Claude Code installed locally** — this kit runs inside Claude Code.
+1. **Claude Code installed locally.** This kit runs inside Claude Code.
 2. **A Claude OAuth token.** Run `claude setup-token` if you don't already have one set up.
 3. **The path to your target repo on disk.** The installer writes into it.
 4. **Your target repo's GitHub identity** (`owner/name`). The installer fills it into the agent files and workflows.
@@ -67,7 +67,7 @@ Read `docs/CALIBRATE.md` in your target repo. It walks you through the remaining
 
 ## Manual install (if you don't want to use the installer)
 
-If you'd rather copy files by hand — for example, you want full control over what lands in your repo — see `ADAPTING.md`. The manual flow is longer (more like 45 minutes) but gives you visibility into every file before it lands.
+If you'd rather copy files by hand (for example, you want full control over what lands in your repo), see `ADAPTING.md`. The manual flow is longer (more like 45 minutes) but gives you visibility into every file before it lands.
 
 ## When the installer is the wrong call
 
@@ -77,7 +77,7 @@ If you'd rather copy files by hand — for example, you want full control over w
 
 ## Troubleshooting
 
-- **"I'm not in a developer.ai folder"** — the installer refuses to run from the wrong directory. `cd` into the freshly-cloned developer.ai folder and try again.
-- **"Target repo has uncommitted changes"** — commit, stash, or clean your target repo first. The installer won't overwrite work in progress.
-- **"CLAUDE_CODE_OAUTH_TOKEN not set"** — run `claude setup-token` and add the result to your target repo's GitHub Secrets.
-- **The agents post but post nothing useful** — read `docs/CALIBRATE.md`. The templates are calibrated to your wizard answers; if the answers were sparse, the templates will be too. The fix is editing the templates with more detail, not re-running the installer.
+- **"I'm not in a developer.ai folder."** The installer refuses to run from the wrong directory. `cd` into the freshly-cloned developer.ai folder and try again.
+- **"Target repo has uncommitted changes."** Commit, stash, or clean your target repo first. The installer won't overwrite work in progress.
+- **"CLAUDE_CODE_OAUTH_TOKEN not set."** Run `claude setup-token` and add the result to your target repo's GitHub Secrets.
+- **The agents post but post nothing useful.** Read `docs/CALIBRATE.md`. The templates are calibrated to your wizard answers; if the answers were sparse, the templates will be too. The fix is editing the templates with more detail, not re-running the installer.
