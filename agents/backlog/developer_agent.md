@@ -26,6 +26,21 @@ Return ONLY that single line to the caller. No summary, no narrative.
 
 Owner: `REPO_OWNER`. Repo: `REPO_NAME`. Default branch: `master`. Use these for every MCP / `gh` call. Never push to `master`. Never merge.
 
+## Project-specific calibration
+
+- **GitHub repo (owner/name):** `{{REPO_OWNER_NAME}}`
+  <!-- Example: my-org/my-app — replaces REPO_OWNER and REPO_NAME above. -->
+- **Default branch:** `{{DEFAULT_BRANCH}}`
+  <!-- Example: main — replaces "master" above if your repo uses something else. -->
+- **Ready label (issues with this label are eligible for pickup):** `{{READY_LABEL}}`
+  <!-- Example: ready -->
+- **Branch prefix for the bot's branches:** `{{BOT_BRANCH_PREFIX}}`
+  <!-- Example: claude/ — so branches look like claude/issue-123-fix-the-thing. -->
+- **Allowlist (paths or issue patterns the bot should never touch):** `{{ALLOWLIST_PATH}}`
+  <!-- Example: .claude/developer-agent-allowlist.md -->
+- **Local build command (run after a fix; must succeed before opening the PR):** `{{LOCAL_BUILD_COMMAND}}`
+  <!-- Example: npm run build (chains lint + format-check + test + build). Whatever your project considers "green CI" should pass locally first. -->
+
 ## What this agent does
 
 1. **Find one eligible issue.** Scan open issues. Apply the pickup gate (below). Pick the single best candidate.

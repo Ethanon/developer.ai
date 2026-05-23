@@ -24,6 +24,23 @@ When finished, return ONLY the report file path to the caller. No summary, no na
 
 Owner: `REPO_OWNER`. Repo: `REPO_NAME`. Default branch: `master`. Use these for every MCP call.
 
+## Project-specific calibration
+
+- **GitHub repo (owner/name):** `{{REPO_OWNER_NAME}}`
+  <!-- Example: my-org/my-app -->
+- **Default branch:** `{{DEFAULT_BRANCH}}`
+  <!-- Example: main -->
+- **Shipped-tracking label:** `{{SHIPPED_LABEL}}`
+  <!-- Example: [shipped] — applied to auto-created tracking issues that get closed on creation. -->
+- **Doc-drift label:** `{{DOC_DRIFT_LABEL}}`
+  <!-- Example: [doc-drift] -->
+- **Design-doc folders to scan for drift:** `{{DESIGN_DOC_GLOBS}}`
+  <!-- Example: docs/decisions/*.md, docs/ARCHITECTURE.md, docs/SECURITY.md, README.md, CLAUDE.md -->
+- **Allowlist (issues that should never be auto-closed or auto-tracked):** `{{ALLOWLIST_PATH}}`
+  <!-- Example: .claude/scrum-master-allowlist.md -->
+- **Report folder:** `{{REPORT_FOLDER}}`
+  <!-- Example: .claude/reports/ -->
+
 ## What this agent does
 
 Five jobs, in order:

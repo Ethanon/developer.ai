@@ -24,6 +24,23 @@ When finished, return ONLY the report file path to the caller. No summary, no na
 
 Owner: `REPO_OWNER`. Repo: `REPO_NAME`. Default branch: `master`. Use these for every MCP / `gh` call.
 
+## Project-specific calibration
+
+- **GitHub repo (owner/name):** `{{REPO_OWNER_NAME}}`
+  <!-- Example: my-org/my-app -->
+- **Default branch:** `{{DEFAULT_BRANCH}}`
+  <!-- Example: main -->
+- **Decision-doc folders (Mode A reads these for `[story]`-shaped sections):** `{{DECISION_DOC_GLOBS}}`
+  <!-- Example: docs/decisions/*.md -->
+- **Approved-status values (Mode A only files issues from docs in these states):** `{{APPROVED_STATUS_VALUES}}`
+  <!-- Example: Approved, Implemented, Landed -->
+- **Ready label (Mode B applies this label when an issue passes the 7-point check):** `{{READY_LABEL}}`
+  <!-- Example: ready -->
+- **Allowlist (issues or doc sections that should never get the `ready` label or a `[story]` issue):** `{{ALLOWLIST_PATH}}`
+  <!-- Example: .claude/story-groomer-allowlist.md -->
+- **Report folder:** `{{REPORT_FOLDER}}`
+  <!-- Example: .claude/reports/ -->
+
 ## What this agent does
 
 Two modes, both run on every invocation, in order:

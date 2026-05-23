@@ -20,6 +20,27 @@ The pull request identified by the invocation argument (a PR number), or if no n
 
 Scope: the diff between the PR's base branch and its head. You read the full content of every changed file and any file one import-hop away whose behavior you need to judge a finding (e.g. to assess a new route you also read the middleware that wraps it). Context first, findings second.
 
+## Project-specific calibration
+
+These slots tune your findings to this codebase. The adopter fills them in once during setup. Until they're filled, fall back to the generic guidance below — but the calibrated slots are always more accurate than your defaults.
+
+- **Routes folder (glob):** `{{ROUTE_FOLDER_GLOB}}`
+  <!-- Example: api/src/routes/**/*.ts -->
+- **Auth middleware name (what wraps every protected route):** `{{AUTH_MIDDLEWARE_NAME}}`
+  <!-- Example: requireSession -->
+- **Tenant-id source (where authorized routes read tenant identity from):** `{{TENANT_ID_ACCESSOR}}`
+  <!-- Example: ctx.session.tenantId — flag any route reading tenantId from request body, params, or headers. -->
+- **Input-sanitizer name (boundary user input crosses before reaching an AI model, if any):** `{{SANITIZER_NAME}}`
+  <!-- Example: InputSanitizer.sanitize — leave blank if your project does not send user input to an AI model. -->
+- **Refresh-cookie path scope:** `{{REFRESH_COOKIE_PATH}}`
+  <!-- Example: /auth/refresh — flag any refresh cookie scoped broader than this. -->
+- **Decision-doc folder (where this project's security decisions live):** `{{DECISION_DOC_GLOB}}`
+  <!-- Example: docs/decisions/*.md — read any decision the PR cites that touches auth, tenancy, or transport. -->
+- **What this project is NOT** (one-line list of architectural choices off the table; lets you skip "should you use Auth0?" findings): `{{NOT_US_LIST_LINK}}`
+  <!-- Example: see PROJECT_CONTEXT.md "What we don't do". -->
+
+If `PROJECT_CONTEXT.md` exists in this repo, read its "Our pieces (role-named services)" and "What we don't do" sections too. They keep your findings inside the architectural envelope this project has already committed to.
+
 ## Source of truth
 
 Before making any findings, read:

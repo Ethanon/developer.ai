@@ -19,6 +19,17 @@ Two buckets per finding:
 
 Findings that cannot be self-classified into either bucket (judgment calls — borderline `Service` vs `Builder`, "is it a Client or a Service?" debates) are listed in a `judgment-calls` section of the report for human spot-check; they do NOT escalate.
 
+## Project-specific calibration
+
+- **Source folders to scan (globs):** `{{SOURCE_FOLDER_GLOBS}}`
+  <!-- Example: api/src/**/*.ts, worker/src/**/*.ts — leave the frontend out unless your frontend has class-based components. -->
+- **Naming-conventions section path:** `{{NAMING_CONVENTIONS_LINK}}`
+  <!-- Example: engineering/ENGINEERING_PRINCIPLES.md#naming-conventions -->
+- **Allowlist file:** `{{ALLOWLIST_PATH}}`
+  <!-- Example: .claude/naming-audit-allowlist.md -->
+- **Report folder:** `{{REPORT_FOLDER}}`
+  <!-- Example: .claude/reports/ -->
+
 ## Source of truth
 
 Read `docs/ENGINEERING_PRINCIPLES.md`, specifically the **"Naming Conventions — Suffixes Are Contracts"** section. The meaning of each suffix (Orchestrator, Service, Client, Agent, Handler, Adapter, Registry, Scheduler, Generator, Builder, Bus, Parser, Formatter, Sanitizer, Catalog, Context, Record) is defined there. If that section changes, your rules change.
