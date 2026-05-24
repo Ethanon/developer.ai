@@ -1,6 +1,12 @@
+<p align="center">
+  <img src="assets/logo.png" alt="developer.ai" width="520">
+</p>
+
 # developer.ai
 
 **The end-to-end Claude Code loop for solo developers and small teams.** Scheduled audit bots scan your repo and file ready-state GitHub issues; a developer-agent picks them up and opens PRs that close them; a named six-person review fleet (security, engineering, UX, clean-code, plus a blackhat/whitehat critic pair) leaves advisory comments on every PR. None of the reviewers block merge — the author always decides. Claude-only by design; install with `/install` in Claude Code.
+
+![The developer.ai agent crew](assets/agent-crew.png)
 
 This isn't another agent collection — it's the full workflow loop one developer needs to operate a repo. The kit ships opinionated defaults you tune via an install-time wizard, plus convention docs (`CLAUDE.md`, `ENGINEERING_PRINCIPLES.md`, PR/backlog workflows) tag-classified Generic / Architecture-Conditional / Personal-Preference / Domain-Specific so you know what to keep and what to strip.
 
