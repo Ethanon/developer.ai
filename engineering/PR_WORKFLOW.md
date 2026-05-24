@@ -4,6 +4,18 @@ Rules for opening, greening, and shepherding a PR through review. Applies to hum
 
 ---
 
+## Every change goes through a pull request
+
+Every change to this repository lands via a pull request. Even one-line renames, em-dash cleanups, link fixes, and other "mechanical" changes go through a PR so the owner has a review window before code lands on the default branch.
+
+**No direct pushes to the default branch.** The temptation is "this is too trivial to warrant a PR" — that's the wrong call. The cost of opening a PR is seconds; the cost of bypassing the owner's review is a change landing without anyone looking at it. If the change is genuinely too trivial to review, it's also too trivial to need rushing past a PR.
+
+The one exception is agents that explicitly have direct-push authorization documented in their own spec (the `story_groomer` and `audit_groomer` bots push `[story]` and `[#NN]` heading suffixes directly to the default branch as part of their idempotency contract). If an agent's spec does not name direct-push, the agent opens a PR.
+
+Branch naming, commit messages, and any other PR mechanics live in the agent that opens the PR (see `agents/backlog/developer_agent.md` for the canonical pattern).
+
+---
+
 ## Open the PR, do not merge it
 
 When work is ready, push the branch and open a pull request with a clear title and summary. The human owner handles all merges. Never call any merge API unsolicited, even when the PR looks "green". If merging is ever wanted, the human will ask explicitly.
