@@ -501,6 +501,25 @@ When a fix doesn't work and the second attempt also doesn't, stop iterating in a
 
 ---
 
+## Three Failed Attempts → Step Back
+
+Related to the "look it up" rule above, but broader. When you've tried the same task three times and it's still wrong, stop pushing on the narrow problem and zoom out. The fourth narrow attempt costs roughly the same as a re-think and almost always pays back worse.
+
+Applies to any engineering task: deploys that don't come up, tests that won't go green, refactors that keep growing, prompt iterations that don't move the needle, design choices that keep producing the same mistake. After three attempts:
+
+1. Stop. Don't open the editor for the fourth attempt yet.
+2. Re-read the original ask, the original error, the original constraint. Half of "this isn't working" is a misread of what "working" means.
+3. Question one of your assumptions explicitly. Common offenders: "the right tool for this is X," "this should fit in one file," "this is a one-line fix," "the framework does this for me."
+4. If the broader view says yes, you were on the right path, then go look it up (the rule above). If the broader view says you were on the wrong path, abandon the attempt; don't sunk-cost it.
+5. Resist the reflex to create a new doc / file / config / abstraction to escape the problem. An existing one almost always wants to be amended instead.
+
+A worked example: a flaky deploy where attempts 1-3 added retries / wait loops / health-check tweaks. Attempt 4 should not be "more retries"; the broader-view question is "is the service actually starting correctly, or am I masking a startup ordering bug?"
+
+The cost of pausing for a re-read is small; the cost of three more narrow attempts is large and usually grows.
+<!-- tag: Generic -->
+
+---
+
 ## No New Config or Env Files
 
 Don't reflexively create `.local.json`, `.example.yml`, `something.config.js` per feature. The few legitimate config files in any project are: secrets (`.env.secrets`-style, gitignored), one main config module per service, and provider-routing JSON if your stack has runtime provider selection.
