@@ -11,12 +11,12 @@ If you are an agent: read this in full once, then read the linked doc(s) for the
 **developer.ai** is a public collection of Claude Code agents, engineering principles, automation workflows, and CI pipelines for TypeScript projects. Fork it, configure it for your repo, and get a production-quality AI-assisted development pipeline out of the box.
 
 The agents cover:
-- Automated PR review (security, engineering principles, whithat/blackhat critique)
+- Automated PR review (security, engineering principles, whitehat/blackhat critique)
 - Backlog automation (story grooming, issue lifecycle, developer-agent that self-assigns and ships issues)
 - Weekly audits (dead code, naming violations, class size, security drift, market signals)
 - Workflow utilities (receiving code review, metered conflict resolution)
 
-Two tiers of agents exist: **generic** (any TypeScript project) and **_pwa** variants (React + CSS Modules + BFF + OAuth/PKCE stack).
+All agents are single-file. Frontend-specific rules live inline in each file, tagged Architecture-Conditional; the installer keeps or strips those sections based on whether your project has a frontend. There are no generic-vs-PWA variants to choose between.
 
 See [ADAPTING.md](ADAPTING.md) for the one-time setup steps to point everything at your repo.
 
@@ -88,12 +88,12 @@ The full rules are in [`engineering/ENGINEERING_PRINCIPLES.md`](engineering/ENGI
 - **Format**: Prettier defaults (2-space indent, single quotes, trailing commas). Never align values across lines with extra whitespace.
 - **No em-dashes, no emoji/icons in prose.** Applies to new code, comments, commit messages, PR descriptions, and `engineering/`. Use a colon, parentheses, or a new sentence.
 
-### PWA / React conventions (applies when using `*_pwa` agent variants)
+### Frontend conventions (apply when your project has a frontend)
 
 - **CSS hierarchy**: a single `global.css` is the source of truth for tokens and shared utilities. Component `.module.css` files use `composes` from global, never duplicate. See "CSS" in ENGINEERING_PRINCIPLES.md.
 - **Storage keys**: any new `localStorage` / `sessionStorage` key MUST be prefixed with your app namespace AND classified in a State Purge Contract doc.
 - **Navigation**: UI components use a `NavigationService` / `useNavigation()` hook. Direct `react-router-dom` imports outside the navigation layer are a layering violation.
-- **Auth**: PKCE flow only (no implicit grant). Token storage: memory only (never `localStorage`). Refresh tokens: `HttpOnly` cookie set by the BFF. See `docs/SECURITY.md`.
+- **Auth**: the modern OAuth login flow only (the PKCE variant). Token storage: memory only (never `localStorage`). Refresh tokens: `HttpOnly` cookie set by the backend auth gateway. See `docs/SECURITY.md`.
 
 ---
 

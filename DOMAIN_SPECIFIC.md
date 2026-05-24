@@ -148,7 +148,7 @@ Apply ops to world; persist; return to player
 
 Each agent is one class. Each has one public method (`act(context)`). Each takes a `Clients` container with role-typed model clients (`StoryClient`, `UtilityClient`, `EmbeddingClient`, `MediaClient`) and a scope-bound `MemoryService`. The orchestrator reads like a table of contents; you can understand the turn shape in 30 seconds.
 
-A simple chatbot with one model call per user message doesn't need any of this — one agent, one method, one model call. The pattern earns its weight when more than one cognitive task (classification, generation, summarisation, decision-making) has to happen per user interaction and you want each task to be testable and replaceable.
+A simple chatbot with one model call per user message doesn't need any of this — one agent, one method, one model call. The pattern earns its weight when more than one cognitive task (classification, generation, summarization, decision-making) has to happen per user interaction and you want each task to be testable and replaceable.
 
 ---
 
@@ -180,7 +180,7 @@ A narrative project benefits from a fixed hierarchy that the user, the AI agents
 - **Book.** Roughly 3-7 chapters. One arc of the campaign. Has a thematic concern (a faction, a question, a relationship). Ends when the arc resolves.
 - **Campaign.** The whole story. One world, one party, one continuing journey. Open-ended; ends when the player retires the campaign.
 
-Each level has its own close-handler — a background job that runs when the level ends. Scene-close summarises; chapter-close generates the next chapter's setup; book-close generates the next book's arc-question.
+Each level has its own close-handler — a background job that runs when the level ends. Scene-close summarizes; chapter-close generates the next chapter's setup; book-close generates the next book's arc-question.
 
 The hierarchy maps directly onto the path-string addressing pattern above:
 
@@ -196,7 +196,7 @@ The hierarchy maps directly onto the path-string addressing pattern above:
 
 When the model's output is free prose (a DM scene description, an NPC's line of dialogue, a generated backstory), the rules that improve quality are different from the rules for JSON-output prompts.
 
-- **Positive-form instructions only.** A model told "don't make NPCs reveal hidden information" is more likely to mention hidden information than one told "have NPCs hint at hidden information only when the character chooses to reveal it." Negative forms paradoxically prime the very behaviour they prohibit.
+- **Positive-form instructions only.** A model told "don't make NPCs reveal hidden information" is more likely to mention hidden information than one told "have NPCs hint at hidden information only when the character chooses to reveal it." Negative forms paradoxically prime the very behavior they prohibit.
 - **Section labels matter.** `=== SCENE STATE ===` works; `=== PAYLOAD ===` doesn't. The model reads the label and primes its expectations accordingly.
 - **Wrong / Right anchors only when the rule is abstract.** If you can state the rule concretely, skip the examples. If you can't, examples earn their tokens.
 - **No developer jargon in prompt text.** No class names, no type names, no field paths. The model has none of that context.

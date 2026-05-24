@@ -28,7 +28,7 @@ Every line of code is a liability — it must be written, read, tested, debugged
 The single most important architectural rule when an AI model is in the stack: pure functions resolve anything that has a right answer, the model handles anything that doesn't. The two responsibilities never cross. A function decides "is this purchase over the daily limit?" — a model does not. A model decides "what's a friendly way to phrase this rejection?" — a function does not.
 <!-- tag: Architecture-Conditional; applies-when: ships-llm-prompts -->
 
-The line is sharper than it sounds in practice. Anything with a single correct outcome — a rules check, a price calculation, a permission test, a state transition — is code. Anything where the goal is style, fit, tone, or interpretation — phrasing, summarisation, classification at the margin, content generation — is the model. When a feature seems to need both, the code computes the structural answer and hands the model the context to phrase it; the model never reverse-engineers the structural answer from prose.
+The line is sharper than it sounds in practice. Anything with a single correct outcome — a rules check, a price calculation, a permission test, a state transition — is code. Anything where the goal is style, fit, tone, or interpretation — phrasing, summarization, classification at the margin, content generation — is the model. When a feature seems to need both, the code computes the structural answer and hands the model the context to phrase it; the model never reverse-engineers the structural answer from prose.
 
 A model that's asked to do deterministic work will get it right most of the time and silently wrong some of the time. A function that's asked to do creative work will be flat and repetitive. Each tool is wrong for the other job.
 
@@ -120,7 +120,7 @@ Do not build for hypothetical future requirements. Build exactly what the curren
 <!-- tag: Generic -->
 
 - No plugin system unless the design requires plugins
-- No configuration flags for behaviours that are always on
+- No configuration flags for behaviors that are always on
 - No abstract base classes for things with one implementation
 - No generic event systems when a direct function call suffices
 - No versioning infrastructure until there are multiple versions
@@ -196,7 +196,7 @@ Default to zero comments. Well-named identifiers and small focused functions are
 - **Do not narrate the current task.** No "added for PR #X", "see ticket Y", "used by the streaming path"; that rots the moment the surrounding code changes.
 - **Do not write prose tuning notes.** A multi-line block listing each config option and why it was picked belongs in the design doc. The config literal is self-explanatory; a one-line tag is enough in code.
 - **No file-header comment blocks.** A 5-15 line preamble at the top of a source file repeating what the class does, when it was created, who owns it, what it integrates with — all of that belongs in the class name, the decision doc, or git blame. Don't write it.
-- **Headers / ASCII-art dividers (`// ── section ──`) are fine sparingly.** They delimit long files. They are not comments about behaviour.
+- **Headers / ASCII-art dividers (`// ── section ──`) are fine sparingly.** They delimit long files. They are not comments about behavior.
 
 When reviewing a diff and you see a block of prose comments, assume the code wants to be rewritten with clearer names instead. The comment is a symptom.
 
@@ -242,7 +242,7 @@ This rule explicitly overrides any reflex to "add an optional for safety." Safet
 - **No real network or disk.** Mock at the boundary: `fetch`, the database client, the model client, the filesystem. Unit tests never hit Postgres, Redis, an actual disk, or a real external API. Integration tests that need a real service are a different tier and gated separately; nothing in the default unit-test run touches the network.
 - **Budgets.** Individual test under 500ms wall-clock, full suite under 10 seconds. If a test exceeds the per-test budget, it is a smell; check for real waits or heavy setup.
 - **Isolation.** Each test owns its setup; no shared mutable state between cases. Reset mocks (`vi.clearAllMocks()`) before every test.
-- **Test the contract, not the implementation.** Assert on observable behaviour (return values, emitted events, recorded mock calls), not on internal state shape. Refactors that keep the contract should keep the tests green.
+- **Test the contract, not the implementation.** Assert on observable behavior (return values, emitted events, recorded mock calls), not on internal state shape. Refactors that keep the contract should keep the tests green.
 - **Fake timers over real timers, every time.** If the code under test uses `setInterval` / `setTimeout` / `Date.now()`, the test uses fake timers.
 
 A test that only passes "sometimes" is not a test. Fix the flakiness or delete it.
@@ -261,7 +261,7 @@ A `DeltaOps` (or `WorldOps`, `RecordOps`, pick the noun that fits) is the contra
 
 Everything lives in a class. There are no free-standing exported functions.
 <!-- tag: Personal Preference; default-on -->
-<!-- override: a team that prefers a functional style (especially in Python or Go) may legitimately disagree. Replace this section with your own organising principle (module-level functions with explicit dependencies, etc.). The downstream rules about "one class per file" become "one exported symbol set per file" in that case. -->
+<!-- override: a team that prefers a functional style (especially in Python or Go) may legitimately disagree. Replace this section with your own organizing principle (module-level functions with explicit dependencies, etc.). The downstream rules about "one class per file" become "one exported symbol set per file" in that case. -->
 
 **Three class archetypes:**
 
@@ -284,7 +284,7 @@ Formatter.toRelativeDate(timestamp)
 import { toCurrency, toDuration, toRelativeDate } from '@kit/utils/format'
 ```
 
-**Static utility methods are still pure** — same inputs always produce the same outputs (modulo intentional randomness in `DiceRoller`), no side effects, no shared mutable state. The class is purely an organisational container.
+**Static utility methods are still pure** — same inputs always produce the same outputs (modulo intentional randomness in `DiceRoller`), no side effects, no shared mutable state. The class is purely an organizational container.
 
 **Stateful components expose typed methods, not raw properties.** Internal state is private; mutation goes through methods that keep the object consistent.
 
@@ -385,7 +385,7 @@ When a server-side operation hits an unrecoverable error — model call, JSON pa
 
 **Rule:** on the critical path there are no silent fallbacks. Catch at the outermost layer only. Route handlers return `{ error, reason }` with an error status. Clients show the reason and offer the user a real recovery choice — retry is the default.
 
-**Why:** fabricated data is worse than a visible failure. A response that approximately looks right during the current session ships a silent correctness bug that compounds every subsequent operation. A loud failure produces one retry click; a silent fallback produces hours of weird downstream behaviour before anyone notices the root cause.
+**Why:** fabricated data is worse than a visible failure. A response that approximately looks right during the current session ships a silent correctness bug that compounds every subsequent operation. A loud failure produces one retry click; a silent fallback produces hours of weird downstream behavior before anyone notices the root cause.
 
 **Exception:** background / advisory operations (image generation, cache warming, prefetches, analytics writes, optional memory writes) may log and skip. They are not on the user's critical path and their absence degrades presentation, not correctness. If you're unsure whether an operation is critical, assume it is.
 

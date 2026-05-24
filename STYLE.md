@@ -10,8 +10,8 @@ The agents themselves stay technical in the parts of their spec that only other 
 
 Don't reference any specific app or company by name in templates or examples. The example shape **is** the architecture itself: a project with a frontend, a backend, an auth service, a datastore, and a few helper containers. Adopters mentally substitute their own names as they read.
 
-- **Don't write:** "Evertales chose Keycloak..." or "TaskFlow uses a BFF..."
-- **Do write:** "Our backend runs an auth container that holds our identity provider. We chose Keycloak..."
+- **Don't write:** "Evertales chose Keycloak..." (a real project name) or "Acme Tasks uses a login gateway..." (a made-up brand). Either kind of name shifts the doc from "this is your project" to "this is some other project."
+- **Do write:** "Our backend runs an auth container that holds our identity provider. We chose Keycloak..." The "our" lets the reader mentally substitute their own setup as they read.
 
 Pieces are called what they are by role: `frontend`, `backend`, `api container`, `auth service`, `auth container`, `datastore`, `middleware`, `worker`, `job runner`. The role name is the noun.
 

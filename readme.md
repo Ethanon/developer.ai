@@ -1,6 +1,6 @@
 # developer.ai
 
-A drop-in collection of AI engineering agents you can pull into any GitHub project. Once it's installed, every pull request gets reviewed by a small fleet of specialised agents (security, engineering, clean-code, UX, plus two critics that challenge those reviews), and a separate set of agents runs on a schedule to keep your backlog clean and your codebase free of drift.
+A drop-in collection of AI engineering agents you can pull into any GitHub project. Once it's installed, every pull request gets reviewed by a small fleet of specialized agents (security, engineering, clean-code, UX, plus two critics that challenge those reviews), and a separate set of agents runs on a schedule to keep your backlog clean and your codebase free of drift.
 
 You clone this repo, open Claude Code in it, and run `/install`. The installer asks you about your stack, your conventions, and your repo identity; it then writes the calibrated kit into your target repo on a new branch. About 15 minutes of Q&A, plus 5 minutes to add a GitHub secret, and the agents start firing on your next PR.
 
@@ -285,7 +285,7 @@ Four worked decision docs in different shapes (security / vendor, layering, phil
 
 ## The tag convention
 
-Every rule in this kit carries a classification tag in an HTML comment. Tags are invisible in the rendered markdown but tell the installer what to keep, what to strip, and what to customise.
+Every rule in this kit carries a classification tag in an HTML comment. Tags are invisible in the rendered markdown but tell the installer what to keep, what to strip, and what to customize.
 
 ```markdown
 - **Default to zero comments.** Comments are a symptom of unclear names.
@@ -302,7 +302,7 @@ Four tags:
 - **`Generic`**: applies to any project. Kept verbatim.
 - **`Architecture-Conditional`**: applies under certain conditions (`has-frontend`, `has-auth`, `ships-llm-prompts`, etc.). Kept or stripped based on your wizard answers.
 - **`Personal Preference`**: strong opinion, reasonable to disagree. Kit's opinion by default; overridable.
-- **`Domain-Specific`**: content that didn't get a useful generalisation. Lives in `DOMAIN_SPECIFIC.md` as a worked example; cross-referenced from generic files.
+- **`Domain-Specific`**: content that didn't get a useful generalization. Lives in `DOMAIN_SPECIFIC.md` as a worked example; cross-referenced from generic files.
 
 The full set of `applies-when` flags the installer recognizes is documented in `agents/installer.md`. You don't have to know them to install; the wizard collects everything you need to answer.
 

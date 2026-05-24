@@ -31,7 +31,7 @@ This agent depends on per-project setup more than any of the others. Without a p
 - **Shared fragment folder:** `api/src/prompts/fragments/*.ts` (where reusable prompt pieces live).
 - **Chat call sites:** `clients.*.chat(` — the scanner verifies every match passes a typed prompt object, not a raw string.
 - **Narrative-prompt classifier:** prompts without `options.schema` are narrative (free-prose output); prompts with one are structured (JSON output).
-- **Classifier-prompt allowlist:** prompts that may contain "Don't" / "Never" directives by design — typically `pushback`, `mechanics-classifier`, `injection-guard`. Customize per your project.
+- **Classifier-prompt allowlist:** prompts that may contain "Don't" / "Never" directives by design. The defaults are `pushback`, `mechanics-classifier`, and `injection-guard`; customize the list to match your project's classifier-shaped prompts.
 - **Allowlist file:** `.claude/prompt-audit-allowlist.md` (findings the reviewer has accepted). The bot creates the file on first run.
 - **Report folder:** `.claude/reports/`.
 
