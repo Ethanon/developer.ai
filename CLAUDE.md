@@ -54,6 +54,8 @@ These are pointers to the full rules in [`engineering/ENGINEERING_PRINCIPLES.md`
 - **Timeouts and intervals never inline.** Read from a config module, never hardcode in business logic. → "Timeouts, Intervals, and Retries".
 - **Tests are deterministic, offline, fast.** No real-time waits, no real network, fake timers. → "Testing".
 - **`Result<T, E>` for fallible operations.** No throwing from business logic — use discriminated unions. → "Failure Policy".
+- **Two failed attempts → look it up.** When a fix doesn't work and the second attempt also doesn't, stop iterating in a vacuum and WebSearch the specific signature. → "Two Failed Attempts → Look It Up".
+- **Three failed attempts → step back.** When the same task has failed three times, stop pushing on the narrow problem and zoom out. The fourth narrow attempt usually pays back worse than a re-think. → "Three Failed Attempts → Step Back".
 
 ---
 
