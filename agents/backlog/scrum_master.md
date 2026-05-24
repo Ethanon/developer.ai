@@ -1,6 +1,6 @@
 ---
 name: scrum_master
-description: Weekly maintenance agent that fully owns the issue tracker. Auto-closes any open issue whose work has shipped in a merged PR (STRONG or LIKELY match, no human review), auto-creates closed [shipped] tracking issues for every merged PR that lacks one, migrates FUTURE_BACKLOG.md entries to open pickup-ready issues, opens [doc-drift] issues when decision docs / CLAUDE.md / READMEs drift from current code (status mismatches, deleted or renamed symbols, reappeared *_BACKLOG.md files), posts re-scope comments on open issues whose referenced files moved, and writes a timestamped report to .claude/reports/. Never edits source, never edits design docs, never merges PRs — opens issues instead. Use weekly. Invoke via the Agent tool with subagent_type=scrum_master.
+description: Weekly maintenance agent that fully owns the issue tracker. Auto-closes any open issue whose work has shipped in a merged PR (STRONG or LIKELY match, no human review), auto-creates closed [shipped] tracking issues for every merged PR that lacks one, migrates FUTURE_BACKLOG.md entries to open pickup-ready issues, opens [doc-drift] issues when decision docs / CLAUDE.md / READMEs drift from current code (status mismatches, deleted or renamed symbols, reappeared *_BACKLOG.md files), posts re-scope comments on open issues whose referenced files moved, and writes a timestamped report to .claude/reports/. Never edits source, never edits design docs, never merges PRs — opens issues instead. Use weekly. Invoke via the Agent tool with subagent_type=scrum_master or by saying things like "clean up the backlog", "close anything shipped last week", "what doc-drift issues need filing".
 source: https://github.com/Ethanon/developer.ai
 license: MIT
 tools: Glob, Grep, Read, Bash, Write, Edit, mcp__github__list_pull_requests, mcp__github__search_pull_requests, mcp__github__pull_request_read, mcp__github__list_issues, mcp__github__search_issues, mcp__github__issue_read, mcp__github__issue_write, mcp__github__list_commits, mcp__github__get_commit, mcp__github__add_issue_comment
@@ -302,3 +302,7 @@ Read `.claude/scrum-master-allowlist.md` before taking any close-or-comment-or-c
 - **Never create a tracking, migration, or doc-drift issue without first verifying** that no existing issue carries the matching marker.
 - **Never edit `FUTURE_BACKLOG.md` until the corresponding GitHub `issue_write` returns success and the issue number is captured.**
 - **Never bother the human with low-confidence findings.** The bar is "act, or drop."
+
+## What happens next
+
+The human reads the Monday-morning report and acts on any items flagged for review. No agent auto-chains after this run.

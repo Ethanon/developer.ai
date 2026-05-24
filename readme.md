@@ -212,42 +212,42 @@ flowchart TD
 
 ### PR review pipeline (up to 6 agents)
 
-| Agent | File | What it does |
+| Agent | What it does | What you used to do by hand |
 |---|---|---|
-| Alice | `agents/pr-review/alice_security.md` | Security review: routes, auth, secrets, cookies, log-leak hygiene; frontend sections (OAuth, service worker, CSP) when applicable |
-| Bob | `agents/pr-review/bob_engineering.md` | Engineering review: god classes, naming contracts, fail-loud, over-abstraction; frontend sections when applicable |
-| Gomez | `agents/pr-review/gomez_cleancode.md` | Line-level clean-code review: names that communicate intent, density, idiom |
-| Carl | `agents/pr-review/carl_ux.md` | UX review: mobile fit, copy quality, latency masking, studio-quality polish. Skipped for projects with no frontend. |
-| Jekyll | `agents/pr-review/jekyll_whitehat.md` | Whitehat critic: challenges the first-pass reviews from a best-practices angle |
-| Hyde | `agents/pr-review/hyde_blackhat.md` | Blackhat critic: attacks the first-pass fixes for real bypasses |
+| Alice (`alice_security.md`) | Security review: routes, auth, secrets, cookies, log-leak hygiene; frontend sections (OAuth, service worker, CSP) when applicable | Manually scan every PR for missing auth middleware, secret leaks, and cookie-flag misses |
+| Bob (`bob_engineering.md`) | Engineering review: god classes, naming contracts, fail-loud, over-abstraction; frontend sections when applicable | Catch over-abstraction, naming drift, and structural smells before merge |
+| Gomez (`gomez_cleancode.md`) | Line-level clean-code review: names that communicate intent, density, idiom | Rename `processData` to something useful; spot the `let` that should be `const` |
+| Carl (`carl_ux.md`) | UX review: mobile fit, copy quality, latency masking, studio-quality polish. Skipped for projects with no frontend. | Walk through the diff on a 360-pixel viewport, check tap targets, eyeball loading states |
+| Jekyll (`jekyll_whitehat.md`) | Whitehat critic: challenges the first-pass reviews from a best-practices angle | Push back on a reviewer who's about to overfit to a single pattern |
+| Hyde (`hyde_blackhat.md`) | Blackhat critic: attacks the first-pass fixes for real bypasses | Stress-test a security fix to see if it actually closes the hole |
 
 There are no PWA / non-PWA variants. Alice and Bob contain frontend-specific sections inline, tagged Architecture-Conditional. The installer strips them at install time if your project has no frontend.
 
 ### Backlog automation (4 agents)
 
-| Agent | File | What it does |
+| Agent | What it does | What you used to do by hand |
 |---|---|---|
-| Developer | `agents/backlog/developer_agent.md` | Self-assigns a `ready` issue, opens a PR, shepherds it through review |
-| Scrum Master | `agents/backlog/scrum_master.md` | Closes shipped issues, auto-creates tracking issues, cleans up backlog |
-| Story Groomer | `agents/backlog/story_groomer.md` | Decomposes decision docs into stories; evaluates the Definition of Ready |
-| Audit Groomer | `agents/backlog/audit_groomer.md` | Turns weekly audit findings into pickup-ready issues |
+| Developer (`developer_agent.md`) | Self-assigns a `ready` issue, opens a PR, shepherds it through review | Pick the next issue, branch, fix the small stuff, push, open the PR, respond to comments |
+| Scrum Master (`scrum_master.md`) | Closes shipped issues, auto-creates tracking issues, cleans up backlog | The Friday backlog-grooming session that nobody enjoys |
+| Story Groomer (`story_groomer.md`) | Decomposes decision docs into stories; evaluates the Definition of Ready | Read the latest decision doc and translate "we agreed to do X" into pickup-ready GitHub issues |
+| Audit Groomer (`audit_groomer.md`) | Turns weekly audit findings into pickup-ready issues | Read Monday's audit reports and file individual cleanup issues with enough context to pick up |
 
 ### Weekly audits (6 agents)
 
-| Agent | File | What it does |
+| Agent | What it does | What you used to do by hand |
 |---|---|---|
-| Hanging Refs | `agents/audits/hanging_refs.md` | Dead imports, unused exports, orphan routes, stale env vars |
-| Naming Audit | `agents/audits/naming_audit.md` | Suffix / contract mismatches against your naming rules |
-| Class Size Audit | `agents/audits/class_size_audit.md` | Flags oversized classes (over ~300 lines or 8 methods) |
-| Security Audit | `agents/audits/security_audit.md` | Auth routes, schema validation, secrets, log-leak, cookie hygiene |
-| Prompt Audit | `agents/audits/prompt_audit.md` | Optional, only if your project ships LLM prompts |
-| Market Watch | `agents/audits/market_watch.md` | Weekly ecosystem and tooling scan |
+| Hanging Refs (`hanging_refs.md`) | Dead imports, unused exports, orphan routes, stale env vars | Periodically grep for imports that point at deleted files |
+| Naming Audit (`naming_audit.md`) | Suffix / contract mismatches against your naming rules | Spot the class named `FooManager` that should be `FooService` (and the other twelve like it) |
+| Class Size Audit (`class_size_audit.md`) | Flags oversized classes (over ~300 lines or 8 methods) | Scan for the class that grew past the threshold while everyone was focused on features |
+| Security Audit (`security_audit.md`) | Auth routes, schema validation, secrets, log-leak, cookie hygiene | A full sweep of the codebase for security drift, the kind that builds up between releases |
+| Prompt Audit (`prompt_audit.md`) | (Optional, only if your project ships LLM prompts.) Prompt templates against your prompt-rules doc | Check every prompt template for fragment-loading drift, negative directives in narrative prompts, schema mismatches |
+| Market Watch (`market_watch.md`) | Weekly ecosystem and tooling scan | A Friday afternoon spent reading release notes, blog posts, and HackerNews to see if anything matters this week |
 
 ### Installer (1 agent)
 
-| Agent | File | What it does |
+| Agent | What it does | What you used to do by hand |
 |---|---|---|
-| Installer | `agents/installer.md` | The wizard that puts the kit into your target repo. Invoked via `/install` from a freshly-cloned developer.ai folder. |
+| Installer (`installer.md`) | The wizard that puts the kit into your target repo. Invoked via `/install` from a freshly-cloned developer.ai folder. | Copy 14 agent files, edit `REPO_OWNER/REPO_NAME` placeholders, set up workflow YAML, write three calibration docs from scratch |
 
 ### Skills (copy to `.claude/skills/` in your project)
 

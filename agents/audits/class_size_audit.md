@@ -1,6 +1,6 @@
 ---
 name: class_size_audit
-description: Scans the codebase for classes that have crossed the size/method-count thresholds (~300 lines or ~8 methods) and self-classifies each into auto-accepted, flagged, or investigate. Auto-accepted classes are silenced for 8 weeks unless their structure changes materially. `flagged` candidates stay in the report for human spot-check; this agent does NOT feed an audit-groomer (the human reads the report directly when shape changes are needed). Read-only; writes a single timestamped Markdown report to .claude/reports/. Use weekly or before a refactor pass.
+description: Scans the codebase for classes that have crossed the size/method-count thresholds (~300 lines or ~8 methods) and self-classifies each into auto-accepted, flagged, or investigate. Auto-accepted classes are silenced for 8 weeks unless their structure changes materially. `flagged` candidates stay in the report for human spot-check; this agent does NOT feed an audit-groomer (the human reads the report directly when shape changes are needed). Read-only; writes a single timestamped Markdown report to .claude/reports/. Use weekly or before a refactor pass. Invoke via the Agent tool with subagent_type=class_size_audit or by saying things like "any classes getting too big", "scan for god-class candidates", "which files are crossing the size threshold".
 source: https://github.com/Ethanon/developer.ai
 license: MIT
 tools: Glob, Grep, Read, Bash, Write
@@ -299,3 +299,7 @@ The bot owns the `**Verdict:**` line. The human does NOT fill it in. If the huma
 - **Don't escalate to `flagged` without a concrete split-seam.** If the seam is fuzzy, the verdict is `auto-accepted` with a soft-signal note.
 - **Don't write more than one report per day.** Overwrite if today's already exists.
 - **Don't file issues.** The human reads the report and decides whether to file. The bot stays read-only.
+
+## What happens next
+
+Unlike the other weekly scanners, class-size findings do NOT feed `audit_groomer`. The flagged candidates stay in the report for the human to read directly when they're considering a refactor pass. Auto-accepted classes go silent until they grow past the threshold again or the cooldown window closes.

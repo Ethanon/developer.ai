@@ -1,6 +1,6 @@
 ---
 name: naming_audit
-description: Audits class names in the codebase for suffix/contract mismatches. Reads the Naming Conventions section of docs/ENGINEERING_PRINCIPLES.md as the source of truth, self-classifies findings into `auto-allowlisted` (React components, middleware functions, accepted suffixes) or `flagged` (concrete suffix/behavior mismatch with a rename target). Only `flagged` findings escalate to the audit-groomer. Read-only; writes a single timestamped Markdown report to .claude/reports/. Use weekly or before a refactor pass.
+description: Audits class names in the codebase for suffix/contract mismatches. Reads the Naming Conventions section of docs/ENGINEERING_PRINCIPLES.md as the source of truth, self-classifies findings into `auto-allowlisted` (React components, middleware functions, accepted suffixes) or `flagged` (concrete suffix/behavior mismatch with a rename target). Only `flagged` findings escalate to the audit-groomer. Read-only; writes a single timestamped Markdown report to .claude/reports/. Use weekly or before a refactor pass. Invoke via the Agent tool with subagent_type=naming_audit or by saying things like "any naming-contract violations", "scan for suffix mismatches", "is anything named wrong for what it does".
 source: https://github.com/Ethanon/developer.ai
 license: MIT
 tools: Glob, Grep, Read, Bash, Write
@@ -195,3 +195,7 @@ Rules:
 - **The workflow's `timeout-minutes` is the wall-clock budget.** This scan is grep-heavy and typically finishes well inside it.
 - **If a bucket has zero findings, still list it in the summary with 0** — reviewer should see you checked.
 - **Never auto-approve a rename in code.** You assign verdicts and propose targets; the rename PR is a human-or-developer-agent job.
+
+## What happens next
+
+`audit_groomer` (Monday noon UTC, three hours after this scanner runs) reads this report and files actionable `flagged` findings as GitHub issues. The 3-hour gap absorbs schedule skew. `auto-allowlisted` findings stay silent and do not escalate.

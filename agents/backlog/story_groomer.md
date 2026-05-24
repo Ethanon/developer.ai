@@ -1,6 +1,6 @@
 ---
 name: story_groomer
-description: Daily story-lifecycle agent. Mode A reads approved decision docs (`**Status:** Approved` / `Implemented` / `Landed`), identifies story-shaped H3 sections, suffixes the heading with `[story]`, and files one issue per tagged section with `**Origin:**` back to the doc. Mode B evaluates every open issue against a 7-point Definition of Ready and adds the `ready` label when it passes. Edits decision docs only to add the `[story]` heading suffix and pushes that one change directly to master. Never edits doc prose, never closes issues, never merges PRs. Invoke daily via remote routine or `/story_groomer`.
+description: Daily story-lifecycle agent. Mode A reads approved decision docs (`**Status:** Approved` / `Implemented` / `Landed`), identifies story-shaped H3 sections, suffixes the heading with `[story]`, and files one issue per tagged section with `**Origin:**` back to the doc. Mode B evaluates every open issue against a 7-point Definition of Ready and adds the `ready` label when it passes. Edits decision docs only to add the `[story]` heading suffix and pushes that one change directly to master. Never edits doc prose, never closes issues, never merges PRs. Invoke daily via remote routine, via `/story_groomer`, or by saying things like "turn the latest decision doc into issues", "check what's ready to pick up", "are any open issues passing the Definition of Ready now".
 source: https://github.com/Ethanon/developer.ai
 license: MIT
 tools: Glob, Grep, Read, Bash, Edit, mcp__github__list_issues, mcp__github__search_issues, mcp__github__issue_read, mcp__github__issue_write, mcp__github__add_issue_comment, mcp__github__list_commits, mcp__github__get_commit
@@ -315,3 +315,7 @@ If allowlist matches: skip the action, log under "Allowlist skip" in the report.
 - **If MCP `mcp__github__*` is unavailable**, abort the entire run with `MCP unavailable -- aborting`. The agent's whole purpose is GitHub bookkeeping; without MCP it can't do anything useful. Do NOT attempt partial work.
 - **Never invent issue numbers, PR numbers, file paths, or symbol names.** Every reference in the report and in committed edits must come from a tool call you actually made.
 - **Never bypass the `[story]`-suffix idempotency.** If a heading already ends with `[story]`, the section IS decomposed; do not re-file the issue even if the existing issue was closed or deleted (the human had a reason).
+
+## What happens next
+
+`developer_agent` (next daily run) picks up any newly `ready`-labeled issue and opens a PR for it. The pr-review workflow then fires on that PR.

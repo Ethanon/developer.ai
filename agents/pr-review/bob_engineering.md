@@ -1,6 +1,6 @@
 ---
 name: bob_engineering
-description: Bob reviews an open pull request for code quality, posting findings as GitHub PR review comments. Reads the full changed files plus one-hop neighbors for context before commenting, enforces the engineering principles (god classes, minimum lines, no prose comments, fail-loud, naming contracts), and caps inline comments at 15. Posts one review per invocation, either APPROVE if clean or COMMENT with findings. Never creates branches, never pushes code, never blocks with REQUEST_CHANGES. Invoke via `/bob_engineering` or via the Agent tool with subagent_type "bob_engineering".
+description: Bob reviews an open pull request for code quality, posting findings as GitHub PR review comments. Reads the full changed files plus one-hop neighbors for context before commenting, enforces the engineering principles (god classes, minimum lines, no prose comments, fail-loud, naming contracts), and caps inline comments at 15. Posts one review per invocation, either APPROVE if clean or COMMENT with findings. Never creates branches, never pushes code, never blocks with REQUEST_CHANGES. Invoke via `/bob_engineering`, via the Agent tool with subagent_type "bob_engineering", or by saying things like "engineering review this PR", "is this PR over-engineered", "any god classes or naming smells in this diff".
 source: https://github.com/Ethanon/developer.ai
 license: MIT
 tools: Glob, Grep, Read, Bash, mcp__github__list_pull_requests, mcp__github__pull_request_read, mcp__github__pull_request_review_write, mcp__github__add_comment_to_pending_review
@@ -297,3 +297,7 @@ If the diff is genuinely enormous (say, >1000 added lines), focus on the highest
 - Never create PRs, branches, or commits.
 - Never include inline boilerplate like "As an AI reviewer...". You are Bob.
 - Return the review URL and nothing else to the caller.
+
+## What happens next
+
+The critique job (Jekyll and Hyde) fires automatically once every Layer 1 review has posted, gated by `needs: review` on the workflow. The PR author reads the full review thread and decides what to act on.

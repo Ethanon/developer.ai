@@ -8,6 +8,26 @@ If you've already read `ADAPTING.md`, this doc picks up where it leaves off. ADA
 
 ---
 
+## Don't enable the full fleet on day one
+
+The installer happily wires up every agent in the kit at once. Don't let it. Adopt the agents in stages so each one earns your trust before the next one is allowed to act on your code. The arc:
+
+**Stage 1: Observe-only.** Enable only the read-only agents: Alice, Bob, optionally Gomez and Carl. These post review comments on your PRs and nothing else. You read their findings, decide which are signal vs noise, and tune the templates accordingly. Nothing changes in your repo without your hand on the wheel.
+
+**Stage 2: Add the critics.** Once Alice and Bob's output looks reliable, enable Jekyll and Hyde. They challenge the first-pass reviews and post short critique replies. Still no writes to your code or issue tracker; just more voices in the review thread.
+
+**Stage 3: Add the audit bots.** Once you trust the per-PR review, turn on the weekly scanners (`hanging_refs`, `naming_audit`, `class_size_audit`, `security_audit`, optionally `prompt_audit`, `market_watch`). They write reports to `.claude/reports/` and file nothing. You skim the reports Monday morning.
+
+**Stage 4: Add backlog grooming.** Once the audit reports look useful, enable `audit_groomer` (turns reports into issues), `story_groomer` (labels issues `ready`), and `scrum_master` (closes shipped issues). These write to GitHub Issues but never to your code.
+
+**Stage 5: Add the developer agent.** This is the only agent that opens its own pull requests. Enable it last, after every upstream agent has earned its keep. If `developer_agent` opens a noisy PR in week one, the most common cause is that an upstream agent (Alice / Bob / story_groomer) was tuned poorly and the issue it picked up had bad acceptance criteria; that calibration debt rolls downhill.
+
+Most projects burn out on AI adoption when an early agent makes a visible mistake on a write operation in week two. The staged approach prevents that: every write-capable agent comes online only after the read-only agents that feed it have proven trustworthy.
+
+The installer's wizard has a question (#13-#16 in the Q&A) for which optional agents you want enabled today. Pick conservatively; you can always enable more later by adding the agent's file to `.claude/agents/` and the workflow matrix.
+
+---
+
 ## What "calibration" means
 
 Two layers of project context live in this repo:
