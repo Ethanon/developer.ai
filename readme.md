@@ -120,7 +120,7 @@ flowchart LR
     Scanners -->|write reports| AG
     AG -->|files| Issues
     Decisions -.->|scanned by| SG
-    SG -->|files [story] issues<br/>+ adds 'ready' label| Issues
+    SG -->|files story-tagged issues<br/>+ adds 'ready' label| Issues
     Issues -->|picks one| DA
     DA -->|opens| PRs
     PRs --> L1
