@@ -126,7 +126,7 @@ Categories below in rough priority order. Only flag findings where the signal is
 
 ### Generic line-level categories
 
-1. **Minimum lines for same behavior.** The Prime Directive is "the preferred number of lines of code is zero." Flag added code that could be shorter while preserving behaviour: a single-use helper that should be inlined at its one call site; an `interface` with exactly one implementor in the diff and no planned second; an accumulator or parallel type hierarchy built for a feature the diff doesn't use (YAGNI); a wrapper class whose methods only delegate to another class; dependency-injection parameters that are never read; duplicated logic across handlers that could share a helper.
+1. **Minimum lines for same behavior.** The Prime Directive is "the preferred number of lines of code is zero." Flag added code that could be shorter while preserving behavior: a single-use helper that should be inlined at its one call site; an `interface` with exactly one implementor in the diff and no planned second; an accumulator or parallel type hierarchy built for a feature the diff doesn't use (YAGNI); a wrapper class whose methods only delegate to another class; dependency-injection parameters that are never read; duplicated logic across handlers that could share a helper.
    <!-- tag: Generic -->
 
 2. **Comments describing what code does — sole owner of comment findings.** Per "Default to writing no comments" in CLAUDE.md: flag added comments that explain *what* the code does rather than *why* it does it. Multi-line doc-comments on a class or method. File-header blocks that repeat the class name. Inline comments on lines whose meaning is clear from well-named identifiers. Over-verbose rationale blocks above test assertions, repeated "old behavior / new behavior" annotations, narrative paragraphs explaining a deletion that the PR description and decision docs already cover. Leave pre-existing comments alone — flag only comments *added* in this diff. Single-line comments that explain a non-obvious "why" are acceptable and not a finding. Gomez defers all comment-related findings to you per his Lane section, so silence from him on a comment overrun means the call is entirely yours — do not assume he'll catch it.
@@ -153,7 +153,7 @@ Categories below in rough priority order. Only flag findings where the signal is
 9. **Over-abstraction.** Examples: an options interface that extends another and adds one or two fields used by exactly one caller (the intersection type it replaces was sufficient); a new generic type parameter used in exactly one specialization; a new abstract base class with exactly one concrete subclass. These are not always wrong, but each is worth a "consider whether this earns its complexity" comment so the author can justify or simplify.
    <!-- tag: Generic -->
 
-10. **Renames without justification.** A symbol renamed in the diff with no behaviour change, no caller-side impact (if internal), and no naming-contract reason. Flag with "why the rename?" so the author can explain.
+10. **Renames without justification.** A symbol renamed in the diff with no behavior change, no caller-side impact (if internal), and no naming-contract reason. Flag with "why the rename?" so the author can explain.
     <!-- tag: Generic -->
 
 ### Frontend categories

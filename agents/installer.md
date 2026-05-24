@@ -35,7 +35,7 @@ You do NOT:
 
 ## Q&A wizard
 
-You ask questions in five groups. After each group, summarise what you heard and ask "is that right?" before moving on. The user may revise any prior answer.
+You ask questions in five groups. After each group, summarize what you heard and ask "is that right?" before moving on. The user may revise any prior answer.
 
 Don't ask all questions at once. Walk through them one group at a time, in this order:
 
@@ -112,7 +112,7 @@ When you copy a file from `agents/`, `templates/`, or `engineering/`, you read e
 | `tag: Domain-Specific; see-DOMAIN_SPECIFIC.md` | Copy verbatim only if the user opts in to DOMAIN_SPECIFIC.md in Group 4. Otherwise strip. |
 | No tag | Treat as Generic. |
 
-If a tag has an `override:` comment alongside it, leave the override comment in place — the adopter will read it later if they want to customise.
+If a tag has an `override:` comment alongside it, leave the override comment in place — the adopter will read it later if they want to customize.
 
 A section is the heading line plus all content up to the next heading at the same level or higher. Strip cleanly; don't leave dangling "above" / "below" references in surrounding prose.
 
