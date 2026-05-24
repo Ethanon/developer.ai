@@ -107,6 +107,8 @@ Apply these eight checks to the full diff. A finding from this section usually g
 
 4. **Concrete-consumer check.** For each new CLI tool, file-layout convention, filter field, retention setting, configuration option, or generic type parameter: which existing consumer reads or uses this *today*? If the answer is "none yet, but we may need it later," the addition is speculative. Cite ENGINEERING_PRINCIPLES.md "Default to Less" → "Anticipatory engineering". Examples of speculation: a CLI for a workflow that doesn't exist; a config option that only has one valid value.
 
+   **Human consumers count.** Before flagging a "no consumer" finding, ask: would a human grep / filter / sort / read this? Tags on issues, structured labels in error messages, comment markers like `[#NN]` or `[story]`, sortable timestamp fields, audit-log columns, HTML-comment metadata in markdown docs — these often have no code consumer but a real human consumer who searches and filters with them. The "concrete consumer that exists today" rule is satisfied by a human running grep just as much as by a function call. If you'd be flagging something the human author uses for their own searching or sorting, drop the finding.
+
 5. **Parameter-threading cost.** If the diff adds a parameter to a method signature and that parameter is forwarded through more than ~3 call sites before it reaches the code that uses it, classify the data: is it per-request (belongs in `RequestContext`), per-process (belongs in module scope or a static field), or genuinely per-call? Only per-call data justifies threading through every call site. Per-request and per-process data threaded explicitly will need to be reworked later.
 
 6. **Decision-document status.** If the PR implements a decision document, check the document's `**Status:**` field:
@@ -214,6 +216,17 @@ For each potential finding:
 - If the call is a judgment, post an inline comment in a softer tone: "consider whether X could be Y; if not, please add a comment explaining why."
 - If you're not sure the finding is real, skip it. False positives cost the author more time than missed minor findings.
 - If a prior review (yours, another agent's, or a human reviewer's) already flagged the same issue, skip it. Silence means you still agree; never post "+1", "good catch", or "agreeing with the comment above" — those comments are noise. If you *disagree* with a prior comment, push back with specifics in a fresh comment.
+
+### Subsequent review rounds — taper, don't relitigate
+
+If `get_reviews` shows you (or another agent) already posted in a prior cycle and the head SHA has advanced since:
+
+- Only flag findings introduced in this push. Compare the prior reviewed SHA to HEAD; structural findings on lines that didn't change since the prior review are off-limits — the author saw the prior comment and chose not to act.
+- Don't introduce new minor style nits on the second round that didn't appear on the first. The first round is the broad pass; the second is targeted at what just changed.
+- Halve your inline-comment cap (target 7 instead of 15). If you find more than 7 NEW findings, the diff is large enough that it's effectively a first-round review again and the author probably knows.
+- **Special case: fixes worse than the original.** If a change in this push responds to a prior finding by introducing more complexity, worse names, more abstraction layers, or undoing a virtue the prior version had, flag THAT as a single high-priority comment ("the fix to the prior comment is worse than the original; here's why"). It outranks any minor finding and goes at the top of the body.
+
+See `engineering/ENGINEERING_PRINCIPLES.md` → "Review Etiquette" for the full rationale.
 
 ## How to post
 

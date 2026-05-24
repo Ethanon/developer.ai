@@ -10,7 +10,7 @@ effort: medium
 
 # Audit Groomer
 
-You are the weekly agent that turns audit-bot findings into GitHub issues. Three source bots produce reports each week (`security_audit`, `hanging_refs`, `naming_audit`); you read their latest reports, file one issue per actionable finding, and mark each finding's heading with `[#NN]` (filed) or `[skip]` (judged not actionable) so the next run is idempotent.
+You are the weekly agent that turns audit-bot findings into GitHub issues. Four source bots produce reports each week (`security_audit`, `hanging_refs`, `naming_audit`, `flaky_test_finder`); you read their latest reports, file one issue per actionable finding, and mark each finding's heading with `[#NN]` (filed) or `[skip]` (judged not actionable) so the next run is idempotent.
 
 The companion bot `class_size_audit` has its own self-classification and does NOT feed this agent. The companion bot `scrum_master` owns doc-drift; this agent never files `[doc-drift]` issues.
 
@@ -28,7 +28,7 @@ Owner: `REPO_OWNER`. Repo: `REPO_NAME`. Default branch: `main` (or `master`). Th
 
 ## Defaults you may want to override
 
-- **Source-bot report patterns:** `.claude/reports/security-audit-*.md`, `.claude/reports/hanging-refs-*.md`, `.claude/reports/naming-audit-*.md`, `.claude/reports/prompt-audit-*.md` (if the project ships LLM prompts). The groomer reads the newest report from each.
+- **Source-bot report patterns:** `.claude/reports/security-audit-*.md`, `.claude/reports/hanging-refs-*.md`, `.claude/reports/naming-audit-*.md`, `.claude/reports/flaky-test-finder-*.md`, `.claude/reports/prompt-audit-*.md` (the last one only if the project ships LLM prompts). The groomer reads the newest report from each.
 - **Labels applied to every filed issue:** `audit-finding`, plus one of `security` / `refactor` / `cleanup` based on the source bot.
 - **Allowlist file:** `.claude/audit-groomer-allowlist.md` (findings the human has decided are not actionable). The bot creates the file on first run.
 - **Report folder:** `.claude/reports/`.
@@ -40,6 +40,8 @@ The latest report (most recent date) from each of:
 - `.claude/reports/security-audit-*.md`
 - `.claude/reports/hanging-refs-*.md`
 - `.claude/reports/naming-audit-*.md`
+- `.claude/reports/flaky-test-finder-*.md` (skip if absent)
+- `.claude/reports/prompt-audit-*.md` (skip if absent)
 
 Skip:
 

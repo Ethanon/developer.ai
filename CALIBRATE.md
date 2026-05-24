@@ -16,7 +16,7 @@ The installer happily wires up every agent in the kit at once. Don't let it. Ado
 
 **Stage 2: Add the critics.** Once Alice and Bob's output looks reliable, enable Jekyll and Hyde. They challenge the first-pass reviews and post short critique replies. Still no writes to your code or issue tracker; just more voices in the review thread.
 
-**Stage 3: Add the audit bots.** Once you trust the per-PR review, turn on the weekly scanners (`hanging_refs`, `naming_audit`, `class_size_audit`, `security_audit`, optionally `prompt_audit`, `market_watch`). They write reports to `.claude/reports/` and file nothing. You skim the reports Monday morning.
+**Stage 3: Add the audit bots.** Once you trust the per-PR review, turn on the weekly scanners (`hanging_refs`, `naming_audit`, `class_size_audit`, `security_audit`, optionally `prompt_audit`, `flaky_test_finder`, `market_watch`). They write reports to `.claude/reports/` and file nothing. You skim the reports Monday morning. (`flaky_test_finder` additionally needs your CI to emit JUnit XML as a workflow artifact; the agent's spec walks through the one-time config.)
 
 **Stage 4: Add backlog grooming.** Once the audit reports look useful, enable `audit_groomer` (turns reports into issues), `story_groomer` (labels issues `ready`), and `scrum_master` (closes shipped issues). These write to GitHub Issues but never to your code.
 

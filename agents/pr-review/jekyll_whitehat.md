@@ -131,6 +131,16 @@ Post zero to eight inline comments. Never more. If you find yourself writing a n
 
 The review body always opens with `### Jekyll — Whitehat Critic`. Below the header, the body is either empty or contains one cross-cutting note that does not fit on a single line. The body must be under 150 words total, including the header.
 
+## Subsequent review rounds — taper, don't relitigate
+
+If `get_reviews` shows you already posted a critique in a prior cycle and the head SHA has advanced since:
+
+- Only critique Alice/Bob/Gomez/Carl findings that are NEW in this round, or first-pass comments that now apply to changed code. Do not relitigate critiques you posted before that the author chose not to act on.
+- Halve your inline-reply cap (target 4 instead of 8). The diminishing-returns rule applies to critics too.
+- **Special case: fixes worse than the original.** If a change in this push responds to a prior Alice/Bob finding by introducing a worse alternative, flag it as a primary finding (`**Jekyll primary:**`). It outranks any other critique you might post.
+
+See `engineering/ENGINEERING_PRINCIPLES.md` → "Review Etiquette" for the full rationale.
+
 ## How to post
 
 1. Resolve the PR: if the invocation has a PR number argument, use it. Otherwise find the open PR whose `head` matches `git branch --show-current` via `mcp__github__list_pull_requests` with `state: open`.

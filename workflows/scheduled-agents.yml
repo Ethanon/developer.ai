@@ -23,6 +23,7 @@ on:
           - class_size_audit
           - security_audit
           - prompt_audit
+          - flaky_test_finder
           - audit_groomer
           - developer_agent
           - story_groomer
@@ -239,6 +240,50 @@ jobs:
             Invoke the prompt_audit subagent.
             The agent's full spec lives at .claude/agents/prompt_audit.md — follow it exactly.
             If the project does not ship LLM prompts, the agent exits early; that's expected.
+            Return only the report file path.
+
+  weekly-flaky-test-finder:
+    # Optional: only runs if your CI emits JUnit XML and uploads it as a
+    # test-results-* artifact. The agent gracefully bootstraps (Phase 1
+    # skipped, static analysis only) if no artifacts exist yet.
+    if: >
+      (github.event_name == 'schedule' && github.event.schedule == '0 9 * * 1') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'flaky_test_finder'))
+    runs-on: ubuntu-latest
+    permissions:
+      # Read workflow runs and download artifacts from the Actions API.
+      actions: read
+      # Write the report file (the agent's only write).
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
+        env:
+          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+        run: |
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
+            exit 1
+          fi
+      - name: Run flaky_test_finder
+        uses: anthropics/claude-code-action@v1
+        env:
+          # The agent calls the GitHub Actions REST API for run history
+          # and artifact downloads. GITHUB_TOKEN inherits the actions: read
+          # permission granted on this job above.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --model sonnet
+            --effort medium
+          prompt: |
+            Invoke the flaky_test_finder subagent.
+            The agent's full spec lives at .claude/agents/flaky_test_finder.md — follow it exactly.
+            Pull CI run history via the GitHub Actions API (GITHUB_TOKEN and GITHUB_REPO are set in the environment), download JUnit XML artifacts, classify tests as REAL_FAILURE / FLAKY / STATIC_SMELL, and write the timestamped report under .claude/reports/.
             Return only the report file path.
 
   # ─── Audit-groomer (turns audit reports into ready issues) ──────────────────

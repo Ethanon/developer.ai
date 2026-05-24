@@ -56,6 +56,7 @@ These are pointers to the full rules in [`engineering/ENGINEERING_PRINCIPLES.md`
 - **`Result<T, E>` for fallible operations.** No throwing from business logic — use discriminated unions. → "Failure Policy".
 - **Two failed attempts → look it up.** When a fix doesn't work and the second attempt also doesn't, stop iterating in a vacuum and WebSearch the specific signature. → "Two Failed Attempts → Look It Up".
 - **Three failed attempts → step back.** When the same task has failed three times, stop pushing on the narrow problem and zoom out. The fourth narrow attempt usually pays back worse than a re-think. → "Three Failed Attempts → Step Back".
+- **Reviews are advisory; subsequent rounds taper.** Reviewer agents never block merge. On Round 2+ of the same PR, only flag NEW issues or fixes that are worse than the original — don't relitigate prior findings the author chose not to act on. → "Review Etiquette".
 
 ---
 
