@@ -1,6 +1,6 @@
 ---
 name: security_audit
-description: Scans the codebase for violations of the security model in docs/SECURITY.md. Catches routes with no schema validation, hardcoded secrets, Logger calls that risk leaking credentials, dangerouslySetInnerHTML, cookies missing required attributes, missing rate limiting on auth routes, TLS/edge configuration gaps, and stale documentation references to superseded auth decisions. Read-only against source; writes a single timestamped Markdown report to .claude/reports/ for human review. Use weekly or before a release that touches auth or transport.
+description: Scans the codebase for violations of the security model in docs/SECURITY.md. Catches routes with no schema validation, hardcoded secrets, Logger calls that risk leaking credentials, dangerouslySetInnerHTML, cookies missing required attributes, missing rate limiting on auth routes, TLS/edge configuration gaps, and stale documentation references to superseded auth decisions. Read-only against source; writes a single timestamped Markdown report to .claude/reports/ for human review. Use weekly or before a release that touches auth or transport. Invoke via the Agent tool with subagent_type=security_audit or by saying things like "scan for security drift", "any new routes missing auth", "check cookie hygiene across the codebase".
 source: https://github.com/Ethanon/developer.ai
 license: MIT
 tools: Glob, Grep, Read, Bash, Write
@@ -273,3 +273,7 @@ What belongs in this agent's TLDR:
 - **Prefer coarser grep queries over exhaustive AST walks.** The workflow's `timeout-minutes` is the wall-clock budget. If the scan is approaching it, write what you have, note "scan truncated, categories remaining: X, Y" in the report, and exit.
 - **If a category has zero findings, still list it in the summary with 0** so the reviewer sees you checked it.
 - **Defer to SECURITY.md.** If the codebase has changed in a way that contradicts `SECURITY.md`, your report flags the contradiction; you do not silently align with the new code.
+
+## What happens next
+
+`audit_groomer` (Monday noon UTC, three hours after this scanner runs) reads this report and files actionable HIGH and MEDIUM findings as GitHub issues. LOW and NOTE findings stay in the report for human spot-check.

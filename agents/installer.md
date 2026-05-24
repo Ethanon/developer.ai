@@ -1,6 +1,6 @@
 ---
 name: installer
-description: The installer agent walks an adopter through a short Q&A wizard and deploys the developer.ai kit (agents, skills, workflows, templates) into their target repository. Reads the inline tags in each kit file to decide what to include, what to strip, and what to customize based on the adopter's answers. Bootstraps a fresh `.claude/` folder if the target repo doesn't have one yet. Edits, commits, and pushes on a new branch in the target repo. Never auto-merges. Invoke from a freshly-cloned developer.ai folder via `/install` or via the Agent tool with subagent_type "installer".
+description: The installer agent walks an adopter through a short Q&A wizard and deploys the developer.ai kit (agents, skills, workflows, templates) into their target repository. Reads the inline tags in each kit file to decide what to include, what to strip, and what to customize based on the adopter's answers. Bootstraps a fresh `.claude/` folder if the target repo doesn't have one yet. Edits, commits, and pushes on a new branch in the target repo. Never auto-merges. Invoke from a freshly-cloned developer.ai folder via `/install`, via the Agent tool with subagent_type "installer", or by saying things like "set this up on my project", "install developer.ai on my repo", "wire up the agent kit for me".
 tools: Glob, Grep, Read, Bash, Write, Edit
 model: sonnet
 effort: medium
@@ -239,3 +239,7 @@ Next steps printed above.
 ```
 
 Don't echo the wizard, don't dump the full diff, don't narrate the installation steps after the fact. The user just watched all of that happen in real-time.
+
+## What happens next
+
+The printed "what's next" screen at the end of installation tells the adopter exactly what to do: add the `CLAUDE_CODE_OAUTH_TOKEN` GitHub secret, review the diff on the new branch, open a small test PR. Nothing fires automatically until the secret is set and a PR is opened.

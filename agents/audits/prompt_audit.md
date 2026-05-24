@@ -1,6 +1,6 @@
 ---
 name: prompt_audit
-description: (Optional, for projects that ship LLM prompts.) Audits prompt templates for consistency with the project's prompt-rules doc and for drift between code and the prompt-catalog documents. Self-classifies findings into `auto-allowlisted` (documented carve-outs, allowlist entries) or `flagged` (concrete rule violation with a one-sentence fix target). Only `flagged` findings escalate to the audit-groomer. Read-only; writes a single timestamped Markdown report to .claude/reports/. Use weekly or before a prompt-tuning pass.
+description: (Optional, for projects that ship LLM prompts.) Audits prompt templates for consistency with the project's prompt-rules doc and for drift between code and the prompt-catalog documents. Self-classifies findings into `auto-allowlisted` (documented carve-outs, allowlist entries) or `flagged` (concrete rule violation with a one-sentence fix target). Only `flagged` findings escalate to the audit-groomer. Read-only; writes a single timestamped Markdown report to .claude/reports/. Use weekly or before a prompt-tuning pass. Invoke via the Agent tool with subagent_type=prompt_audit or by saying things like "audit the prompts", "any negative-form directives in narrative prompts", "check the prompt fragments for drift".
 source: https://github.com/Ethanon/developer.ai
 license: MIT
 tools: Glob, Grep, Read, Bash, Write
@@ -191,3 +191,7 @@ The bot edits ONLY the third section, ONLY by appending. If the file does not ex
 - **The workflow's `timeout-minutes` is the wall-clock budget.** A typical scan is grep-heavy; the budget exists for projects with very large prompt folders.
 - **Never invent a rule.** If the project's prompt-rules doc is silent on a question, do not flag. Note the observation in "Notes" so the reviewer can decide whether to add a rule.
 - **Per-finding confidence is required.** No "this might be wrong" handwaving; every flagged finding cites a line and a rule number.
+
+## What happens next
+
+`audit_groomer` (Monday noon UTC, three hours after this scanner runs) reads this report and files actionable `flagged` findings as GitHub issues. `auto-allowlisted` and `judgment-call` findings stay silent.

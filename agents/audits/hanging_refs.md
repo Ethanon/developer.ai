@@ -1,6 +1,6 @@
 ---
 name: hanging_refs
-description: Scans the codebase for dead imports, unused exports, orphan routes, stale env vars, unreferenced Docker services, CSS dead classes, and stale documentation references. Read-only against source; writes a single timestamped Markdown report to .claude/reports/ for human review. Use weekly or before a cleanup pass.
+description: Scans the codebase for dead imports, unused exports, orphan routes, stale env vars, unreferenced Docker services, CSS dead classes, and stale documentation references. Read-only against source; writes a single timestamped Markdown report to .claude/reports/ for human review. Use weekly or before a cleanup pass. Invoke via the Agent tool with subagent_type=hanging_refs or by saying things like "scan for dead code", "any orphan routes or unused imports", "find stale env vars".
 source: https://github.com/Ethanon/developer.ai
 license: MIT
 tools: Glob, Grep, Read, Bash, Write
@@ -184,3 +184,7 @@ What belongs in this agent's TLDR:
 - **Idempotent** — running you twice in a day produces the same report (overwrites, doesn't duplicate).
 - **Prefer coarser grep queries over exhaustive AST walks.** The workflow's `timeout-minutes` is the wall-clock budget; aim well inside it by keeping the scan grep-driven, not AST-driven.
 - **If a category has zero findings, still list it in the summary with 0** — reviewer should see you checked it.
+
+## What happens next
+
+`audit_groomer` (Monday noon UTC, three hours after this scanner runs) reads this report and files actionable findings as GitHub issues. The 3-hour gap absorbs any GitHub Actions schedule skew so the groomer always reads a finished report.
