@@ -47,6 +47,20 @@ You should probably NOT use it if:
 
 ---
 
+## Two ways the agents get invoked
+
+Every agent in this kit runs in one of two modes; both are first-class and they're complementary, not redundant.
+
+**On-demand (conversational).** You ask in Claude Code and the agent runs. The frontmatter `description` on every agent file ends with a list of natural-language phrases that activate it, so "scan for dead code" triggers `hanging_refs`, "groom the backlog" triggers `scrum_master`, and "set this up on my project" triggers the installer. Use this when something's bugging you and you don't want to wait for the scheduled run, or when you want to invoke an agent ad-hoc on a one-off question.
+
+**Automatic (workflows).** The PR review pipeline and the weekly audit scanners run on a fixed schedule with no human in the loop. The PR review fires on every pull request (Alice, Bob, optional Gomez and Carl, then Jekyll and Hyde); the audit scanners fire Monday morning, the audit-groomer fires Monday noon, the developer-agent fires daily. Use this for everything that needs to happen on every PR or every Monday whether you remembered or not. Nobody's going to manually invoke seven agents on every commit; this has to be automatic.
+
+The two modes share the same agent files. The same Alice that fires automatically in the workflow is the one that fires when you say "security review this PR" in chat. The schedule is the difference, not the agent.
+
+A useful pattern: leave the scheduled bots on, but also ask conversationally whenever the impulse strikes. If you wonder "is anything bloating up over 300 lines" on a Wednesday, ask; the next Monday's `class_size_audit` will run too, but you don't have to wait.
+
+---
+
 ## The PR labels you can use to control the agents
 
 GitHub PR labels are how you tell the workflows "don't fire on this one." Two labels are wired up out of the box:
