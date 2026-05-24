@@ -4,8 +4,6 @@ This document walks through the **mechanical setup** required to point the agent
 
 Once the agents are wired up and firing, see [CALIBRATE.md](CALIBRATE.md) to make them accurate for your specific project (the part that fills in templates and per-agent calibration slots).
 
-Total time for ADAPTING: 15-30 minutes. Total time for CALIBRATE: 1-2 hours, spreadable across a few days.
-
 ---
 
 ## Step 1: Fork or copy this repo

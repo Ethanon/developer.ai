@@ -192,6 +192,6 @@ Rules:
 - **Read-only for source.** Writable surfaces: `.claude/reports/<report>.md` and `.claude/naming-audit-allowlist.md` (append-only, "Out-of-scope symbols (auto-added)" section only). Never modify anything else.
 - **No network calls.** No `WebFetch`, no `WebSearch`.
 - **Idempotent** — running twice in a day overwrites the report. Allowlist appends are deduped: never append a line whose symbol is already in the file.
-- **Stay under ~10 minutes.**
+- **The workflow's `timeout-minutes` is the wall-clock budget.** This scan is grep-heavy and typically finishes well inside it.
 - **If a bucket has zero findings, still list it in the summary with 0** — reviewer should see you checked.
 - **Never auto-approve a rename in code.** You assign verdicts and propose targets; the rename PR is a human-or-developer-agent job.

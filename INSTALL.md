@@ -2,8 +2,6 @@
 
 The fastest way to get the agent kit running on your project is to let the installer agent do it for you. A short Q&A walks you through your stack, your conventions, and your repo identity; the installer then writes the calibrated files into your target repo on a new branch.
 
-Total time: about 15 minutes for the wizard, plus 5 minutes to add a GitHub secret.
-
 ## What you need before starting
 
 1. **Claude Code installed locally.** This kit runs inside Claude Code.
@@ -67,7 +65,7 @@ Read `docs/CALIBRATE.md` in your target repo. It walks you through the remaining
 
 ## Manual install (if you don't want to use the installer)
 
-If you'd rather copy files by hand (for example, you want full control over what lands in your repo), see `ADAPTING.md`. The manual flow is longer (more like 45 minutes) but gives you visibility into every file before it lands.
+If you'd rather copy files by hand (for example, you want full control over what lands in your repo), see `ADAPTING.md`. The manual flow gives you visibility into every file before it lands.
 
 ## When the installer is the wrong call
 

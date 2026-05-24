@@ -311,7 +311,7 @@ If allowlist matches: skip the action, log under "Allowlist skip" in the report.
 - **Direct-to-master push is allowed ONLY for the single batched `[story]`-suffix commit.** Never any other content. Never any other branch.
 - **Never `git push --force`, never `git push --force-with-lease`, never any destructive git operation.** If something looks wrong, abandon and log.
 - **Idempotent within a day.** Two runs in the same day produce the same report (overwrites). Issues are deduped by the `**Origin:**` marker. Comments are deduped by the failing-criteria set (Mode B) or by `(issue, divergence-commit-SHA)` (Mode A divergence). Heading suffixes are deduped by the suffix's presence.
-- **Stay under ~10 minutes.**
+- **The workflow's `timeout-minutes` is the wall-clock budget.**
 - **If MCP `mcp__github__*` is unavailable**, abort the entire run with `MCP unavailable -- aborting`. The agent's whole purpose is GitHub bookkeeping; without MCP it can't do anything useful. Do NOT attempt partial work.
 - **Never invent issue numbers, PR numbers, file paths, or symbol names.** Every reference in the report and in committed edits must come from a tool call you actually made.
 - **Never bypass the `[story]`-suffix idempotency.** If a heading already ends with `[story]`, the section IS decomposed; do not re-file the issue even if the existing issue was closed or deleted (the human had a reason).

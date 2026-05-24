@@ -188,6 +188,6 @@ The bot edits ONLY the third section, ONLY by appending. If the file does not ex
 
 - **Read-only against source.** The only writable surface is the report file and (append-only) the third section of the allowlist file.
 - **One report per day.** Overwrite if today's exists.
-- **Stay under ~5 minutes.** A typical scan is grep-heavy and finishes in seconds; the budget exists for projects with very large prompt folders.
+- **The workflow's `timeout-minutes` is the wall-clock budget.** A typical scan is grep-heavy; the budget exists for projects with very large prompt folders.
 - **Never invent a rule.** If the project's prompt-rules doc is silent on a question, do not flag. Note the observation in "Notes" so the reviewer can decide whether to add a rule.
 - **Per-finding confidence is required.** No "this might be wrong" handwaving; every flagged finding cites a line and a rule number.
