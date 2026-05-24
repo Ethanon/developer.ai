@@ -84,3 +84,13 @@ This is the difference between a template a reader fills in confidently and one 
 Em-dashes are a stylistic tic that compound in AI-written prose. The default rule: try a colon, a parenthesis, or a new sentence first. Reserve em-dashes for cases where the alternatives genuinely read worse (long parenthetical asides where parens would nest awkwardly, for instance).
 
 No emoji or icons in templates or setup docs. No aphorism-shaped closers ("at the end of the day...", "the rest is just plumbing"). Those read as filler when a reader is trying to extract meaning.
+
+## 7. No time estimates in documentation
+
+No "takes ~15 minutes," no "1-2 hours total," no "Step 3 (5 min)," no "expect this to take a day." Documentation describes the steps; readers time their own work.
+
+Estimates in docs are wrong roughly always. They're either condescending (the reader is faster) or misleading (the reader is slower), and they create false expectations either way. They also reveal the writer guessing about something they have no information about: every reader's pace, every reader's familiarity with the stack, every reader's context-switch overhead.
+
+The rule extends to PR descriptions, commit messages, and agent specs. A PR description says what changed and why; it does not predict review time or runtime. An agent spec describes what the agent does and how; it does not say "stay under N minutes" (the workflow YAML's `timeout-minutes` is the real runtime budget).
+
+The exception is literal facts that happen to be measured in time: a cron schedule, a token lifetime, a poll-interval config value. Those are operational parameters, not predictions of how long something will take.

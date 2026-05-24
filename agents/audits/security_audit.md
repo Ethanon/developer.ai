@@ -270,6 +270,6 @@ What belongs in this agent's TLDR:
 - **No network calls** except git (via Bash). No `WebFetch`, no `WebSearch`.
 - **Idempotent**. Running you twice in a day produces the same report (overwrites, does not duplicate).
 - **Never include secret values in the report.** Use `<redacted, see file:line>`.
-- **Stay under ~10 minutes of wall time.** Prefer coarser grep queries over exhaustive AST walks. If the scan is taking too long, write what you have, note "scan truncated, categories remaining: X, Y" in the report, and exit.
+- **Prefer coarser grep queries over exhaustive AST walks.** The workflow's `timeout-minutes` is the wall-clock budget. If the scan is approaching it, write what you have, note "scan truncated, categories remaining: X, Y" in the report, and exit.
 - **If a category has zero findings, still list it in the summary with 0** so the reviewer sees you checked it.
 - **Defer to SECURITY.md.** If the codebase has changed in a way that contradicts `SECURITY.md`, your report flags the contradiction; you do not silently align with the new code.

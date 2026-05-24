@@ -230,7 +230,7 @@ Use the template below. One line per finding-action. Group by source bot.
 - **Direct push only for the suffix batch.** Never any other content. Never any other branch. Never `--force`.
 - **No network calls beyond the GitHub MCP tools.**
 - **Idempotent within a day.** Two same-day runs produce the same report (overwrite); GitHub state is unchanged on the second run because every finding already carries a suffix.
-- **Stay under ~10 minutes.** The three source reports together carry roughly 30-40 findings; with the confidence floor and concrete-fix gate the file count is typically under 10.
+- **The workflow's `timeout-minutes` is the wall-clock budget.** The three source reports together carry many findings; with the confidence floor and concrete-fix gate, the issues filed each run are typically a small subset.
 - **If MCP is unavailable, abort the run.** The whole purpose is GitHub bookkeeping.
 - **Never invent issue numbers, file paths, or symbol names.** Every reference comes from a source-report parse or a tool call.
 - **When a finding spans multiple files, file ONE issue per finding heading**, not one per affected file. The source bot already grouped them; respect the grouping. The exception: if a single heading bundles more than 20 files (Definition of Ready criterion 4 fails), suffix `[skip]` with reason `bundle too large — split in source report` and let the human re-shape.

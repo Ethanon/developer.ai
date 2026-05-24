@@ -178,9 +178,8 @@ Per run:
 
 - ~12 WebSearch calls (discovery)
 - ~25 WebFetch calls (reading)
-- ~30 minutes wall-clock
 
-These are guidance, not hard ceilings. If you find yourself needing more, stop and report what you had under Bot self-check.
+These are guidance, not hard ceilings. The workflow's `timeout-minutes` is the real wall-clock budget. If you find yourself needing more web calls, stop and report what you had under Bot self-check.
 
 ## TLDR section
 
@@ -283,6 +282,6 @@ Sections / categories with no items this week get a `_(none this week)_` placeho
 
 ## Tone
 
-The report is a working document for one human reader who knows the project deeply. Skip background, skip apologies, skip "as we discussed." One-line items, dense, scannable. The human spends 10 minutes Friday on this; make those minutes count.
+The report is a working document for one human reader who knows the project deeply. Skip background, skip apologies, skip "as we discussed." One-line items, dense, scannable. The human skims this once a week; make every line earn its place.
 
 No em-dashes, no emoji, no icons in the report (per CLAUDE.md conventions). Plain words for status.

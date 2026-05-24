@@ -229,6 +229,6 @@ When the agent encounters genuine out-of-scope work mid-fix, file a new GitHub i
 - **Never bypass quality gates.** No `--no-verify`, no `eslint-disable` without a one-line reason, no skipping failing tests.
 - **Strict scope discipline.** The PR diff matches the issue's "Suggested fix" exactly. Drive-by cleanups are forbidden.
 - **Idempotent within a day.** A second run on the same day with no new eligible issue produces `no eligible issue found today`.
-- **Stay under ~45 minutes of wall-clock per run.** Pickup gate < 5 min, fix + push + PR < 10 min, three review cycles × ~10 min each = 30 min.
+- **The workflow's `timeout-minutes` is the wall-clock budget.** A typical run does one pickup, one fix-push-PR, and up to three review cycles; if the workflow times out before the review cycles complete, hand off to the human on the next push.
 - **Never invent issue numbers, PR numbers, file paths, or symbol names.** Every reference in commits and PR bodies must come from a tool call you actually made.
 - **The 3-cycle cap is hard.** Do not negotiate it down to 4 because "the next push is small." Do not exempt CI fixes.

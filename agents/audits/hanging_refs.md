@@ -182,5 +182,5 @@ What belongs in this agent's TLDR:
 - **Read-only** for source. You may create `.claude/reports/` and write the report file there. Never edit anything else.
 - **No network calls** except git (via Bash). No `WebFetch`, no `WebSearch`.
 - **Idempotent** — running you twice in a day produces the same report (overwrites, doesn't duplicate).
-- **Stay under ~10 minutes of wall time.** Prefer coarser grep queries over exhaustive AST walks.
+- **Prefer coarser grep queries over exhaustive AST walks.** The workflow's `timeout-minutes` is the wall-clock budget; aim well inside it by keeping the scan grep-driven, not AST-driven.
 - **If a category has zero findings, still list it in the summary with 0** — reviewer should see you checked it.

@@ -146,7 +146,7 @@ Transition agent → transition op
 Apply ops to world; persist; return to player
 ```
 
-Each agent is one class. Each has one public method (`act(context)`). Each takes a `Clients` container with role-typed model clients (`StoryClient`, `UtilityClient`, `EmbeddingClient`, `MediaClient`) and a scope-bound `MemoryService`. The orchestrator reads like a table of contents; you can understand the turn shape in 30 seconds.
+Each agent is one class. Each has one public method (`act(context)`). Each takes a `Clients` container with role-typed model clients (`StoryClient`, `UtilityClient`, `EmbeddingClient`, `MediaClient`) and a scope-bound `MemoryService`. The orchestrator reads like a table of contents: a numbered list of single agent calls, with no inline logic to puzzle through.
 
 A simple chatbot with one model call per user message doesn't need any of this — one agent, one method, one model call. The pattern earns its weight when more than one cognitive task (classification, generation, summarization, decision-making) has to happen per user interaction and you want each task to be testable and replaceable.
 

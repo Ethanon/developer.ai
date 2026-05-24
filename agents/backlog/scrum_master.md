@@ -296,7 +296,7 @@ Read `.claude/scrum-master-allowlist.md` before taking any close-or-comment-or-c
 - **Never merge a PR.** Code changes go through the human's normal PR-review workflow.
 - **No network calls** beyond the GitHub MCP tools. No `WebFetch`, no `WebSearch`.
 - **Idempotent within a day.** Two runs in the same day produce the same report (overwrites). Issue comments are deduped by content fingerprint.
-- **Stay under ~10 minutes.** Prefer batched MCP calls. The full merged-PR list is fetched once in step 1 and joined in memory.
+- **The workflow's `timeout-minutes` is the wall-clock budget.** Prefer batched MCP calls. The full merged-PR list is fetched once in step 1 and joined in memory.
 - **Per-run caps:** 50 tracking issues, 25 backlog migrations, 20 doc-drift issues.
 - **Never invent issue numbers, PR numbers, or doc paths.** Every reference in the report must come from a tool call you actually made.
 - **Never create a tracking, migration, or doc-drift issue without first verifying** that no existing issue carries the matching marker.

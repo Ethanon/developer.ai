@@ -2,7 +2,7 @@
 
 A drop-in collection of AI engineering agents you can pull into any GitHub project. Once it's installed, every pull request gets reviewed by a small fleet of specialized agents (security, engineering, clean-code, UX, plus two critics that challenge those reviews), and a separate set of agents runs on a schedule to keep your backlog clean and your codebase free of drift.
 
-You clone this repo, open Claude Code in it, and run `/install`. The installer asks you about your stack, your conventions, and your repo identity; it then writes the calibrated kit into your target repo on a new branch. About 15 minutes of Q&A, plus 5 minutes to add a GitHub secret, and the agents start firing on your next PR.
+You clone this repo, open Claude Code in it, and run `/install`. The installer asks you about your stack, your conventions, and your repo identity; it then writes the calibrated kit into your target repo on a new branch. Once you add the `CLAUDE_CODE_OAUTH_TOKEN` GitHub secret, the agents start firing on your next PR.
 
 > **The fast install path:** [`INSTALL.md`](INSTALL.md).
 > **The manual install path:** [`ADAPTING.md`](ADAPTING.md).
@@ -37,13 +37,13 @@ You should probably NOT use it if:
 
 ## How a typical adopter uses it
 
-1. **Day 1, morning** (~20 min): Clone this repo, open Claude Code in it, run `/install`. Answer the wizard. The installer commits the kit on a new branch in your target repo.
-2. **Day 1, mid-morning** (~5 min): Add the `CLAUDE_CODE_OAUTH_TOKEN` secret to your target repo's GitHub Secrets.
-3. **Day 1, afternoon** (~30 min): Read the templates the installer just created in your target repo. Tighten anything where your reality differs from the defaults the installer picked. See `docs/CALIBRATE.md` in your target repo for the walkthrough.
-4. **Day 1, evening**: Open a throwaway PR (even a one-line README edit). The agents should fire. Tune the templates if findings are noisy.
-5. **Day 2 onward**: Open PRs as you normally would. The agents fire automatically. On the rare PR where you don't want them (a giant infra refactor, an emergency hotfix), add the `skip-ci` label.
-6. **Once a week** (Mondays by default): The audit bots scan the codebase for drift, dead code, naming violations, security drift, and ecosystem changes. They write reports to `.claude/reports/`. The `audit-groomer` bot reads those reports the next day and files pickup-ready issues. The `developer-agent` bot picks one issue per day and opens a PR for it.
-7. **Once a quarter**: Re-read your templates. Update the parts that drifted (your scale target grew, you added a new service, you changed your hosting model). The agents pick up the new calibration on the next run.
+1. **Install.** Clone this repo, open Claude Code in it, run `/install`. Answer the wizard. The installer commits the kit on a new branch in your target repo.
+2. **Add the GitHub secret.** Set `CLAUDE_CODE_OAUTH_TOKEN` in your target repo's GitHub Secrets.
+3. **Calibrate.** Read the templates the installer just created. Tighten anything where your reality differs from the defaults the installer picked. See `docs/CALIBRATE.md` in your target repo for the walkthrough.
+4. **Test PR.** Open a throwaway PR (even a one-line README edit). The agents should fire. Tune the templates if findings are noisy.
+5. **Normal use.** Open PRs as you normally would. The agents fire automatically. On the rare PR where you don't want them (a giant infra refactor, an emergency hotfix), add the `skip-ci` label.
+6. **Weekly bots.** Mondays by default: the audit bots scan the codebase for drift, dead code, naming violations, security drift, and ecosystem changes. They write reports to `.claude/reports/`. The `audit-groomer` bot reads those reports the next day and files pickup-ready issues. The `developer-agent` bot picks one issue per day and opens a PR for it.
+7. **Periodic re-read.** Re-read your templates whenever you notice their assumptions drifting from reality (your scale target grew, you added a new service, you changed your hosting model). The agents pick up the new calibration on the next run.
 
 ---
 

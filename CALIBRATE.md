@@ -2,7 +2,7 @@
 
 The agents in this repo work out of the box; they ship with sensible defaults. They get noticeably more useful when you fill in a small set of project-specific facts. This document walks you through that process in priority order, so you spend your time on the highest-payoff calibration first.
 
-> Estimated time: **1-2 hours total** for the full pass. You can stop after Step 2 and still get a real improvement on day one.
+You can stop after Step 2 and still get a real improvement on the first PR you open.
 
 If you've already read `ADAPTING.md`, this doc picks up where it leaves off. ADAPTING covers the mechanical wire-up (copy files, set GitHub Secrets, point at your repo). CALIBRATE covers the project-context fill-in that makes the agents actually accurate.
 
@@ -20,7 +20,7 @@ You **read** the agent files; you don't usually edit anything inside them except
 
 ---
 
-## Step 1: Fill `PROJECT_CONTEXT.md` (15-30 minutes, highest payoff)
+## Step 1: Fill `PROJECT_CONTEXT.md` (highest payoff)
 
 Open `templates/PROJECT_CONTEXT.md` and copy it to `docs/PROJECT_CONTEXT.md` in your project. Fill in every slot. The inline `<!-- Example: -->` comments show what a filled answer looks like; delete each comment after you've filled the slot.
 
@@ -38,7 +38,7 @@ After this step, every agent already has more context to work with. You could st
 
 ---
 
-## Step 2: Fill `SECURITY.md` (20-40 minutes, second-highest payoff)
+## Step 2: Fill `SECURITY.md` (second-highest payoff)
 
 Open `templates/SECURITY.md`, copy it to `docs/SECURITY.md` in your project. Fill it in.
 
@@ -57,13 +57,13 @@ This document calibrates Alice (the security review agent) and the security audi
 
 ---
 
-## Step 3: Fill `ARCHITECTURE.md` (20-40 minutes)
+## Step 3: Fill `ARCHITECTURE.md`
 
 Open `templates/ARCHITECTURE.md`, copy it to `docs/ARCHITECTURE.md`. Fill it in.
 
 Bob (the engineering review agent) and the audit bots read this. The most-leveraged sections:
 
-- **The 60-second picture.** One paragraph anyone can read in a minute and walk away understanding the shape.
+- **The big picture.** One paragraph anyone can skim and walk away understanding the shape.
 - **Containers and their roles.** Same as `PROJECT_CONTEXT.md`'s services table, but with a "talks to" column so the agents understand which services communicate.
 - **Layer responsibilities.** Who owns what kind of logic. Bob flags PRs that put business logic in the frontend, frontend logic in the backend, etc.
 - **Decisions already made.** Index of your decision docs.
@@ -72,7 +72,7 @@ Bob (the engineering review agent) and the audit bots read this. The most-levera
 
 ---
 
-## Step 4: Read one or two of the example decision docs (10 minutes)
+## Step 4: Read one or two of the example decision docs
 
 Skim `examples/decisions/`. Four worked examples are included:
 
@@ -85,7 +85,7 @@ You don't have to write your own decision docs today. But knowing what one looks
 
 ---
 
-## Step 5: Walk through each agent's calibration block (5-15 minutes per agent)
+## Step 5: Walk through each agent's calibration block
 
 For each agent you're using, open its file in `agents/` and find the `## Project-specific calibration` section near the top. Fill in every slot.
 
@@ -102,7 +102,7 @@ You can fill these in over time as you start using each agent. Day-one priority:
 
 ---
 
-## Step 6: Open a throwaway PR and watch the agents post (15-30 minutes)
+## Step 6: Open a throwaway PR and watch the agents post
 
 Open a small PR (a one-line README edit is fine) and watch the agents fire. You'll see:
 
@@ -113,7 +113,7 @@ A common iteration: Alice raises a finding that's correct in the abstract but do
 
 ---
 
-## Step 7: Schedule the weekly bots (5 minutes)
+## Step 7: Schedule the weekly bots
 
 If you copied `workflows/scheduled-agents.yml` (or split it into the per-bot files described in `ADAPTING.md`), check that the cron schedules make sense for your timezone. Defaults: weekly bots fire Monday 09:00 UTC, daily bots fire 08:00 UTC.
 

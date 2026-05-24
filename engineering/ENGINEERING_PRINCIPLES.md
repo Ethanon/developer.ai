@@ -38,7 +38,7 @@ See `DOMAIN_SPECIFIC.md` for a worked example of the full taxonomy applied to a 
 
 ## KISS — Keep It Simple
 
-> The best solution is the one a newcomer can understand in 30 seconds.
+> The best solution is the one a newcomer can understand at a glance.
 <!-- tag: Generic -->
 
 - **No clever abstractions** for things that only happen once

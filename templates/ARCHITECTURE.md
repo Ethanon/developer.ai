@@ -12,11 +12,11 @@ during setup based on your Q&A answers. Override paragraphs that don't
 match your project's reality.
 -->
 
-## The 60-second picture
+## The big picture
 
 Our frontend is a single-page web app served by a static file server. It talks to one backend API service, which acts as a login gateway to our auth service and as the only path to our database. Background work (emails, report generation) runs in a worker service that reads from the same database. Everything runs as plain containers, orchestrated by Docker Compose today. We deploy by pushing a new container image; we do not deploy individual source files.
 
-> Rewrite this paragraph for your project. A reader new to the codebase should be able to read it in 60 seconds and walk away understanding the shape.
+> Rewrite this paragraph for your project. A reader new to the codebase should be able to skim it and walk away understanding the shape.
 <!-- tag: Generic -->
 
 ## Services and their roles
