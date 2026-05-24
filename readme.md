@@ -1,6 +1,8 @@
 # developer.ai
 
-A drop-in collection of AI engineering agents you can pull into any GitHub project. Once it's installed, every pull request gets reviewed by a small fleet of specialized agents (security, engineering, clean-code, UX, plus two critics that challenge those reviews), and a separate set of agents runs on a schedule to keep your backlog clean and your codebase free of drift.
+**The end-to-end Claude Code loop for solo developers and small teams.** Scheduled audit bots scan your repo and file ready-state GitHub issues; a developer-agent picks them up and opens PRs that close them; a named six-person review fleet (security, engineering, UX, clean-code, plus a blackhat/whitehat critic pair) leaves advisory comments on every PR. None of the reviewers block merge — the author always decides. Claude-only by design; install with `/install` in Claude Code.
+
+This isn't another agent collection — it's the full workflow loop one developer needs to operate a repo. The kit ships opinionated defaults you tune via an install-time wizard, plus convention docs (`CLAUDE.md`, `ENGINEERING_PRINCIPLES.md`, PR/backlog workflows) tag-classified Generic / Architecture-Conditional / Personal-Preference / Domain-Specific so you know what to keep and what to strip.
 
 You clone this repo, open Claude Code in it, and run `/install`. The installer asks you about your stack, your conventions, and your repo identity; it then writes the calibrated kit into your target repo on a new branch. Once you add the `CLAUDE_CODE_OAUTH_TOKEN` GitHub secret, the agents start firing on your next PR.
 
