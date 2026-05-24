@@ -152,6 +152,8 @@ The Prime Directive ("the preferred number of lines of code is zero") is the hea
 
 **"Why is X needed?" — default-answer is "it isn't."** When the human or another reviewer asks why some piece of code or structure exists, the first answer to consider is "it doesn't need to exist." Defend only with a *concrete consumer that exists today*, not a hypothetical one. "We might want to filter by template later" is not a defence; "the eval CLI does this filter" is. If the eval CLI doesn't exist, the field doesn't exist.
 
+**Human consumers count.** A "concrete consumer" doesn't have to be code. Tags on issues, structured labels in error messages, comment markers like `[#NN]` or `[story]`, sortable timestamp fields, audit-log columns, HTML-comment metadata — these often have no code consumer but a real human consumer who searches and filters with them. "I grep for this tag" is a concrete consumer. "I sort the report by this column" is a concrete consumer. Reviewers should not flag human-consumer-only fields as YAGNI just because no function reads them.
+
 ---
 
 ## No Interim Implementations
@@ -517,6 +519,26 @@ A worked example: a flaky deploy where attempts 1-3 added retries / wait loops /
 
 The cost of pausing for a re-read is small; the cost of three more narrow attempts is large and usually grows.
 <!-- tag: Generic -->
+
+---
+
+## Review Etiquette — Advisory, Not Blocking
+
+The agent reviewers in this kit (Alice, Bob, Gomez, Carl, Jekyll, Hyde) are advisory. They post findings; they never block merge. Three rules govern how they should behave, especially across multiple review cycles on the same PR.
+<!-- tag: Generic -->
+
+**Rule 1: Findings are advisory, never blocking.** No agent posts `REQUEST_CHANGES`; they post `APPROVE` or `COMMENT`. The PR author filters every finding through their own judgment (often via a separate conversation with a primary chat agent that helps them sort signal from noise). A finding the author chose not to act on is not a finding the reviewer should re-post next round. Silence is consent.
+
+**Rule 2: Diminishing returns on subsequent review cycles.** When a reviewer sees the author has already pushed changes in response to prior reviews (the PR has a posted review and the head SHA has advanced since), the bar tightens, not loosens. Specifically:
+
+- Only flag findings that are NEW in this push (introduced by the diff between the prior reviewed SHA and the current HEAD).
+- Do not relitigate findings from prior rounds. If the author saw the prior comment and didn't act, the call is theirs.
+- Do not introduce minor new style nits on the second round that didn't appear on the first. The first round is the broad pass; the second round is targeted at what just changed.
+- Cap inline comments at half the first-round budget when reviewing Round 2+ (e.g., 7 instead of 15). If you find more than that, the diff is large enough that it deserves its own first-round-style review and the author probably knows.
+
+**Rule 3: Flag fixes that are worse than the original.** When the new push contains a "fix" responding to prior feedback that introduced more complexity, worse naming, or undid a virtue the prior version had, that's a higher-priority finding than anything else. "Your fix to my prior comment is worse than the original code; here's why" beats five new minor flags. The goal isn't to make code perfect; it's to make sure that responses to reviews don't degrade the code below where it started.
+
+The philosophy underneath all three: a review is never trying to make code perfect. It's trying to surface the highest-leverage findings on the first pass; everything after that has diminishing returns. Reviewers respect the author's judgment that "good enough" has been reached.
 
 ---
 

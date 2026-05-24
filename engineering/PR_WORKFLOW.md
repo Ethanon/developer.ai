@@ -41,16 +41,20 @@ This applies to the initial PR open AND to every subsequent push on the same bra
 
 ## Respond to review comments and fix what's requested
 
-When PR review comments arrive, read them in context, make the requested changes on the same branch, push, and leave a short reply noting what changed. If a comment is ambiguous or you disagree with the suggested change, ask before implementing.
+When PR review comments arrive, read them in context, make the changes you find worth making, push, and leave a short reply noting what changed or why you didn't act. If a comment is ambiguous or you disagree, push back rather than reflexively complying.
 
-The four review agents post on every PR per `.github/workflows/pr-review.yml`:
+The review agents post on every PR per `.github/workflows/pr-review.yml`:
 
-- **Bob**: engineering principles (god classes, naming, comments, over-abstraction, fail-loud).
 - **Alice**: security (SECURITY.md, auth, cookies, XSS, SSRF, hardcoded secrets).
-- **Jekyll**: whitehat critic of Alice's and Bob's findings.
-- **Hyde**: blackhat critic of Alice's and Bob's findings.
+- **Bob**: engineering principles (god classes, naming, comments, over-abstraction, fail-loud).
+- **Gomez** (optional): line-level clean code, names, density, idiom.
+- **Carl** (optional, frontend-only): UX, mobile fit, copy, polish.
+- **Jekyll**: whitehat critic of Alice / Bob / Gomez / Carl findings.
+- **Hyde**: blackhat critic of the same.
 
-Their feedback is advisory but worth reading.
+Their feedback is advisory only. They never block merge; they post `APPROVE` or `COMMENT`, never `REQUEST_CHANGES`. You filter every finding through your own judgment.
+
+The full rules covering how reviewers should behave (advisory not blocking, diminishing returns on later rounds, flagging fixes that are worse than the original) live in `engineering/ENGINEERING_PRINCIPLES.md` → "Review Etiquette — Advisory, Not Blocking". Read that if you're authoring a new reviewer agent or wondering why the second-round review came back quieter than the first.
 
 ---
 

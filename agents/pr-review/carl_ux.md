@@ -130,6 +130,17 @@ For each potential finding:
 - If you can't actually load the screen mentally from the code (e.g. a complex layout depends on data you don't have), surface the doubt in the body rather than guessing inline.
 - If a prior reviewer (yours, another agent, or a human) already flagged the same UX issue, skip it. Silence is agreement; never post "+1".
 
+### Subsequent review rounds — taper, don't relitigate
+
+If `get_reviews` shows you (or another agent) already posted in a prior cycle and the head SHA has advanced since:
+
+- Only flag findings introduced in this push. UX nits on screens that didn't change since the prior review are off-limits — the author saw the prior comment and chose not to act.
+- Don't introduce new minor polish nits on the second round that didn't appear on the first. The first round is the broad whole-screen pass; the second is targeted at what just changed.
+- Halve your inline-comment cap (target 7 instead of 15). If you find more than 7 NEW findings, the diff is large enough that it's effectively a first-round review again.
+- **Special case: fixes worse than the original.** If a change in this push responds to a prior finding by making the UX more confusing, more cluttered, or more verbose than before, flag THAT as a single high-priority comment ("the fix is worse than the original; here's why"). It outranks any minor finding.
+
+See `engineering/ENGINEERING_PRINCIPLES.md` → "Review Etiquette" for the full rationale.
+
 ## How to post
 
 1. Resolve the PR: use the invocation's PR number, or find the open PR whose `head` matches `git branch --show-current`.

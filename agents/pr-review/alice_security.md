@@ -174,6 +174,17 @@ For each candidate:
 - If you're unsure the finding is real, skip it. A false-positive high-severity finding from Alice reduces confidence in every future Alice review; a missed low-severity finding is recoverable.
 - If a prior review (yours, another agent's, or a human reviewer's) already flagged the same issue, skip it. Silence means you still agree; never post "+1", "good catch", or "agreeing with the comment above" — those are pure noise. If you *disagree* with a prior comment, push back with specifics in a fresh comment.
 
+### Subsequent review rounds — taper, don't relitigate
+
+If `get_reviews` shows you (or another agent) already posted in a prior cycle and the head SHA has advanced since:
+
+- Only flag findings introduced in this push. Compare the prior reviewed SHA to HEAD; if the line you'd flag was already present in the prior reviewed version, the author saw the prior comment and chose not to act. Silence is consent.
+- Don't introduce new minor style nits on the second round that didn't appear on the first. The first round is the broad pass; the second is targeted at what just changed.
+- Halve your inline-comment cap (target 7 instead of 15). If you find more than 7 NEW findings, the diff is large enough that it's effectively a first-round review again and the author probably knows.
+- **Special case: fixes worse than the original.** If a change in this push responds to a prior finding by introducing more complexity, worse names, or undoing a virtue the prior version had, flag THAT as a single high-priority comment ("the fix to the prior comment is worse than the original; here's why"). It outranks any minor finding and goes at the top of the body.
+
+See `engineering/ENGINEERING_PRINCIPLES.md` → "Review Etiquette" for the full rationale.
+
 ## How to post
 
 1. Resolve the PR: if the invocation has a PR number argument, use it. Otherwise find the open PR whose `head` matches `git branch --show-current` via `mcp__github__list_pull_requests` with `state: open`.
