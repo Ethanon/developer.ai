@@ -73,6 +73,7 @@ The full rules each link out from [`engineering/ENGINEERING_PRINCIPLES.md`](engi
 - Do not write multi-paragraph explanatory comments in source files.
 - Do not expose developer/infrastructure config on player-facing UI.
 - Do not use `slice` / `substring` to cap natural-language text in logs or API responses.
+- Do not push commits directly to the default branch. Every change opens a pull request, even one-line renames and "mechanical" cleanups. See `engineering/PR_WORKFLOW.md` → "Every change goes through a pull request" for the rule and the one narrow exception.
 
 ---
 
