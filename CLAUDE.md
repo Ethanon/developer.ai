@@ -27,11 +27,13 @@ See [ADAPTING.md](ADAPTING.md) for the one-time setup steps to point everything 
 | Task | Required reading |
 |---|---|
 | Any code change | [`engineering/ENGINEERING_PRINCIPLES.md`](engineering/ENGINEERING_PRINCIPLES.md) |
+| Writing or reviewing tests | [`engineering/TESTING_PRINCIPLES.md`](engineering/TESTING_PRINCIPLES.md) |
 | Architecture / data flow | `docs/ARCHITECTURE.md` (add your own) |
 | AI agents (all roles, variants) | [`agents/`](agents/) |
 | PR lifecycle | [`engineering/PR_WORKFLOW.md`](engineering/PR_WORKFLOW.md) |
 | Backlog / issue lifecycle | [`engineering/BACKLOG_WORKFLOW.md`](engineering/BACKLOG_WORKFLOW.md) |
 | Adapting this repo to your project | [`ADAPTING.md`](ADAPTING.md) |
+| Adding your own agents | [`KIT_EXTEND.md`](KIT_EXTEND.md) |
 
 ---
 
@@ -108,10 +110,11 @@ No PWA / generic variants — single file per agent. Frontend-specific rules liv
 |---|---|
 | `alice_security.md` | Security review on every PR: routes, auth, secrets, cookies, log-leak hygiene; frontend categories when applicable (OAuth flow, service worker, CSP, IndexedDB) |
 | `bob_engineering.md` | Engineering-principles review on every PR: god classes, naming contracts, fail-loud, over-abstraction; frontend categories when applicable (React component design, hooks, CSS modules) |
+| `phil_testing.md` | Unit-testing review on every PR: test-first signal, intent-first naming, mocking discipline, failure-mode coverage |
 | `gomez_cleancode.md` | Line-level clean-code review on every PR: names that communicate intent, density, idiom |
 | `carl_ux.md` | UX review on every PR; installer omits the file entirely for backend-only projects |
-| `jekyll_whitehat.md` | Whitehat critic of Alice/Bob findings, runs in the second review job |
-| `hyde_blackhat.md` | Blackhat critic of Alice/Bob findings, runs in the second review job |
+| `jekyll_whitehat.md` | Whitehat critic of Alice / Bob / Phil findings, runs in the second review job |
+| `hyde_blackhat.md` | Blackhat critic of Alice / Bob / Phil findings, runs in the second review job |
 | `developer_agent.md` | Self-assigns a `ready` issue, opens a PR, shepherds it through review |
 | `scrum_master.md` | Closes shipped issues, auto-creates tracking issues, cleans up backlog |
 | `story_groomer.md` | Decomposes decision docs into stories; evaluates issues against the Definition of Ready |

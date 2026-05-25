@@ -1,7 +1,7 @@
 # Engineering Principles
 
 <!--
-Every reviewer agent (Alice, Bob, Gomez) reads this file as a source of
+Every reviewer agent (Alice, Bob, Phil, Gomez) reads this file as a source of
 truth. Each section carries a tag in an HTML comment near its body:
 
   tag: Generic
@@ -312,17 +312,10 @@ This rule explicitly overrides any reflex to "add an optional for safety." Safet
 
 ## Testing
 
-**Every test must be deterministic, offline, and fast.** A flaky or slow test is a broken test; it poisons the CI signal and trains everyone to ignore failures. We treat flakiness as a bug with higher priority than most features.
+**Every test must be deterministic, offline, and fast.** Flakiness is a P1 bug — higher priority than most features. A test that only passes "sometimes" is not a test; fix it or delete it.
+
+Full testing rules — the philosophy, intent-first naming for tests and parameters, mocking discipline, failure-mode coverage, AAA structure, behavior bundling, flaky-test smell patterns, and test-utility shape — live in [`engineering/TESTING_PRINCIPLES.md`](TESTING_PRINCIPLES.md). The `phil_testing` PR-review agent and the `flaky_test_finder` weekly audit both read that file as their source of truth.
 <!-- tag: Generic -->
-
-- **No real-time waits.** Never `setTimeout(resolve, 100)`, never `await sleep(n)`, never poll with a real clock. Tests that exercise timer-based logic use fake timers (e.g. `vi.useFakeTimers()` + `vi.advanceTimersByTime(ms)`). Tests that exercise time-of-day use a frozen system-time helper.
-- **No real network or disk.** Mock at the boundary: `fetch`, the database client, the model client, the filesystem. Unit tests never hit Postgres, Redis, an actual disk, or a real external API. Integration tests that need a real service are a different tier and gated separately; nothing in the default unit-test run touches the network.
-- **Budgets.** Individual test under 500ms wall-clock, full suite under 10 seconds. If a test exceeds the per-test budget, it is a smell; check for real waits or heavy setup.
-- **Isolation.** Each test owns its setup; no shared mutable state between cases. Reset mocks (`vi.clearAllMocks()`) before every test.
-- **Test the contract, not the implementation.** Assert on observable behavior (return values, emitted events, recorded mock calls), not on internal state shape. Refactors that keep the contract should keep the tests green.
-- **Fake timers over real timers, every time.** If the code under test uses `setInterval` / `setTimeout` / `Date.now()`, the test uses fake timers.
-
-A test that only passes "sometimes" is not a test. Fix the flakiness or delete it.
 
 ### Delta operations: server-authoritative, client eventually consistent
 
@@ -599,7 +592,7 @@ The cost of pausing for a re-read is small; the cost of three more narrow attemp
 
 ## Review Etiquette — Advisory, Not Blocking
 
-The agent reviewers in this kit (Alice, Bob, Gomez, Carl, Jekyll, Hyde) are advisory. They post findings; they never block merge. Three rules govern how they should behave, especially across multiple review cycles on the same PR.
+The agent reviewers in this kit (Alice, Bob, Phil, Gomez, Carl, Jekyll, Hyde) are advisory. They post findings; they never block merge. Three rules govern how they should behave, especially across multiple review cycles on the same PR.
 <!-- tag: Generic -->
 
 **Rule 1: Findings are advisory, never blocking.** No agent posts `REQUEST_CHANGES`; they post `APPROVE` or `COMMENT`. The PR author filters every finding through their own judgment (often via a separate conversation with a primary chat agent that helps them sort signal from noise). A finding the author chose not to act on is not a finding the reviewer should re-post next round. Silence is consent.

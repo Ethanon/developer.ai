@@ -34,15 +34,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Generic stack:         [bob_engineering, alice_security]
-        # + clean-code reviewer: [bob_engineering, alice_security, gomez_cleancode]
-        # + frontend (UX too):   [bob_engineering, alice_security, gomez_cleancode, carl_ux]
+        # Generic stack:         [bob_engineering, alice_security, phil_testing]
+        # + clean-code reviewer: [bob_engineering, alice_security, phil_testing, gomez_cleancode]
+        # + frontend (UX too):   [bob_engineering, alice_security, phil_testing, gomez_cleancode, carl_ux]
         # The installer adjusts this list based on your wizard answers; you
         # don't have to pick variants by hand. Single-file agents (no _pwa
         # split) — frontend-specific rules live inline in alice_security
         # and bob_engineering, tagged Architecture-Conditional, and the
         # installer strips them at install time for non-frontend projects.
-        agent: [bob_engineering, alice_security]
+        agent: [bob_engineering, alice_security, phil_testing]
     steps:
       - uses: actions/checkout@v4
         with:
