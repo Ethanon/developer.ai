@@ -47,9 +47,10 @@ The review agents post on every PR per `.github/workflows/pr-review.yml`:
 
 - **Alice**: security (SECURITY.md, auth, cookies, XSS, SSRF, hardcoded secrets).
 - **Bob**: engineering principles (god classes, naming, comments, over-abstraction, fail-loud).
+- **Phil**: unit testing (test-first signal, intent-first naming, mocking discipline, failure-mode coverage).
 - **Gomez** (optional): line-level clean code, names, density, idiom.
 - **Carl** (optional, frontend-only): UX, mobile fit, copy, polish.
-- **Jekyll**: whitehat critic of Alice / Bob / Gomez / Carl findings.
+- **Jekyll**: whitehat critic of Alice / Bob / Phil / Gomez / Carl findings.
 - **Hyde**: blackhat critic of the same.
 
 Their feedback is advisory only. They never block merge; they post `APPROVE` or `COMMENT`, never `REQUEST_CHANGES`. You filter every finding through your own judgment.

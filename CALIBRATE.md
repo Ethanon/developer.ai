@@ -12,7 +12,7 @@ If you've already read `ADAPTING.md`, this doc picks up where it leaves off. ADA
 
 The installer happily wires up every agent in the kit at once. Don't let it. Adopt the agents in stages so each one earns your trust before the next one is allowed to act on your code. The arc:
 
-**Stage 1: Observe-only.** Enable only the read-only agents: Alice, Bob, optionally Gomez and Carl. These post review comments on your PRs and nothing else. You read their findings, decide which are signal vs noise, and tune the templates accordingly. Nothing changes in your repo without your hand on the wheel.
+**Stage 1: Observe-only.** Enable only the read-only agents: Alice, Bob, Phil, optionally Gomez and Carl. These post review comments on your PRs and nothing else. You read their findings, decide which are signal vs noise, and tune the templates accordingly. Nothing changes in your repo without your hand on the wheel.
 
 **Stage 2: Add the critics.** Once Alice and Bob's output looks reliable, enable Jekyll and Hyde. They challenge the first-pass reviews and post short critique replies. Still no writes to your code or issue tracker; just more voices in the review thread.
 

@@ -1,7 +1,7 @@
 # Engineering Principles
 
 <!--
-Every reviewer agent (Alice, Bob, Gomez) reads this file as a source of
+Every reviewer agent (Alice, Bob, Phil, Gomez) reads this file as a source of
 truth. Each section carries a tag in an HTML comment near its body:
 
   tag: Generic
@@ -524,7 +524,7 @@ The cost of pausing for a re-read is small; the cost of three more narrow attemp
 
 ## Review Etiquette — Advisory, Not Blocking
 
-The agent reviewers in this kit (Alice, Bob, Gomez, Carl, Jekyll, Hyde) are advisory. They post findings; they never block merge. Three rules govern how they should behave, especially across multiple review cycles on the same PR.
+The agent reviewers in this kit (Alice, Bob, Phil, Gomez, Carl, Jekyll, Hyde) are advisory. They post findings; they never block merge. Three rules govern how they should behave, especially across multiple review cycles on the same PR.
 <!-- tag: Generic -->
 
 **Rule 1: Findings are advisory, never blocking.** No agent posts `REQUEST_CHANGES`; they post `APPROVE` or `COMMENT`. The PR author filters every finding through their own judgment (often via a separate conversation with a primary chat agent that helps them sort signal from noise). A finding the author chose not to act on is not a finding the reviewer should re-post next round. Silence is consent.
