@@ -113,10 +113,18 @@ Apply these eight checks to the full diff. A finding from this section usually g
 
 5. **Parameter-threading cost.** If the diff adds a parameter to a method signature and that parameter is forwarded through more than ~3 call sites before it reaches the code that uses it, classify the data: is it per-request (belongs in `RequestContext`), per-process (belongs in module scope or a static field), or genuinely per-call? Only per-call data justifies threading through every call site. Per-request and per-process data threaded explicitly will need to be reworked later.
 
-6. **Decision-document status.** If the PR implements a decision document, check the document's `**Status:**` field:
+6. **Decision-document status — check both directions.** If the PR implements or touches a decision document, check the document's `**Status:**` field:
    - `Proposed` / `Exploring` — the document is a draft. If the diff includes infrastructure that looks speculative, say so explicitly: "decision NNN was in Proposed status when implementation started; Section X looks speculative and was implemented as written."
    - `Approved` — the document was signed off, but speculation can still slip through. Flag any speculative implementation with softer phrasing.
    - `Implemented` / `Landed` — the decision is settled. Do not reopen it.
+
+   **Then check the reverse — did the PR forget to update the doc?** Per `engineering/PR_WORKFLOW.md` → "Update the design docs in the same PR":
+
+   - **Implements a Proposed/Approved decision but doesn't flip the status.** If the diff ships code that satisfies a `Proposed` or `Approved` decision but the decision's `**Status:**` field is unchanged in the PR, flag it. The same PR should bump the status to `Implemented` / `Landed` and add an `**Implemented by:**` line citing the PR number.
+   - **Contradicts an Implemented decision without updating or superseding it.** If the diff disagrees with an `Implemented` / `Landed` decision and neither the decision nor a superseding decision appears in the PR's file changes, flag it. The author owes either an in-place update (when details drifted) or a superseding decision + `git mv` to `docs/decisions/historical/` (when the architecture changed).
+   - **Adds new architectural shape with no backing decision at all.** If the diff introduces a new service, a new cross-cutting pattern, or a new external dependency, and no decision document covering that shape appears in the diff (existing or new), flag it. A one-paragraph decision with `Status: Implemented` is the minimum bar.
+
+   Bob is the safety net here, not the gate — the author owns these updates per the workflow doc. But flagging the gap at PR time is the cheapest moment to fix it.
 
 7. **Diff scope vs PR title.** Compare the PR title and description against the diff. If the diff includes work that the title does not name (for example, a "fix X" PR that also refactors Y), flag scope creep with one sentence in the review body — no inline comment.
 
