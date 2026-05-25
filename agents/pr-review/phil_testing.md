@@ -154,17 +154,26 @@ Test fixtures, builders, and helpers should also pass intent-first naming:
 - Test builders with named-parameter overrides (`makeUser({ isAdmin: true })`) beat positional helpers (`makeUser(null, null, null, true)`).
 - Don't repeat large fixture blocks across tests — extract.
 
-### 8. Flaky-test smell patterns introduced in this push (HIGH bias on HIGH-confidence smells) — TESTING_PRINCIPLES "Flaky-test smell patterns"
+### 8. Test smells introduced in this push — TESTING_PRINCIPLES "Test smells"
 
-The `flaky_test_finder` audit catches these weekly across the whole suite. Phil catches them at PR time so they never reach CI — by the time the audit runs, the flake has already polluted last week's signal.
+Two sub-categories, both from `TESTING_PRINCIPLES.md` § "Test smells." Read the principles-file definition of "smell" (and the Fowler/Meszaros origin) before flagging — the term is precise, not vague.
 
-Scan the diff's new test files (and modifications to existing test files) for the nine smell patterns in `TESTING_PRINCIPLES.md` § "Flaky-test smell patterns." Severity follows the principles file:
+**Flakiness-predicting smells** (#1-9 in TESTING_PRINCIPLES). The `flaky_test_finder` audit catches these weekly across the whole suite; Phil catches them at PR time so they never reach CI. By the time the audit runs, the flake has already polluted last week's signal.
 
-- **HIGH-confidence smells** (real sleeps without fake timers, `Date.now()` in assertions, real network calls, inline hook timeouts): post an inline comment naming the specific smell number from the principles file. These are nearly always flakes; don't soft-pedal.
-- **MEDIUM-confidence smells** (shared module-level state, `Math.random()` in assertions, ordered-key assertions): post in the softer "I'd consider" tone — they can be deliberate in some patterns.
-- **LOW-confidence smells** (inline numeric delays, `process.env` reads without mocks): flag only if the diff introduces multiple at once, or if the surrounding file is already prone to them.
+- **HIGH-confidence** (real sleeps without fake timers, `Date.now()` in assertions, real network calls, inline hook timeouts): post an inline comment naming the specific smell number from the principles file. These are nearly always flakes; don't soft-pedal.
+- **MEDIUM-confidence** (shared module-level state, `Math.random()` in assertions, ordered-key assertions): post in the softer "I'd consider" tone — they can be deliberate in some patterns.
+- **LOW-confidence** (inline numeric delays, `process.env` reads without mocks): flag only if the diff introduces multiple at once, or if the surrounding file is already prone to them.
 
-For each finding, check the surrounding ~3 lines for a mitigating pattern (fake timers turned on, a `vi.mock` for the network module, a comment explaining the exception) before flagging. A smell with a documented mitigation is not a finding.
+**Structural smells** (#10-13 in TESTING_PRINCIPLES — Meszaros). The test passes today, but the smell predicts a maintenance failure later: brittle, obscure, useless to the future reader.
+
+- **Mystery Guest** (#10): test depends on data not visible in the test body.
+- **Conditional Test Logic** (#11): `if`/`for`/`while`/`try` inside the test body.
+- **Hard-Coded Test Data without labels** (#12): magic numbers/strings in assertions with no derivation or named constant.
+- **Lonely Test** (#13): test depends on another test running first via shared state.
+
+When flagging a structural smell, name it explicitly (e.g. `**Phil:** Mystery Guest — this test loads a fixture from disk; inline the relevant fields or use a builder so the call site shows what's being tested`). The Meszaros names are standard vocabulary; using them gives the author something to look up.
+
+For both sub-categories, check the surrounding ~3 lines for a mitigating pattern (fake timers turned on, a `vi.mock` for the network module, a comment explaining the exception, a parameterized `it.each` already in place) before flagging. A smell with a documented mitigation is not a finding.
 
 ## How to decide: flag or skip
 

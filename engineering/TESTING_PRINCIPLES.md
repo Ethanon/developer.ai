@@ -23,6 +23,21 @@ Code that follows the test is the second thing you write, not the first. A test 
 
 ---
 
+## What we mean by "smell"
+
+A **smell** is a structural pattern in code that suggests a deeper problem, even if nothing is currently broken. The term comes from Martin Fowler's *Refactoring* (the original "code smell" taxonomy — long methods, feature envy, primitive obsession, shotgun surgery) and Gerard Meszaros's *xUnit Test Patterns* (the "test smell" taxonomy — fragile test, obscure test, mystery guest, eager test, conditional test logic).
+
+A smell is not necessarily a bug. The test passes. The function returns. But the smell predicts that something will break later: the test will become flaky under load, the test will become useless to the future reader, the code under test will resist refactoring, a maintainer will misread the intent and introduce a regression. The point of naming smells is to give reviewers a shared vocabulary for "this works today, but I have seen this exact shape cause pain three times already."
+
+This document calls out two categories of test smell:
+
+- **Flakiness-predicting smells** — structural patterns that predict the test will fail intermittently. The `flaky_test_finder` audit scans for these weekly; `phil_testing` catches them at PR time.
+- **Structural test smells** — patterns from Meszaros's taxonomy that predict the test will be brittle, obscure, or useless to its future reader, even if it never flakes. Phil scans for these at PR time.
+
+Both categories are listed in detail below. When you flag one, name it explicitly ("Mystery Guest" / "smell #4 — inline hook timeout") so the author can look it up.
+
+---
+
 ## Deterministic, offline, fast
 
 Every test must be all three. A flaky or slow test is a broken test; it poisons the CI signal and trains everyone to ignore failures. Flakiness is a P1 bug — higher priority than most features.
@@ -150,11 +165,15 @@ Smells:
 
 ---
 
-## Flaky-test smell patterns
+## Test smells
+
+The smell taxonomy this project enforces. Two categories: flakiness-predicting smells (which predict the test will fail intermittently) and structural smells (which predict the test will become brittle, obscure, or useless to its future reader, even if it never flakes).
+
+### Flakiness-predicting smells
 
 These are the structural patterns that predict flakiness even without CI history of an actual failure. The `flaky_test_finder` audit scans for all of them weekly; `phil_testing` flags them at PR time when introduced in a diff. Ordered by confidence the smell will actually produce flakes.
 
-### HIGH-confidence smells — very likely to cause nondeterminism
+#### HIGH-confidence smells — very likely to cause nondeterminism
 
 1. **Real timer sleeps without fake timers.** `await new Promise(resolve => setTimeout` or `await sleep(` inside a test body, when the enclosing file does NOT call `vi.useFakeTimers()` / `jest.useFakeTimers()` / equivalent. Explicit real-time wait — always flaky under load.
 
@@ -164,7 +183,7 @@ These are the structural patterns that predict flakiness even without CI history
 
 4. **Inline timeout literals in `beforeEach` / `beforeAll`.** `beforeEach(fn, <literal number>)` — if the number is the second arg, it overrides the global `hookTimeout`. Values under 5000ms are especially risky under CI load.
 
-### MEDIUM-confidence smells — likely to cause ordering-sensitive failures
+#### MEDIUM-confidence smells — likely to cause ordering-sensitive failures
 
 5. **Shared mutable module-level state without reset.** A `let` or `var` declared at module level in a test file that is NOT reset in a `beforeEach`. If multiple tests in the file mutate this variable, test ordering can affect outcomes.
 
@@ -172,13 +191,29 @@ These are the structural patterns that predict flakiness even without CI history
 
 7. **`Object.keys()` or `Object.entries()` in ordered assertions.** `expect(Object.keys(...)).toEqual([...])` — key order is implementation-defined and has changed between runtime versions. Use `.toContain()` or sort first.
 
-### LOW-confidence smells — worth noting but often acceptable
+#### LOW-confidence smells — worth noting but often acceptable
 
 8. **`setTimeout` / `setInterval` literals outside `config`.** Inline numeric delays (not reading from a config module) in test setup code. Violates the "Timeouts and intervals never inline" rule in [`ENGINEERING_PRINCIPLES.md`](ENGINEERING_PRINCIPLES.md) regardless of fake vs real timer use.
 
 9. **`process.env` reads in tests without a mock.** Test behavior that changes based on real env state can differ between local and CI.
 
 For each smell, check context (3 lines around it) to determine whether a mitigating pattern (fake timers, a `vi.mock`, a comment explaining the exception) is present before flagging.
+
+### Structural test smells
+
+Patterns from Meszaros's *xUnit Test Patterns* taxonomy that predict the test will be brittle, obscure, or useless to its future reader. The test passes today, but the smell predicts a maintenance failure later. Phil scans for these at PR time.
+
+Several Meszaros smells are addressed elsewhere in this document and not repeated here: **Eager Test** (multiple behaviors per test → see "Behavior bundling"); **Obscure Test** (unclear arrange/act/assert → see "AAA structure" and "Intent-first naming"); **Test Code Duplication** (repeated fixtures → see "Test-utility shape"); **Fragile Test** (asserting on internals → see "Test the contract, not the implementation" under "Deterministic, offline, fast"); **Erratic Test** (passes sometimes → see "Flakiness-predicting smells" above). The four below are the ones that don't fold cleanly into the other sections:
+
+10. **Mystery Guest.** The test depends on data that isn't visible in the test body — a fixture file path the test loads, an environment variable the test reads, a row in a shared test database the test assumes exists, a snapshot file the assertion compares against. The reader has to dig elsewhere to understand what the test is actually exercising. Fix: inline the data into the test, or use a fixture *builder* (`makeUser({...})`) whose call site shows the relevant fields.
+
+11. **Conditional Test Logic.** `if`, `for`, `while`, `try/catch`, ternaries inside the test body. The test has its own control flow. Two failure modes: (a) the test branches, so it's really N tests pretending to be one — failure tells you "something failed" but not which branch; (b) the test loops, so failure points at "iteration 7" with no context on what's different about iteration 7. Fix: parameterize via `it.each` / `describe.each` / equivalent so each case is its own named test. The one near-exception: `try/catch` around the *act* step to assert on a thrown error, but most frameworks offer `expect(...).toThrow()` which is cleaner.
+
+12. **Hard-Coded Test Data without labels.** `expect(result.total).toBe(187.45)`. Where does 187.45 come from? If it's not derived in the arrange block (`const expectedTotal = (subtotal + tax) * (1 - discountRate)`) or named as a constant (`const EXPECTED_PRO_RATED_TOTAL = 187.45`), the reader can't tell whether 187.45 was the right answer or just what the code returned the first time the developer ran the test. Fix: derive expected values from the inputs where the relationship is obvious, or name them with intent.
+
+13. **Lonely Test.** A test that depends on another test having run first — usually via shared state (module-level variables, persisted test DB rows, accumulated mock state). The test passes when the suite runs in order; it fails when run in isolation or when the suite ordering changes. Diagnostic: run the test on its own (`vitest run path/to/file.test.ts -t "the test name"`). If it fails alone but passes in the suite, it's lonely. Fix: move shared setup into `beforeEach` so each test owns its starting state.
+
+For each structural smell, the same rule applies as for flakiness smells: check the surrounding context for a mitigating pattern or comment explaining the exception before flagging.
 
 ---
 
