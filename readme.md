@@ -15,6 +15,7 @@ You clone this repo, open Claude Code in it, and run `/install`. The installer a
 > **The fast install path:** [`INSTALL.md`](INSTALL.md).
 > **The manual install path:** [`ADAPTING.md`](ADAPTING.md).
 > **Tuning after install:** [`CALIBRATE.md`](CALIBRATE.md) (lives in your target repo after install).
+> **Adding your own agents:** [`KIT_EXTEND.md`](KIT_EXTEND.md).
 
 ---
 

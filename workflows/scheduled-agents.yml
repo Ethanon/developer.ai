@@ -24,6 +24,7 @@ on:
           - security_audit
           - prompt_audit
           - flaky_test_finder
+          - release_audit
           - audit_groomer
           - developer_agent
           - story_groomer
@@ -284,6 +285,38 @@ jobs:
             Invoke the flaky_test_finder subagent.
             The agent's full spec lives at .claude/agents/flaky_test_finder.md — follow it exactly.
             Pull CI run history via the GitHub Actions API (GITHUB_TOKEN and GITHUB_REPO are set in the environment), download JUnit XML artifacts, classify tests as REAL_FAILURE / FLAKY / STATIC_SMELL, and write the timestamped report under .claude/reports/.
+            Return only the report file path.
+
+  weekly-release-audit:
+    # Optional but recommended: scans for "is this safe to ship?" signals —
+    # migrations without rollback, env-var drift, stale feature flags, missing
+    # health checks. Use the report before any production deploy.
+    if: >
+      (github.event_name == 'schedule' && github.event.schedule == '0 9 * * 1') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'release_audit'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
+        env:
+          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+        run: |
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
+            exit 1
+          fi
+      - name: Run release_audit
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --model sonnet
+            --effort medium
+          prompt: |
+            Invoke the release_audit subagent.
+            The agent's full spec lives at .claude/agents/release_audit.md — follow it exactly.
             Return only the report file path.
 
   # ─── Audit-groomer (turns audit reports into ready issues) ──────────────────
