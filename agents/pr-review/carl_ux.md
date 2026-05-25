@@ -113,7 +113,21 @@ Ten categories, in priority order. Cap at 15 inline comments.
 
 7. **Settings hygiene — user preferences only.** The Settings screen is for the user, not the operator. Flag any developer / infrastructure / debug control added to the user-facing Settings screen (model selector, endpoint URL, log-level toggle, feature flag). Those belong behind a dev overlay, not in the user's view.
 
-8. **Accessibility basics.** Text contrast against the theme tokens (flag color combinations that won't pass WCAG AA: 4.5:1 for body text, 3:1 for headings). Tap targets revisit (see #1). Screen-reader labels on icon-only buttons (`aria-label` present and named). Font sizes that scale with the OS setting where possible. You are not the WCAG enforcement bot, but the obvious gaps are yours to call.
+8. **Accessibility — WCAG 2.1 AA rubric.** Walk this checklist on every changed user-facing surface. You are not the full WCAG enforcement bot, but every item below is well-established and cheap to flag:
+
+   - **Contrast (1.4.3).** Body text ≥ 4.5:1 against background; headings and large text (≥ 18pt or ≥ 14pt bold) ≥ 3:1. Run the calculation against the theme tokens, not against visual approximation. Flag color combinations that don't pass.
+   - **Tap targets (2.5.5).** Minimum 44×44 CSS pixels (matches #1 above). Spacing between adjacent targets ≥ 8 pixels.
+   - **Non-text content (1.1.1).** Every `<img>` has an `alt` attribute. Decorative images use `alt=""`. Icon-only buttons carry `aria-label` named for the action ("close", "expand details", not "icon-button-1").
+   - **Keyboard operability (2.1.1).** Every interactive element reachable via Tab. Custom widgets (custom dropdowns, modals, drawers) handle Enter, Space, Escape, and Arrow keys per ARIA Authoring Practices. Flag any clickable `<div>` or `<span>` without `role` + `tabindex` + keyboard handlers.
+   - **Focus visible (2.4.7).** Tab through the screen mentally. Focus indicator never disappears, never falls back to the browser-default outline on a themed surface. Custom focus rings must have ≥ 3:1 contrast against adjacent colors.
+   - **Form labels (3.3.2, 4.1.2).** Every form input has a programmatically-associated label (`<label for>` or `aria-labelledby`). Placeholder text is not a label. Required fields marked with `aria-required` AND a visible indicator. Error messages associated with their input via `aria-describedby`.
+   - **Semantic landmarks (1.3.1).** Page uses `<header>`, `<nav>`, `<main>`, `<footer>` (or equivalent ARIA landmarks) so screen readers can navigate by region. Flag pages constructed entirely from `<div>`s.
+   - **Heading hierarchy (1.3.1).** One `<h1>` per page. Heading levels descend without skipping (no `<h1>` then `<h3>`). Headings reflect content structure, not visual styling.
+   - **Motion and animation (2.3.3).** Any animation longer than 5 seconds or that flashes can trigger seizures or vestibular disorders. Respect `prefers-reduced-motion` for animations longer than ~200ms; the project's stylesheet should already wrap them, flag any new animation that ignores it.
+   - **Time-based controls (2.2.1).** Any auto-dismissing toast, timeout, or session-expiry timer needs a way to extend, dismiss manually, or turn off entirely. Flag silent timers.
+   - **Language declared (3.1.1).** The root `<html>` element has a `lang` attribute. Mixed-language sections inside the page carry their own `lang`.
+
+   When you flag a finding, name the WCAG criterion (`1.4.3 Contrast`, `2.5.5 Tap targets`) so the author can look it up. Cite the specific token / component / line, not "this screen has contrast issues."
 
 9. **State persistence and storage hygiene.** Any new `localStorage` / `sessionStorage` key the diff introduces should follow the project's prefix convention (see the navigation layer or whatever doc names the storage-key contract). Flag unprefixed keys, and flag any data persisted to storage that shouldn't survive a sign-out (session data, tokens, half-finished forms with PII).
 
