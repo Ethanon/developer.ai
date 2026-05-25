@@ -76,8 +76,15 @@ Each class, function, and module does exactly one thing. If you need the word "a
 
 ### Open / Closed
 
-Domain-defining data lives in data (templates, lookup tables, config), not scattered through logic. Adding a new template should not require touching existing code — you add a new template file.
+A class is open for extension and closed for modification. When you find yourself reaching back into the same class for the *third* time to add another variant of the same behavior, the variants belong outside the class — typically as data, a strategy object, or a composed collaborator.
 <!-- tag: Generic -->
+
+Two common shapes this takes:
+
+- **Data-driven extension.** Domain-defining data lives in data files (templates, lookup tables, config), not scattered through logic. Adding a new template should not require touching existing code — you add a new template file and the system picks it up.
+- **Strategy-shaped extension.** When the variation is behavioral, not data-shaped, the variants implement a common interface and get composed in. Adding a new variant means writing a new class that implements the interface; the consumer never changes.
+
+**YAGNI rules over OCP for new code.** Don't build extension points speculatively. The first and second variant live inline; the third variant is when you extract. Premature extension points are anticipatory engineering (see "Default to Less").
 
 ### Liskov Substitution
 
@@ -93,6 +100,74 @@ Consumers receive only the context they need. A `BillingService` does not receiv
 
 Business logic depends on role-typed interfaces (`EmailClient`, `SearchClient`, `PaymentClient`) — not on Resend, OpenSearch, Stripe, or any SDK directly. Concrete adapters are injected at startup by a registry. Business code never imports vendor SDK packages.
 <!-- tag: Generic -->
+
+---
+
+## Beyond SOLID — Additional Design Principles
+
+Four design principles from Freeman & Bates's *Head First Design Patterns* that SOLID doesn't cover directly. These are the patterns to reach for when a class genuinely needs structure — not licenses to add structure for its own sake. The Prime Directive still applies: prefer zero lines of new abstraction; these principles describe the *shape* of the abstraction when you're already adding one.
+<!-- tag: Generic -->
+
+### Encapsulate What Varies
+
+Identify the parts of the system that change for different reasons or at different rates, and isolate them from the parts that stay the same. The stable parts depend on an interface; the varying parts implement it. New variation becomes a new implementation, not edits to the stable core.
+<!-- tag: Generic -->
+
+This is the affirmative pair to "Default to Less." Default to Less defends against unjustified abstraction; *Encapsulate What Varies* names the case where abstraction IS justified — when the variation is real, present, and currently expressed as nested `if` / `switch` branches scattered across the codebase.
+
+Signals you have real variation worth encapsulating:
+
+- The same `if (type === 'X') ... else if (type === 'Y') ...` branch appears in three or more places.
+- A new variant requires editing five different files to add a fourth `case`.
+- Different team members have edited the same method to add their own variants in series.
+
+When you see those signals, extract the variants behind a common interface. When you don't see them, leave the code alone — anticipating variation that may never arrive is anticipatory engineering.
+
+### Composition Over Inheritance
+
+Prefer "has-a" to "is-a." When a class needs new behavior, hold a reference to an object that provides that behavior, rather than inheriting from a base class that provides it.
+<!-- tag: Generic -->
+
+Inheritance creates a tight, compile-time coupling between parent and child: any change to the parent's contract ripples through every subclass. Composition lets behavior be swapped, combined, and tested in isolation.
+
+Use inheritance only when:
+
+- The relationship is genuinely an "is-a" (a `MagicMissile` *is a* `Spell`, not a `MagicMissile` *has-a* `Spell`).
+- The shared base is small, stable, and unlikely to grow new responsibilities (`Result<T, E>` discriminated union; an `Error` hierarchy used only for `instanceof` checks).
+- Composition would force callers to repeatedly do the same delegation by hand for no expressive gain.
+
+Default to composition. The instinct to reach for `extends` to share helper methods is almost always wrong — extract the helpers into a class that gets injected, not inherited.
+
+### Law of Demeter — Only Talk to Friends
+
+A method on object A should call methods on:
+
+1. A itself
+2. Objects A holds as fields
+3. Objects passed to the method as parameters
+4. Objects A creates locally
+
+It should *not* reach through one object to call methods on another object's internals: `a.getB().getC().doThing()` is a Demeter violation. The chain couples A to the internal structure of B (it now knows B has a C that does things), and any restructuring of B breaks A.
+
+Two common false-positive shapes that look like Demeter violations but are not:
+
+- **Fluent interfaces.** `query.where(...).orderBy(...).limit(...)` returns `query` each call; the chain stays on one object. Same with method-chained builders.
+- **Collection pipelines.** `items.filter(...).map(...).reduce(...)` is the standard collection idiom; flagging it as a Demeter violation misreads the principle.
+
+A real Demeter finding looks like `user.getAccount().getBilling().getDefaultMethod().getStripeId()` — a chain through four distinct object types where the caller is silently coupled to all four.
+
+The fix is usually not "add a helper method to each intermediate object so the chain becomes one call." The fix is to ask whether the caller really needs the inner thing, or whether the outer object should take on the operation itself (`user.getDefaultPaymentStripeId()`).
+
+### Hollywood Principle — Don't Call Us, We'll Call You
+
+High-level components define the flow; low-level components hook into it. Low-level components do not reach up and call high-level components directly.
+<!-- tag: Generic -->
+
+This is the principle behind frameworks, event loops, observer registrations, and React's component lifecycle. You register a callback; the framework calls it at the right time; you never invoke the framework's internals from inside your handler.
+
+The smell to watch for: a low-level component (an adapter, a helper, a leaf service) that imports and calls a high-level orchestrator. The dependency arrow points the wrong way. The fix is usually to invert it — the high-level component should pass the low-level component a callback, observe its events, or check its state, rather than the low-level component reaching up.
+
+In practice: a `DatabaseClient` should never import `BillingService` to "notify it" of something. The notification flow is `BillingService` registers a listener with `DatabaseClient`, or `BillingService` polls / queries `DatabaseClient` for the state it needs. The arrow runs from higher-level (more abstract) to lower-level (more concrete), never the other way.
 
 ---
 
