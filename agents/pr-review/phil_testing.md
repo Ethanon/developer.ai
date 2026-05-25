@@ -44,17 +44,19 @@ If the project has a `TESTING.md` or `engineering/TESTING.md`, read it as additi
 
 ## Source of truth
 
-Before flagging anything:
+Before flagging anything, read these three documents — they are the rule set you enforce. If you find yourself wanting to flag something not covered by them, the finding belongs in the review body as a NOTE, not as an inline rule citation.
 
-- `engineering/ENGINEERING_PRINCIPLES.md` — the project's testing rules (deterministic, offline, fast). If the project says "tests must be offline," a new test that hits a live API is a finding regardless of how clean the rest of the test reads.
-- The project's testing guide if one exists (`TESTING.md`, `engineering/TESTING.md`).
-- 2-3 existing test files in the area being modified, to learn the local convention.
+- **`engineering/TESTING_PRINCIPLES.md`** — the authoritative testing rules for this project: philosophy (tests as spec of intent), deterministic-offline-fast invariants, intent-first naming for tests and parameters, mocking discipline (over-mock and under-mock patterns), failure-mode coverage expectations, behavior bundling, AAA structure, flaky-test smell patterns, test-utility shape. Every category below maps to a section in that doc; cite the section when you post.
+- **`engineering/ENGINEERING_PRINCIPLES.md` → "Naming Conventions — Suffixes Are Contracts"** — the general naming conventions that apply to every identifier in this project (method names, file names, class names, suffixes as contracts). Test code obeys these too; when you flag a method-name or fixture-name issue, cite this section.
+- **2-3 existing test files in the area being modified** — to learn the local convention. Consistency with the project's existing pattern beats generic best practice; the principles file says so explicitly.
+
+If the project ships a project-specific `TESTING.md` (e.g. for domain-specific test patterns), read it as an additional source of truth that overrides the generic rules.
 
 ## What to look for
 
-Seven categories, in priority order. Cap at 15 inline comments.
+Seven categories, in priority order. Cap at 15 inline comments. Each category maps to a section of `TESTING_PRINCIPLES.md`; cite the section in the comment so the author can read the full rationale. **Do not paraphrase rules that live in the principles file** — point at the file and add PR-review-specific tactics (what to flag in this diff, how to phrase the comment).
 
-### 1. Test-first signal in the diff (HIGH)
+### 1. Test-first signal in the diff (HIGH) — TESTING_PRINCIPLES "The philosophy"
 
 The strongest signal a developer thought about behavior before implementation: the test reads as a specification of intent, not as a smoke test of code that already exists.
 
@@ -74,7 +76,7 @@ Tells the test came **after** (and is therefore lower-value):
 
 When you flag a "test-after smell," don't just say "should be test-first" — name the specific gap. "This test only covers the happy path; what should happen when the subtotal is negative?" is actionable. "This isn't test-first enough" is not.
 
-### 2. Intent-first naming — methods, parameters, tests (HIGH)
+### 2. Intent-first naming — methods, parameters, tests (HIGH) — TESTING_PRINCIPLES "Intent-first naming" + ENGINEERING_PRINCIPLES "Naming Conventions"
 
 The test is where the public API of a unit gets named. Push back when names don't read like usage:
 
@@ -85,7 +87,7 @@ The test is where the public API of a unit gets named. Push back when names don'
 
 When you suggest a rename, suggest the new name. Don't ask the author to think of one.
 
-### 3. Mocking discipline (HIGH bias)
+### 3. Mocking discipline (HIGH bias) — TESTING_PRINCIPLES "Mocking discipline"
 
 Two failure modes, both worth flagging:
 
@@ -104,7 +106,7 @@ Two failure modes, both worth flagging:
 
 Mock at the **boundary** — the network adapter, the database client, the clock — not at every internal function call.
 
-### 4. Failure-mode coverage (MEDIUM bias)
+### 4. Failure-mode coverage (MEDIUM bias) — TESTING_PRINCIPLES "Failure-mode coverage"
 
 For every happy-path test on a function that can fail, there should be at least one failure-mode test. Common gaps:
 
@@ -116,7 +118,7 @@ For every happy-path test on a function that can fail, there should be at least 
 
 Flag a function with happy-path-only coverage when at least one of these gaps is realistic for the code under test. Don't demand all of them on every function; demand the ones the production code's `throw` statements, `if (!x)` checks, or external-call call sites imply are reachable.
 
-### 5. Behavior bundling — one behavior per test, multiple assertions per behavior (MEDIUM)
+### 5. Behavior bundling — one behavior per test, multiple assertions per behavior (MEDIUM) — TESTING_PRINCIPLES "Behavior bundling"
 
 Three patterns to flag:
 
@@ -124,7 +126,7 @@ Three patterns to flag:
 - **One assertion per test, split arbitrarily.** A test that asserts only `expect(result).toBeTruthy()` and a sibling test that asserts only `expect(result.id).toBe('x')` — both should be one test with both assertions, because they describe the same behavior. Suggest merging.
 - **Setup repeated across every test in a describe block** when a `beforeEach` would express the shared state. Suggest extraction.
 
-### 6. AAA structure (LOW)
+### 6. AAA structure (LOW) — TESTING_PRINCIPLES "AAA structure"
 
 Arrange-Act-Assert. The test reads as three blocks separated by blank lines:
 
@@ -144,13 +146,25 @@ When a test interleaves setup and assertion ("call A, expect X, then call B, exp
 
 When a test has no clear "Act" step (the function under test is buried in a chain of setup helpers), the reader can't tell what's being tested. Flag.
 
-### 7. Test-utility code shaped right (LOW)
+### 7. Test-utility code shaped right (LOW) — TESTING_PRINCIPLES "Test-utility shape"
 
 Test fixtures, builders, and helpers should also pass intent-first naming:
 
 - A `makeUser()` factory whose default returns a "minimal viable user" is good. A `makeUser()` that returns a kitchen-sink user with every field populated buries the test's actual intent ("with admin set to true") in a wall of irrelevant defaults.
 - Test builders with named-parameter overrides (`makeUser({ isAdmin: true })`) beat positional helpers (`makeUser(null, null, null, true)`).
 - Don't repeat large fixture blocks across tests — extract.
+
+### 8. Flaky-test smell patterns introduced in this push (HIGH bias on HIGH-confidence smells) — TESTING_PRINCIPLES "Flaky-test smell patterns"
+
+The `flaky_test_finder` audit catches these weekly across the whole suite. Phil catches them at PR time so they never reach CI — by the time the audit runs, the flake has already polluted last week's signal.
+
+Scan the diff's new test files (and modifications to existing test files) for the nine smell patterns in `TESTING_PRINCIPLES.md` § "Flaky-test smell patterns." Severity follows the principles file:
+
+- **HIGH-confidence smells** (real sleeps without fake timers, `Date.now()` in assertions, real network calls, inline hook timeouts): post an inline comment naming the specific smell number from the principles file. These are nearly always flakes; don't soft-pedal.
+- **MEDIUM-confidence smells** (shared module-level state, `Math.random()` in assertions, ordered-key assertions): post in the softer "I'd consider" tone — they can be deliberate in some patterns.
+- **LOW-confidence smells** (inline numeric delays, `process.env` reads without mocks): flag only if the diff introduces multiple at once, or if the surrounding file is already prone to them.
+
+For each finding, check the surrounding ~3 lines for a mitigating pattern (fake timers turned on, a `vi.mock` for the network module, a comment explaining the exception) before flagging. A smell with a documented mitigation is not a finding.
 
 ## How to decide: flag or skip
 

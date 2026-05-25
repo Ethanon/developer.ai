@@ -27,11 +27,13 @@ See [ADAPTING.md](ADAPTING.md) for the one-time setup steps to point everything 
 | Task | Required reading |
 |---|---|
 | Any code change | [`engineering/ENGINEERING_PRINCIPLES.md`](engineering/ENGINEERING_PRINCIPLES.md) |
+| Writing or reviewing tests | [`engineering/TESTING_PRINCIPLES.md`](engineering/TESTING_PRINCIPLES.md) |
 | Architecture / data flow | `docs/ARCHITECTURE.md` (add your own) |
 | AI agents (all roles, variants) | [`agents/`](agents/) |
 | PR lifecycle | [`engineering/PR_WORKFLOW.md`](engineering/PR_WORKFLOW.md) |
 | Backlog / issue lifecycle | [`engineering/BACKLOG_WORKFLOW.md`](engineering/BACKLOG_WORKFLOW.md) |
 | Adapting this repo to your project | [`ADAPTING.md`](ADAPTING.md) |
+| Adding your own agents | [`KIT_EXTEND.md`](KIT_EXTEND.md) |
 
 ---
 

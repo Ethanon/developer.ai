@@ -187,31 +187,11 @@ For each FLAKY or REAL_FAILURE test, record:
 
 Even without CI history, test files can contain structural patterns that predict flakiness. Scan all test files matching your test-folder globs.
 
-### Smell patterns (ordered by severity)
+### Smell patterns — source of truth
 
-**HIGH-confidence smells — very likely to cause nondeterminism:**
+**Read `engineering/TESTING_PRINCIPLES.md` § "Flaky-test smell patterns" first.** That doc is the single source of truth for the nine smell patterns this scanner detects (4 HIGH-confidence, 3 MEDIUM-confidence, 2 LOW-confidence). The same definitions are enforced by `phil_testing` at PR time, so a smell flagged here matches what Phil would flag if the diff that introduced it were still open.
 
-1. **Real timer sleeps without fake timers**: `await new Promise(resolve => setTimeout` or `await sleep(` inside a test body, when the enclosing file does NOT call `vi.useFakeTimers()` (Vitest), `jest.useFakeTimers()` (Jest), or the equivalent for your test runner. This is an explicit real-time wait — always flaky under load.
-
-2. **`Date.now()` or `new Date()` in assertions**: Any `expect(...)` call whose expression contains `Date.now()`, `new Date()`, or `.toISOString()` directly (not via a pre-captured variable). Time-dependent assertions flake when the clock ticks between setup and assertion.
-
-3. **Real network calls**: `fetch(` or `axios.` in a test file that does NOT import a mock for it (no `vi.mock`/`jest.mock` for a fetch-adjacent module, no `msw` setup file). Calls real services which are unavailable in CI.
-
-4. **Inline timeout literals in `beforeEach`/`beforeAll`**: `beforeEach(fn, <literal number>)` — if the number is the second arg of the hook, it overrides the global hookTimeout. Values under 5000ms are especially risky under CI load.
-
-**MEDIUM-confidence smells — likely to cause ordering-sensitive failures:**
-
-5. **Shared mutable module-level state without reset**: A `let` or `var` declared at module level in a test file that is NOT reset in a `beforeEach`. If multiple tests in the file mutate this variable, test ordering can affect outcomes.
-
-6. **`Math.random()` in test assertions**: Any `expect(...)` whose expression uses `Math.random()` directly. Non-deterministic assertions flake by definition.
-
-7. **`Object.keys()` or `Object.entries()` in ordered assertions**: `expect(Object.keys(...)).toEqual([...])` — key order is implementation-defined and has changed between runtime versions. Use `.toContain()` or sort first.
-
-**LOW-confidence smells — worth noting but often acceptable:**
-
-8. **`setTimeout` / `setInterval` literals outside `config`**: Inline numeric delays (not reading from a config module) in test setup code. Violates the "Timeouts and intervals never inline" rule from `ENGINEERING_PRINCIPLES.md` regardless of fake vs real timer use.
-
-9. **`process.env` reads in tests without a mock**: Test behavior that changes based on real env state can differ between local and CI.
+When you write the report, **cite the smell number from `TESTING_PRINCIPLES.md`** (smell 1, smell 5, etc.) rather than re-paraphrasing the pattern. Future updates to the definition land in the principles file once and both agents pick them up.
 
 ### How to grep for each smell
 
