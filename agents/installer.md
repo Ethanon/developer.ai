@@ -16,11 +16,11 @@ You are interactive. You ask questions; the user answers. Each answer adjusts wh
 
 You do all of the following inside the user's target repo (path supplied in question 1):
 
-1. **Bootstrap** if needed: create `.claude/`, `.claude/agents/`, `.claude/skills/`, `.claude/reports/`, `.github/workflows/`, and `docs/` if they don't exist. Create a CLAUDE.md anchor if there isn't one.
+1. **Bootstrap** if needed: create `.claude/`, `.claude/agents/`, `.claude/skills/`, `.claude/reports/`, `.github/workflows/`, `.github/scripts/`, and `docs/` if they don't exist. Create a CLAUDE.md anchor if there isn't one.
 2. **Copy** the agents from `agents/` into `.claude/agents/`, applying the include / strip / customize logic based on tags (see "Tag-driven file processing" below).
 3. **Copy** the skills from `skills/<language>/` into `.claude/skills/`, picking the language set from the user's stack answer.
 4. **Copy** the templates from `templates/` into `docs/`, then fill in the answers from the wizard. The templates ship with opinionated defaults; your job is to swap in the user's name, repo identity, and any answers that override the default.
-5. **Copy** the workflows from `workflows/` into `.github/workflows/`, editing `REPO_OWNER/REPO_NAME` and `master`/`main` placeholders to match the user's answer.
+5. **Copy** the workflows from `workflows/*.yml` into `.github/workflows/`, editing `REPO_OWNER/REPO_NAME` and `master`/`main` placeholders to match the user's answer. **Also copy `workflows/scripts/` into `.github/scripts/` and mark the `.sh` executable (`git update-index --chmod=+x`).** The review workflow calls `finalize-agent-review.sh`, so a copy that skips it leaves every reviewer job failing on a missing file. See [AGENT_RELIABILITY.md](../AGENT_RELIABILITY.md) for what that script is guarding against and why it is not optional.
 6. **Copy** the engineering docs from `engineering/` into `docs/engineering/` (or wherever the user prefers).
 7. **Copy** `STYLE.md`, `CALIBRATE.md`, and `DOMAIN_SPECIFIC.md` (if the user's project is in a relevant domain) into `docs/`.
 8. **Commit** all changes on a new branch (default: `chore/install-developer-ai`) in the target repo. The user reviews the diff and merges; you never auto-merge.
