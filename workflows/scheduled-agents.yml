@@ -60,11 +60,13 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: |
-            --model sonnet
+            --model claude-sonnet-5
             --effort medium
+            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
           prompt: |
             Invoke the scrum_master subagent.
             The agent's full spec lives at .claude/agents/scrum_master.md — follow it exactly.
+            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
             Return only the report file path.
 
   weekly-market-watch:
@@ -89,11 +91,13 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: |
-            --model sonnet
+            --model claude-sonnet-5
             --effort medium
+            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
           prompt: |
             Invoke the market_watch subagent.
             The agent's full spec lives at .claude/agents/market_watch.md — follow it exactly.
+            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
             Return only the report file path.
 
   weekly-hanging-refs:
@@ -118,11 +122,13 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: |
-            --model sonnet
+            --model claude-sonnet-5
             --effort medium
+            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
           prompt: |
             Invoke the hanging_refs subagent.
             The agent's full spec lives at .claude/agents/hanging_refs.md — follow it exactly.
+            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
             Return only the report file path.
 
   weekly-naming-audit:
@@ -147,11 +153,13 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: |
-            --model sonnet
+            --model claude-sonnet-5
             --effort medium
+            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
           prompt: |
             Invoke the naming_audit subagent.
             The agent's full spec lives at .claude/agents/naming_audit.md — follow it exactly.
+            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
             Return only the report file path.
 
   weekly-class-size-audit:
@@ -176,11 +184,13 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: |
-            --model sonnet
+            --model claude-sonnet-5
             --effort medium
+            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
           prompt: |
             Invoke the class_size_audit subagent.
             The agent's full spec lives at .claude/agents/class_size_audit.md — follow it exactly.
+            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
             Return only the report file path.
 
   weekly-security-audit:
@@ -205,11 +215,13 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: |
-            --model sonnet
+            --model claude-sonnet-5
             --effort medium
+            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
           prompt: |
             Invoke the security_audit subagent.
             The agent's full spec lives at .claude/agents/security_audit.md — follow it exactly.
+            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
             Return only the report file path.
 
   weekly-prompt-audit:
@@ -235,12 +247,14 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: |
-            --model sonnet
+            --model claude-sonnet-5
             --effort medium
+            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
           prompt: |
             Invoke the prompt_audit subagent.
             The agent's full spec lives at .claude/agents/prompt_audit.md — follow it exactly.
             If the project does not ship LLM prompts, the agent exits early; that's expected.
+            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
             Return only the report file path.
 
   weekly-flaky-test-finder:
@@ -279,12 +293,14 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: |
-            --model sonnet
+            --model claude-sonnet-5
             --effort medium
+            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
           prompt: |
             Invoke the flaky_test_finder subagent.
             The agent's full spec lives at .claude/agents/flaky_test_finder.md — follow it exactly.
             Pull CI run history via the GitHub Actions API (GITHUB_TOKEN and GITHUB_REPO are set in the environment), download JUnit XML artifacts, classify tests as REAL_FAILURE / FLAKY / STATIC_SMELL, and write the timestamped report under .claude/reports/.
+            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
             Return only the report file path.
 
   weekly-release-audit:
@@ -312,11 +328,13 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: |
-            --model sonnet
+            --model claude-sonnet-5
             --effort medium
+            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
           prompt: |
             Invoke the release_audit subagent.
             The agent's full spec lives at .claude/agents/release_audit.md — follow it exactly.
+            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
             Return only the report file path.
 
   # ─── Audit-groomer (turns audit reports into ready issues) ──────────────────
@@ -345,11 +363,13 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: |
-            --model sonnet
+            --model claude-sonnet-5
             --effort medium
+            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
           prompt: |
             Invoke the audit_groomer subagent.
             The agent's full spec lives at .claude/agents/audit_groomer.md — follow it exactly.
+            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
             Return only the report file path.
 
   # ─── Daily agents (run every day) ───────────────────────────────────────────
@@ -376,8 +396,9 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: |
-            --model sonnet
+            --model claude-sonnet-5
             --effort medium
+            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
           prompt: |
             Invoke the developer_agent subagent.
             The agent's full spec lives at .claude/agents/developer_agent.md — follow it exactly.
@@ -405,9 +426,11 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: |
-            --model sonnet
+            --model claude-sonnet-5
             --effort medium
+            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
           prompt: |
             Invoke the story_groomer subagent.
             The agent's full spec lives at .claude/agents/story_groomer.md — follow it exactly.
+            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
             Return only the report file path.

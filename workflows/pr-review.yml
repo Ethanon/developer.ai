@@ -31,18 +31,40 @@ jobs:
       github.event.pull_request.user.login != 'renovate[bot]' &&
       !contains(github.event.pull_request.labels.*.name, 'skip-ci')
     runs-on: ubuntu-latest
+    env:
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      GH_TOKEN: ${{ github.token }}
     strategy:
       fail-fast: false
+      # Each agent pod runs a review alongside whatever else the runner is doing.
+      # Five at once has oversubscribed a self-hosted node and got pods OOM-killed
+      # mid-review, which reads as a silent agent. Capping costs little wall clock,
+      # because these agents wait on an API rather than on a CPU.
+      max-parallel: 2
       matrix:
-        # Generic stack:         [bob_engineering, alice_security, phil_testing]
-        # + clean-code reviewer: [bob_engineering, alice_security, phil_testing, gomez_cleancode]
-        # + frontend (UX too):   [bob_engineering, alice_security, phil_testing, gomez_cleancode, carl_ux]
+        # Generic stack:         bob_engineering, alice_security, phil_testing
+        # + clean-code reviewer: ... gomez_cleancode
+        # + frontend (UX too):   ... carl_ux
         # The installer adjusts this list based on your wizard answers; you
         # don't have to pick variants by hand. Single-file agents (no _pwa
         # split) — frontend-specific rules live inline in alice_security
         # and bob_engineering, tagged Architecture-Conditional, and the
         # installer strips them at install time for non-frontend projects.
-        agent: [bob_engineering, alice_security, phil_testing]
+        #
+        # The model is pinned per agent, and pinning it is not optional. `sonnet`
+        # is a FLOATING ALIAS: it repointed from claude-sonnet-4-6 to
+        # claude-sonnet-5 mid-2026 with no change on any adopter's side, and the
+        # fleet went silent. A per-agent column is also the staged-rollout lever
+        # — adopt a new model by flipping one reviewer as a canary, watch it on a
+        # live PR, then flip the rest.
+        include:
+          - agent: bob_engineering
+            model: claude-sonnet-5
+          - agent: alice_security
+            model: claude-sonnet-5
+          - agent: phil_testing
+            model: claude-sonnet-5
     steps:
       - uses: actions/checkout@v4
         with:
@@ -56,20 +78,60 @@ jobs:
             exit 1
           fi
           echo "CLAUDE_CODE_OAUTH_TOKEN is present."
+
+      # The spec body becomes the prompt, so the action runs the reviewer AS the
+      # agent. The wrapper hop this replaces — "invoke the X subagent" — is where
+      # silent runs came from: the top-level agent read that the subagent decides
+      # whether to post, concluded it had nothing to add, and never spawned it.
+      - name: Load ${{ matrix.agent }} spec
+        id: spec
+        run: |
+          set -euo pipefail
+          {
+            echo 'body<<REVIEWER_SPEC_EOF'
+            awk 'BEGIN{c=0} /^---$/ && c<2 {c++; next} c>=2{print}' ".claude/agents/${{ matrix.agent }}.md"
+            echo 'REVIEWER_SPEC_EOF'
+          } >> "$GITHUB_OUTPUT"
+
       - name: Run ${{ matrix.agent }}
+        id: agent
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           allowed_bots: "renovate[bot]"
+          # --allowedTools is required, not a hardening extra. Without it every
+          # tool call is denied, the agent posts nothing, and the job still goes
+          # green. mcp__github is the entry that matters: posting a review is a
+          # tool call. No Edit or Write — every reviewer in this kit is read-only,
+          # and one that cannot write cannot rewrite the code it is judging.
           claude_args: |
-            --model sonnet
+            --model ${{ matrix.model }}
             --effort medium
+            --allowedTools "Bash,Read,Grep,Glob,WebSearch,WebFetch,mcp__github"
           prompt: |
-            Invoke the ${{ matrix.agent }} subagent to review PR #${{ github.event.pull_request.number }}.
-            Use the Task tool with subagent_type "${{ matrix.agent }}" and pass the PR number as the target.
-            The agent's full spec lives at .claude/agents/${{ matrix.agent }}.md — follow it exactly.
-            Do not repeat findings that appear in the PR's existing reviews (the spec covers this).
-            Return only the review URL.
+            ${{ steps.spec.outputs.body }}
+
+            ---
+
+            TASK: You are the reviewer defined above. Review pull request #${{ github.event.pull_request.number }} in ${{ github.repository }} right now; this is a live pull request, not a hypothetical. Post exactly one review this run through mcp__github__pull_request_review_write. If you have nothing to flag, post an APPROVE whose body is your header banner — a "stay silent" or "no changes in my domain" rule still means a one-line APPROVE, never zero posts. "Do not repeat existing findings" means do not re-list them in your body; it never means do not post. Never end this run without posting a review. After posting, reply with only the review URL.
+
+      - name: Confirm ${{ matrix.agent }} posted
+        id: finalize
+        if: always()
+        run: bash .github/scripts/finalize-agent-review.sh "${{ matrix.agent }}" "$PR_NUMBER" "$HEAD_SHA" '${{ steps.agent.conclusion }}' '${{ steps.agent.outputs.execution_file }}'
+
+      # Only when a review is missing, so a rare failure keeps its evidence and a
+      # healthy run costs no storage. Without the log there is nothing to read but
+      # a green tick.
+      - name: Keep the execution log when no review was posted
+        if: always() && steps.finalize.outputs.review_missing == 'true'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: silent-agent-${{ matrix.agent }}-${{ github.run_id }}
+          path: ${{ steps.finalize.outputs.execution_file }}
+          if-no-files-found: warn
+          retention-days: 14
 
   # Second pass: Jekyll (whitehat) and Hyde (blackhat) critique Alice's and
   # Bob's posted findings. `needs: review` keeps them off the PR until both
@@ -84,10 +146,19 @@ jobs:
       github.event.pull_request.user.login != 'renovate[bot]' &&
       !contains(github.event.pull_request.labels.*.name, 'skip-ci')
     runs-on: ubuntu-latest
+    env:
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      GH_TOKEN: ${{ github.token }}
     strategy:
       fail-fast: false
+      max-parallel: 2
       matrix:
-        agent: [jekyll_whitehat, hyde_blackhat]
+        include:
+          - agent: jekyll_whitehat
+            model: claude-sonnet-5
+          - agent: hyde_blackhat
+            model: claude-sonnet-5
     steps:
       - uses: actions/checkout@v4
         with:
@@ -101,17 +172,45 @@ jobs:
             exit 1
           fi
           echo "CLAUDE_CODE_OAUTH_TOKEN is present."
+
+      - name: Load ${{ matrix.agent }} spec
+        id: spec
+        run: |
+          set -euo pipefail
+          {
+            echo 'body<<REVIEWER_SPEC_EOF'
+            awk 'BEGIN{c=0} /^---$/ && c<2 {c++; next} c>=2{print}' ".claude/agents/${{ matrix.agent }}.md"
+            echo 'REVIEWER_SPEC_EOF'
+          } >> "$GITHUB_OUTPUT"
+
       - name: Run ${{ matrix.agent }}
+        id: agent
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           allowed_bots: "renovate[bot]"
           claude_args: |
-            --model sonnet
+            --model ${{ matrix.model }}
             --effort medium
+            --allowedTools "Bash,Read,Grep,Glob,WebSearch,WebFetch,mcp__github"
           prompt: |
-            Invoke the ${{ matrix.agent }} subagent to critique the review comments on PR #${{ github.event.pull_request.number }}.
-            Use the Task tool with subagent_type "${{ matrix.agent }}" and pass the PR number as the target.
-            The agent's full spec lives at .claude/agents/${{ matrix.agent }}.md — follow it exactly.
-            Alice and Bob have already posted their reviews; your job is to critique theirs, not re-review the diff from scratch.
-            Return only the review URL.
+            ${{ steps.spec.outputs.body }}
+
+            ---
+
+            TASK: You are the critic defined above. Critique the reviews already posted on pull request #${{ github.event.pull_request.number }} in ${{ github.repository }} right now; this is a live pull request, not a hypothetical. Your job is to attack what the first-pass reviewers concluded, not to review the diff from scratch. Post exactly one review this run through mcp__github__pull_request_review_write. If their advice holds up, post an APPROVE whose body is your header banner — having nothing to attack still means a one-line APPROVE, never zero posts. Never end this run without posting a review. After posting, reply with only the review URL.
+
+      - name: Confirm ${{ matrix.agent }} posted
+        id: finalize
+        if: always()
+        run: bash .github/scripts/finalize-agent-review.sh "${{ matrix.agent }}" "$PR_NUMBER" "$HEAD_SHA" '${{ steps.agent.conclusion }}' '${{ steps.agent.outputs.execution_file }}'
+
+      - name: Keep the execution log when no review was posted
+        if: always() && steps.finalize.outputs.review_missing == 'true'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: silent-agent-${{ matrix.agent }}-${{ github.run_id }}
+          path: ${{ steps.finalize.outputs.execution_file }}
+          if-no-files-found: warn
+          retention-days: 14
