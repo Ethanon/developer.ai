@@ -60,18 +60,42 @@ Don't ask all questions at once. Walk through them one group at a time, in this 
 
 12. **Filename / identifier case?** (defaults from your language answer: PascalCase classes plus camelCase utilities for TypeScript; snake_case for Python; etc. Answer "use defaults" or describe your preference)
 13. **What's OFF the table for your project?** (free text — managed services, specific vendors, deployment patterns, whatever you've already decided you don't do. This populates the "What we don't do" list in PROJECT_CONTEXT.md)
+14. **Do you keep architectural decision records?** (yes / no — decision docs under `docs/decisions/`, or an equivalent. If no, the sections that assume they exist are stripped. Default: yes)
+15. **Does anything outside this repo consume your API on a version you don't control?** (yes / no — a mobile app in an app store, a public API with third-party integrators, an installed desktop client, a partner webhook contract. Default: no)
+
+    This is a question of fact, not preference, and it decides the "No Backwards Compatibility" rule on its own. A "no" answer means one client shipping in lockstep with the server, and the rule holds. A "yes" answer means the rule is simply wrong for this project, and no amount of taste changes that. Do not present it as something the adopter can choose to want.
+
+16. **Any of these house rules you do NOT want?** (default: none — the adopter opts out, they do not opt in)
+
+    Present all nine on one screen. These are genuine positions where a competent team could reasonably run the opposite policy. Read the trade-off with each; do not just list names.
+
+    | Rule | Drop it if |
+    |---|---|
+    | **The design-first working loop** | Your team designs as it builds, or does not keep decision docs |
+    | **Default to zero comments** | Your team or domain expects explanatory comments in source (regulated code, published libraries, unusual algorithms) |
+    | **Class-based design, one class per file** | You write functional TypeScript, or prefer colocating small related types |
+    | **Naming suffixes are contracts** | You have an established naming scheme already |
+    | **No interim implementations** | You deliberately ship walking skeletons and iterate |
+    | **No new config or env files** | Your deployment model genuinely needs per-environment files |
+    | **A worktree per change** | You only ever run one agent thread against the repo at a time |
+    | **One larger PR over stacked PRs** | You merge continuously and review synchronously, where small PRs genuinely are better |
+    | **Tests ship in the same PR as the code** | Your team lands tests in a follow-up, or you dropped the design-first working loop |
+
+    An opt-out framing is deliberate. Nine sequential yes/no questions produces decision fatigue and an adopter who answers "keep" to everything without reading, which is the same outcome as never asking. One screen, default none, and only the deliberate opt-outs get recorded.
+
+    Note what is NOT on this list: "No Backwards Compatibility" (decided by Q15) and "The Result Type" (decided by the language answer). Both are derived, not chosen. If the adopter asks about either, explain what it was derived from rather than reopening it as a preference.
 
 ### Group 4 — about the review fleet
 
-14. **Want the UX reviewer (Carl)?** (yes / no — only useful with a frontend; auto-skipped if Q7 was "none")
-15. **Want the clean-code reviewer (Gomez)?** (yes / no — recommended for any project)
-16. **Want the prompt audit?** (yes / no — only useful if your project ships LLM prompt templates)
+17. **Want the UX reviewer (Carl)?** (yes / no — only useful with a frontend; auto-skipped if Q7 was "none")
+18. **Want the clean-code reviewer (Gomez)?** (yes / no — recommended for any project)
+19. **Want the prompt audit?** (yes / no — only useful if your project ships LLM prompt templates)
 
 ### Group 5 — about GitHub
 
-17. **Repo (owner/name)?** (e.g. `my-org/my-app`)
-18. **Default branch?** (main / master)
-19. **What name should the bots use when committing?** (default: `github-actions[bot]`)
+20. **Repo (owner/name)?** (e.g. `my-org/my-app`)
+21. **Default branch?** (main / master)
+22. **What name should the bots use when committing?** (default: `github-actions[bot]`)
 
 ## Stack-flag resolution
 
@@ -86,7 +110,10 @@ From the answers, resolve the following flags. These drive the tag-based include
 | `auth-via-cookies` | Q7 + Q9 both present (backend-auth-gateway with cookie sessions is the default) |
 | `has-service-worker` | ask: "Does your frontend use a service worker?" Only if `has-frontend` is true. Default no. |
 | `multi-tenant` | Q5 yes |
-| `ships-llm-prompts` | Q16 yes |
+| `ships-llm-prompts` | Q19 yes |
+| `uses-decision-docs` | Q14 yes |
+| `single-client` | Q15 no. Governs "No Backwards Compatibility". |
+| `result-type-idiomatic` | Q6. Default on for TypeScript and Rust, where a Result-shaped return is natural. Default off for Python, Java, Ruby, and C#, where exceptions are the language idiom and the rule means fighting it. Confirm the default either way rather than assuming. |
 | `containerized` | Q10 in (Docker Compose, Kubernetes) |
 | `python-style-naming` | Q12 says snake_case OR Q6 is Python and Q12 is "use defaults" |
 | `typescript-style-naming` | Q12 says camelCase OR Q6 is TypeScript and Q12 is "use defaults" |
@@ -108,11 +135,40 @@ When you copy a file from `agents/`, `templates/`, or `engineering/`, you read e
 | `tag: Generic` | Copy verbatim. Don't strip the comment. |
 | `tag: Architecture-Conditional; applies-when: X` | If X resolves to true from the stack flags, copy. If false, strip the entire section (heading and body) plus its tag comment. |
 | `tag: Architecture-Conditional; applies-when: X + Y` | Both X and Y must be true. Treat `+` as logical AND. |
-| `tag: Personal Preference; default-on` | Copy by default. If the user explicitly answered "I don't follow that" during Group 3, replace with a brief "this project does not follow this convention" placeholder. |
+| `tag: Personal Preference; default-on` | Copy unless the adopter opted out of that rule in Q16. On a drop, replace the section body with a one-line "this project does not follow this convention" placeholder, keep the heading, and keep the `override:` comment so they can reverse the decision later. Never silently delete the heading: a reader who finds the placeholder learns the kit had an opinion here and that this project declined it. |
 | `tag: Domain-Specific; see-DOMAIN_SPECIFIC.md` | Copy verbatim only if the user opts in to DOMAIN_SPECIFIC.md in Group 4. Otherwise strip. |
 | No tag | Treat as Generic. |
 
 If a tag has an `override:` comment alongside it, leave the override comment in place — the adopter will read it later if they want to customize.
+
+### Q16 rule-to-section mapping
+
+Each row of the Q16 table maps to exactly one `Personal Preference` section. Unqualified names are in `engineering/ENGINEERING_PRINCIPLES.md`; others name their file. When the adopter opts out of a rule, this is the section to replace with the placeholder:
+
+| Q16 rule | Section in `engineering/ENGINEERING_PRINCIPLES.md` |
+|---|---|
+| The design-first working loop | The Working Loop — Design First, Ask, Test, Build, Clean Up |
+| Default to zero comments | Comments |
+| Class-based design, one class per file | Class-Based Design |
+| Naming suffixes are contracts | Naming Conventions — Suffixes Are Contracts |
+| No interim implementations | No Interim Implementations |
+| No new config or env files | No New Config or Env Files |
+| A worktree per change | `PR_WORKFLOW.md` -> Start every change in its own worktree |
+| One larger PR over stacked PRs | `PR_WORKFLOW.md` -> Prefer one larger PR over many stacked PRs |
+| Tests ship in the same PR as the code | `PR_WORKFLOW.md` -> Tests come before the implementation, in the same PR |
+
+Two more sections behave like house rules but are NOT on that list, because they are decided by fact rather than taste. They are ordinary `Architecture-Conditional` sections and follow the normal strip rule:
+
+| Section | Flag | Kept when |
+|---|---|---|
+| No Backwards Compatibility | `single-client` | Nothing outside the repo consumes the API on an uncontrolled version (Q15 no) |
+| The Result Type — No Throwing from Business Logic | `result-type-idiomatic` | The language makes a Result-shaped return natural rather than a fight (Q6) |
+
+Dropping a rule has knock-on effects elsewhere, and you handle these in the same pass:
+
+- **CLAUDE.md** carries a one-line pointer to most of these under "Headline rules" and "Quick What Not To Do". Remove the pointer for any dropped rule; a pointer to a placeholder is worse than no pointer.
+- **`bob_engineering`** flags violations of several of them. If a rule is dropped, remove the matching category from Bob's spec so he does not file findings against a convention this project declined.
+- **Q14 (`uses-decision-docs`) answered no** additionally strips "Decision Document Structure", and the design-doc requirements in `PR_WORKFLOW.md` and `BACKLOG_WORKFLOW.md`. Say so out loud when the adopter answers no, because it removes more than one section.
 
 A section is the heading line plus all content up to the next heading at the same level or higher. Strip cleanly; don't leave dangling "above" / "below" references in surrounding prose.
 
@@ -129,7 +185,7 @@ If a whole file is tagged (the tag is right after the frontmatter or at the top 
 - **`docs/PROJECT_CONTEXT.md`** — replace placeholder paragraphs with the user's answers from Groups 1, 2, 3.
 - **`docs/ARCHITECTURE.md`** — replace the services table with the user's actual services (you can leave the default if the user couldn't list them yet; they'll edit later).
 - **`docs/SECURITY.md`** — replace placeholder paragraphs with the user's answers.
-- **All workflow files** — replace `REPO_OWNER/REPO_NAME` with Q17, replace `master` with Q18 if the user picked `main`.
+- **All workflow files** — replace `REPO_OWNER/REPO_NAME` with Q20, replace `master` with Q21 if the user picked `main`.
 - **All backlog agent files** — replace `REPO_OWNER`, `REPO_NAME`, and `master`/`main` placeholders in the "Repo identity" sections.
 
 ## CLAUDE.md handling

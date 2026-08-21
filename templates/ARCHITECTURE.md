@@ -60,6 +60,28 @@ A typical write looks the same shape, with the route handler writing back to `da
 - **Auth service** is operated by configuration, not by code in our repo. We do not write identity-provider plugins unless there is no other option.
   <!-- tag: Architecture-Conditional; applies-when: has-auth -->
 
+The same thing as a table, which is the form to keep current as layers are added. The "must not" column is the one that earns its keep in review:
+
+| Layer | Owns | Must not |
+|---|---|---|
+| Frontend | Rendering, local interaction state | Business logic, rule enforcement, direct network calls |
+| API service | Business logic, authorization, validation | Presentation concerns, direct SDK imports |
+| Worker | Jobs the API enqueued | Reading user input directly |
+| Shared package | Rules both client and server need | Anything either side alone needs |
+| Datastore | Storage and referential integrity | Business decisions |
+
+<!-- tag: Generic -->
+
+## Error handling
+
+The failure policy is stated in full in [`engineering/ENGINEERING_PRINCIPLES.md`](../engineering/ENGINEERING_PRINCIPLES.md) under "Failure Policy" and "The layered shape, concretely". Record here only what is specific to this system:
+
+- Which dependencies are critical path (a failure fails the request) versus advisory (a failure degrades behind a circuit breaker).
+- The retry counts and circuit-breaker windows you chose, and where they are configured.
+- Where the single catch site on the critical path lives.
+
+<!-- tag: Generic -->
+
 ## Decisions already made
 
 Settled architectural decisions the agents should treat as given. Each gets one line. If a decision is large enough to need a paragraph, write a decision doc for it under `docs/decisions/` (see `templates/decisions/DECISION_TEMPLATE.md`) and link it here.
@@ -75,7 +97,17 @@ Settled architectural decisions the agents should treat as given. Each gets one 
 
 ## How we add a new piece
 
-Before adding a new service, see if we can extend an existing one. A new service adds operational weight (one more thing to deploy, secure, back up, monitor). Examples of what stays in `api`: a new resource type, a new background job kind, a new external API integration. Examples of when a new service is justified: a new technology that does not fit the runtime (a Python ML model), or a clean isolation boundary (a new public webhook receiver with a different threat surface).
+**Categorize before you wire.** Before writing any code for a new component, decide which category it falls into, because wiring the wrong pattern is the bug. The categories below are illustrative; write the ones your system actually has, and keep the list short enough that every new component clearly matches exactly one.
+
+| Category | How it gets wired | Signal you picked this one |
+|---|---|---|
+| Static cluster service | One config entry pointing at a stable address. Nothing dynamic. | One role, one address, no per-tenant variance, no weighted alternatives |
+| Per-tenant shard | Registers itself with the discovery layer, one entry per tenant it holds | Holds state that belongs to specific tenants |
+| Stateless interchangeable backend | Added to the routing config with a weight; the router picks among live instances | Several instances are equivalent and any can serve the request |
+
+The failure this prevents: wiring a static service through the dynamic discovery path (operational weight for no benefit), or wiring a stateful shard as though it were interchangeable (requests routed to an instance that does not hold the data). Both look fine until they do not.
+
+Before adding a new service at all, see if we can extend an existing one. A new service adds operational weight (one more thing to deploy, secure, back up, monitor). Examples of what stays in `api`: a new resource type, a new background job kind, a new external API integration. Examples of when a new service is justified: a new technology that does not fit the runtime (a Python ML model), or a clean isolation boundary (a new public webhook receiver with a different threat surface).
 
 If a new service is the right call, follow the existing pattern: a role name in the service name; responsibilities documented in this file; secrets via the `secrets` service; structured logs to stdout; a health endpoint at `/healthz`.
 <!-- tag: Personal Preference; default-on -->

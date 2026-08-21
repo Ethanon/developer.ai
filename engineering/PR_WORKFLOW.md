@@ -16,9 +16,51 @@ Branch naming, commit messages, and any other PR mechanics live in the agent tha
 
 ---
 
+## Start every change in its own worktree
+
+When more than one agent thread runs against a single checkout, they fight over it. A `git checkout`, `git reset`, or `git clean` in one thread silently reverts another thread's uncommitted edits to any file that differs between the two branches, and `git clean` deletes its untracked new files. The loss is silent and the thread that caused it never sees an error.
+<!-- tag: Personal Preference; default-on -->
+<!-- override: if you only ever run one agent thread against the repo at a time, this is ceremony you do not need. Drop the section and work on branches in the main checkout. -->
+
+Before starting any change, create a dedicated worktree and work there:
+
+```
+git worktree add .worktrees/<name> -b <branch> <default-branch>
+```
+
+- Gitignore the worktree directory. One worktree per thread, named for the task.
+- A fresh worktree has no installed dependencies; install them there. Most package managers hardlink from a shared cache, so this is cheaper than it sounds.
+- Remove the worktree when the branch merges: `git worktree remove .worktrees/<name>`.
+
+---
+
 ## Open the PR, do not merge it
 
 When work is ready, push the branch and open a pull request with a clear title and summary. The human owner handles all merges. Never call any merge API unsolicited, even when the PR looks "green". If merging is ever wanted, the human will ask explicitly.
+
+---
+
+## Prefer one larger PR over many stacked PRs
+
+Each PR costs a full reviewer fan-out. Four small stacked PRs run the fleet four times over what is one logical unit of work, and every rebase after a parent merges triggers another run. The review context fragments too: a reviewer looking at PR 3 of 4 cannot see the foundation that PRs 1 and 2 laid, so it either re-derives it or flags things the earlier PRs already settled.
+<!-- tag: Personal Preference; default-on -->
+<!-- override: teams that merge continuously and review synchronously often prefer small PRs, and are right to. This rule assumes asynchronous agent review with a per-PR cost. -->
+
+Default to one PR per logical unit of work. Split only when the split adds genuine review value: a foundation refactor landing before the consumers that depend on it, or a security-critical change isolated from refactoring noise so it can be reviewed on its own terms.
+
+Sequence-stacked PRs, where each is based on the previous unmerged branch, are the specific shape to avoid. Every parent merge forces a rebase, and every rebase re-runs the fleet on the child.
+
+---
+
+## Tests come before the implementation, in the same PR
+
+The PR ships the tests that pin the change, written before the implementation rather than after. This is the PR-level restatement of step 3 of the Working Loop in [`ENGINEERING_PRINCIPLES.md`](ENGINEERING_PRINCIPLES.md); the red-first discipline itself lives in the `test-driven-development` skill.
+<!-- tag: Personal Preference; default-on -->
+<!-- override: paired with the Working Loop. If you dropped that rule, drop this one too. -->
+
+The test set traces to the change's acceptance criteria. If the design names a criterion with no corresponding test in the PR, the PR is incomplete: add the test, or say in the PR body why the criterion is out of scope for this one.
+
+A PR whose tests were written after the code, or whose new behavior arrives with no test at all, is what `phil_testing` flags and what this rule exists to prevent.
 
 ---
 
@@ -39,23 +81,25 @@ This applies to the initial PR open AND to every subsequent push on the same bra
 
 ---
 
-## Respond to review comments and fix what's requested
+## Respond to review comments: decide with the owner before implementing
 
-When PR review comments arrive, read them in context, make the changes you find worth making, push, and leave a short reply noting what changed or why you didn't act. If a comment is ambiguous or you disagree, push back rather than reflexively complying.
+When review comments arrive, **do not start changing the PR.** The flow has three phases, and collapsing them is how a PR ends up churning through amend cycles.
+<!-- tag: Generic -->
 
-The review agents post on every PR per `.github/workflows/pr-review.yml`:
+**Phase 1: wait until every check on the head commit has settled.** Every check reports completed, and every reviewer has posted. Acting on partial feedback forces another cycle when the late review lands, and burns a fresh fleet run on the next push for nothing.
 
-- **Alice**: security (SECURITY.md, auth, cookies, XSS, SSRF, hardcoded secrets).
-- **Bob**: engineering principles (god classes, naming, comments, over-abstraction, fail-loud).
-- **Phil**: unit testing (test-first signal, intent-first naming, mocking discipline, failure-mode coverage).
-- **Gomez** (optional): line-level clean code, names, density, idiom.
-- **Carl** (optional, frontend-only): UX, mobile fit, copy, polish.
-- **Jekyll**: whitehat critic of Alice / Bob / Phil / Gomez / Carl findings.
-- **Hyde**: blackhat critic of the same.
+**Phase 2: surface and recommend, do not act.** Pull every finding from every reviewer, plus every inline comment and every non-passing check, and produce a single table with one row per finding:
 
-Their feedback is advisory only. They never block merge; they post `APPROVE` or `COMMENT`, never `REQUEST_CHANGES`. You filter every finding through your own judgment.
+| # | Source and finding | Proposed fix | Recommendation: fix / don't fix / defer, and why |
+|---|---|---|---|
 
-The full rules covering how reviewers should behave (advisory not blocking, diminishing returns on later rounds, flagging fixes that are worse than the original) live in `engineering/ENGINEERING_PRINCIPLES.md` → "Review Etiquette — Advisory, Not Blocking". Read that if you're authoring a new reviewer agent or wondering why the second-round review came back quieter than the first.
+The "why" cites something: a decision doc, a principle in this kit, a prior round's disposition. Then stop and wait. **The disposition call belongs to the PR owner, not the reviewer and not the author.** A reviewer asking for a change is not authorization to make it.
+
+**Phase 3: apply exactly what was picked, then reply to every comment.** Make the changes on the same branch, push, and post an inline reply on every comment addressed: what changed and in which commit, what changed partially, or what is not changing and why. Declines are never silent. A reviewer whose finding is silently ignored has no way to tell the difference between "considered and rejected" and "missed."
+
+This applies to every PR including an agent's own. If a comment is ambiguous or you disagree with it, that belongs in the table's recommendation column, not in a guess at implementation.
+
+The `receiving-code-review` skill covers the conversational half of this: how to read a finding without capitulating to it, and how to disagree without being defensive.
 
 ---
 

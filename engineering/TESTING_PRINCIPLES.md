@@ -112,6 +112,28 @@ Match the project's chosen mocking conventions over generic best practice. Some 
 
 ---
 
+## Assert behavior, not call mechanics
+
+A unit test names a behavioral pattern and verifies it: this input flows validate -> authorize -> price -> persist, each step receives what the prior produced, and the caller gets back the documented result. The pattern is the contract. How a step computes its answer internally is not part of the contract.
+<!-- tag: Generic -->
+
+`expect(fn).toHaveBeenCalledTimes(n)` is the most common way to accidentally test mechanics instead of behavior. It is correct ONLY when the count itself is the contract under test: "the two lookups run in parallel" (both started before either resolved), "a cache hit fires zero network calls" (cost guard), "retry stops after 3 attempts" (bounded-retry guard). When the count is incidental to what the test is named for, it is a bad assertion: drop it, or replace it with the behavioral assertion the test actually cares about.
+
+**The diagnostic:** if an internal refactor that preserves the observable behavior breaks the test, the test was coupled to mechanics, not behavior.
+
+A worked example. A pricing pipeline gains a local lookup tier that answers common currency pairs without the network call it previously always made. Tests asserting `expect(ratesClient.fetch).toHaveBeenCalledTimes(1)` break. But the pattern those tests were named for (a priced invoice comes back, with the correct amount, and no partial write happens on failure) is unchanged. The fix is to assert that pattern and let the pricing mechanism vary.
+
+### Refactor corollary: keep expectations, fix infra
+
+When a refactor changes how a step works internally but not what the pipeline does, a good test's EXPECTATIONS do not change. What may need to change is test infrastructure: a mock now has to satisfy the new internal call so the same pattern can run end to end. These are two distinct moves, never to be conflated:
+
+1. **Fix the infra.** Mock the new collaborator so the existing expectation can execute. This is the default move on a refactor, and it is not "rewriting the test."
+2. **Update the expectation.** Do this ONLY when the behavioral contract itself changed: a removed code path, a new return field. Rewriting an expectation to match whatever the code now happens to do is rubber-stamping the code, not testing it. If you catch yourself doing it, stop and confirm the behavior change was intended rather than an accident the test just caught.
+
+Before editing a failing test during a refactor, decide which of the two it is. If the pattern is intact, the failure is an infra gap, not an expectation that needs rewriting. A "called N times" assertion whose count is not the test's stated purpose is the signal you are in case 1, not case 2.
+
+---
+
 ## Failure-mode coverage
 
 For every happy-path test on a function that can fail, at least one failure-mode test. The happy path was the easy part of the design; the failure modes are where the code's contract gets revealed.

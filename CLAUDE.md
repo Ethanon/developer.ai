@@ -28,7 +28,10 @@ See [ADAPTING.md](ADAPTING.md) for the one-time setup steps to point everything 
 |---|---|
 | Any code change | [`engineering/ENGINEERING_PRINCIPLES.md`](engineering/ENGINEERING_PRINCIPLES.md) |
 | Writing or reviewing tests | [`engineering/TESTING_PRINCIPLES.md`](engineering/TESTING_PRINCIPLES.md) |
+| Anything touching auth, input, secrets, logging, or prompts | [`engineering/SECURITY_PRINCIPLES.md`](engineering/SECURITY_PRINCIPLES.md) |
 | Architecture / data flow | `docs/ARCHITECTURE.md` (add your own) |
+| Logging, tracing, or debugging | [`engineering/OBSERVABILITY_PRINCIPLES.md`](engineering/OBSERVABILITY_PRINCIPLES.md) |
+| Building an agent that calls a model | [`engineering/AI_AGENT_PRINCIPLES.md`](engineering/AI_AGENT_PRINCIPLES.md) |
 | AI agents (all roles, variants) | [`agents/`](agents/) |
 | PR lifecycle | [`engineering/PR_WORKFLOW.md`](engineering/PR_WORKFLOW.md) |
 | Backlog / issue lifecycle | [`engineering/BACKLOG_WORKFLOW.md`](engineering/BACKLOG_WORKFLOW.md) |
@@ -56,8 +59,10 @@ These are pointers to the full rules in [`engineering/ENGINEERING_PRINCIPLES.md`
 - **Timeouts and intervals never inline.** Read from a config module, never hardcode in business logic. → "Timeouts, Intervals, and Retries".
 - **Tests are deterministic, offline, fast.** No real-time waits, no real network, fake timers. → "Testing".
 - **`Result<T, E>` for fallible operations.** No throwing from business logic — use discriminated unions. → "Failure Policy".
-- **Two failed attempts → look it up.** When a fix doesn't work and the second attempt also doesn't, stop iterating in a vacuum and WebSearch the specific signature. → "Two Failed Attempts → Look It Up".
-- **Three failed attempts → step back.** When the same task has failed three times, stop pushing on the narrow problem and zoom out. The fourth narrow attempt usually pays back worse than a re-think. → "Three Failed Attempts → Step Back".
+- **Write so anyone can read it.** Plain language is a rule, not a preference: ISO 24495-1 findable, understandable, actionable, consistent. Applies to code names, docs, and user-facing text alike. → "Write So Anyone Can Read It".
+- **Names never leak a technology.** A name says what a thing is for, never what it is built on. `Db`, not `D1Database`. → "Names Never Leak a Technology".
+- **Facts before fixes.** Reproduce it before you change code for it. A fix aimed at a described defect fixes the description. → "Facts Before Fixes".
+- **Two failed attempts, look it up. Three, step back.** The second failure already told you your model of the problem is wrong. → "Troubleshooting Discipline".
 - **Reviews are advisory; subsequent rounds taper.** Reviewer agents never block merge. On Round 2+ of the same PR, only flag NEW issues or fixes that are worse than the original — don't relitigate prior findings the author chose not to act on. → "Review Etiquette".
 
 ---
@@ -76,8 +81,11 @@ The full rules each link out from [`engineering/ENGINEERING_PRINCIPLES.md`](engi
 - Do not inline timeout / interval / TTL / retry-count literals outside the config module.
 - Do not add optional parameters or missing-field fallbacks "so old callers keep working": the compiler finds them all.
 - Do not write multi-paragraph explanatory comments in source files.
-- Do not expose developer/infrastructure config on player-facing UI.
+- Do not expose developer/infrastructure config on end-user-facing UI.
 - Do not use `slice` / `substring` to cap natural-language text in logs or API responses.
+- Do not trust a tenant or account id that arrived in a path, body, or query. Identity comes from the session. See `engineering/SECURITY_PRINCIPLES.md` → "Identity Binding".
+- Do not accept a loose write schema. The route's schema is a closed union over exactly the operations a client originates; everything else is server-derived. → "Client-Originated Mutations Are an Explicit Allowlist".
+- Do not statically import a dev/preview harness that bypasses auth. It must be build-gated AND behind a dynamic `import()`, or the bundler ships the stub auth context to every user. → "Dev and Preview Harnesses".
 - Do not push commits directly to the default branch. Every change opens a pull request, even one-line renames and "mechanical" cleanups. See `engineering/PR_WORKFLOW.md` → "Every change goes through a pull request" for the rule and the one narrow exception.
 
 ---
