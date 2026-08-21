@@ -40,7 +40,60 @@ You should probably NOT use it if:
 
 - Your project is a one-off prototype you'll throw away in a month (setup cost won't pay back).
 - You don't have a GitHub repo (the agents file issues and post PR reviews via the GitHub API; that's the integration surface).
-- You can't afford Anthropic API tokens (a typical small project burns a few dollars a week; large repos with many PRs scale up from there).
+- You can't budget for Anthropic API tokens. See "What it costs" below for what drives the number and how to bound it.
+
+---
+
+## What it costs
+
+The agents authenticate with a Claude Code OAuth token, so they draw on **your Claude
+subscription**, not a per-token API bill. The practical question is therefore not "how many
+dollars" but "does this fit inside my plan alongside my own work?"
+
+### One real data point
+
+On a Max plan, working 8-10 hours a day in Claude Code, running **5-10 full PR reviews per
+day for a week** fit inside the plan alongside normal development. That is the whole fleet
+on each PR, not a single reviewer.
+
+That is one repo, one working pattern, one week. Treat it as an order-of-magnitude anchor
+rather than a guarantee: a repo with much larger diffs, or a team opening far more PRs, will
+land somewhere different.
+
+### The model split that makes it fit
+
+**Opus 5 as the orchestrator, Sonnet 5 as the sub-agent workers.** The expensive reasoning
+is concentrated in the layer deciding what to look at and how to weigh what came back; the
+sub-agents doing the actual reading are largely mechanical and do not need the top tier.
+
+This holds review quality roughly steady while keeping the bulk of the work on the cheaper
+model. The `--model` flag in each workflow job is where you set it.
+
+### Where the consumption actually is
+
+Almost all of it is PR review. The scheduled audits look like a large fleet on the diagram,
+but they run once a week and there are only a handful of them, so they round to nothing
+against a week of development. In practice you will run more ad-hoc analysis during normal
+work than the Monday audit pass does all week.
+
+So the only variable worth watching is **reviewers enabled × PRs opened × diff size**. If
+the load is higher than you want, that product is the thing to shrink; the audit schedule is
+not where the money is.
+
+### Levers, most effective first
+
+1. **Drop optional reviewers.** Gomez and Carl are the two most commonly dropped. Each one
+   removed is a proportional cut on every PR, and this is by far the biggest lever.
+2. **Use `skip-ci` liberally.** Doc-only, generated-file, and lockfile-bump PRs burn a full
+   pass for nothing.
+3. **Lower `effort`.** Each workflow job passes `--effort`; one step down noticeably reduces
+   spend at some cost in depth.
+4. **Split large PRs.** Cost scales with diff size per reviewer, so one 900-line PR costs
+   every reviewer more than three 300-line PRs cost them individually.
+
+Retuning the audit schedule is not on this list on purpose. It is a rounding error, and
+turning audits off to save budget trades away the drift detection that is the cheapest thing
+the kit does.
 
 ---
 
@@ -233,12 +286,13 @@ flowchart TD
 
 ## What's in this repo (full inventory)
 
-### PR review pipeline (up to 6 agents)
+### PR review pipeline (up to 7 agents)
 
 | Agent | What it does | What you used to do by hand |
 |---|---|---|
 | Alice (`alice_security.md`) | Security review: routes, auth, secrets, cookies, log-leak hygiene; frontend sections (OAuth, service worker, CSP) when applicable | Manually scan every PR for missing auth middleware, secret leaks, and cookie-flag misses |
 | Bob (`bob_engineering.md`) | Engineering review: god classes, naming contracts, fail-loud, over-abstraction; frontend sections when applicable | Catch over-abstraction, naming drift, and structural smells before merge |
+| Phil (`phil_testing.md`) | Unit-testing review: test-first signal, intent-first naming, mocking discipline, failure-mode coverage | Check whether the tests actually pin the behavior, or just execute it for coverage |
 | Gomez (`gomez_cleancode.md`) | Line-level clean-code review: names that communicate intent, density, idiom | Rename `processData` to something useful; spot the `let` that should be `const` |
 | Carl (`carl_ux.md`) | UX review: mobile fit, copy quality, latency masking, studio-quality polish. Skipped for projects with no frontend. | Walk through the diff on a 360-pixel viewport, check tap targets, eyeball loading states |
 | Jekyll (`jekyll_whitehat.md`) | Whitehat critic: challenges the first-pass reviews from a best-practices angle | Push back on a reviewer who's about to overfit to a single pattern |
@@ -255,7 +309,7 @@ There are no PWA / non-PWA variants. Alice and Bob contain frontend-specific sec
 | Story Groomer (`story_groomer.md`) | Decomposes decision docs into stories; evaluates the Definition of Ready | Read the latest decision doc and translate "we agreed to do X" into pickup-ready GitHub issues |
 | Audit Groomer (`audit_groomer.md`) | Turns weekly audit findings into pickup-ready issues | Read Monday's audit reports and file individual cleanup issues with enough context to pick up |
 
-### Weekly audits (6 agents)
+### Weekly audits (8 agents)
 
 | Agent | What it does | What you used to do by hand |
 |---|---|---|
@@ -265,6 +319,7 @@ There are no PWA / non-PWA variants. Alice and Bob contain frontend-specific sec
 | Security Audit (`security_audit.md`) | Auth routes, schema validation, secrets, log-leak, cookie hygiene | A full sweep of the codebase for security drift, the kind that builds up between releases |
 | Prompt Audit (`prompt_audit.md`) | (Optional, only if your project ships LLM prompts.) Prompt templates against your prompt-rules doc | Check every prompt template for fragment-loading drift, negative directives in narrative prompts, schema mismatches |
 | Flaky Test Finder (`flaky_test_finder.md`) | (Optional, only if your CI emits JUnit XML.) Pulls the last ~100 CI runs, builds a per-test pass/fail histogram, separates flaky from real failures, plus a static-smell scan | Read 100 CI runs by hand to figure out whether that test fails sometimes or all the time |
+| Release Audit (`release_audit.md`) | (Optional.) Pre-release sweep: unreleased changes, migration steps, breaking-change surface, deploy-checklist drift | Reconstruct what actually changed since the last tag, and what a deploy needs to do about it |
 | Market Watch (`market_watch.md`) | Weekly ecosystem and tooling scan | A Friday afternoon spent reading release notes, blog posts, and HackerNews to see if anything matters this week |
 
 ### Installer (1 agent)
@@ -288,15 +343,21 @@ The installer copies the language set that matches your stack answer.
 | `templates/PROJECT_CONTEXT.md` | What this project is. Every agent reads this. Ships with opinionated defaults. |
 | `templates/ARCHITECTURE.md` | System shape and layer responsibilities. Bob and the audits read this. |
 | `templates/SECURITY.md` | Trust boundaries, sign-in flow, cookies. Alice and security-audit read this. |
+| `templates/DEBUGGING.md` | Your project's runbook: symptom decision tree, request path, log commands, and the failure modes that already cost someone an hour. |
 | `templates/decisions/DECISION_TEMPLATE.md` | Shape of a decision doc, with inline guidance comments. |
 
 ### Examples (read for shape, don't copy)
 
-Four worked decision docs in different shapes (security / vendor, layering, philosophy, ops). See `examples/README.md` for the tour.
+- **`examples/reviews/findings-gallery.md`** — what each reviewer actually catches, as short before/after entries grouped by agent. A few lines of code, the comment that got posted against it, and the one-line reason it lands. Read this first if you want to know whether the output is worth the tokens.
+- **`examples/decisions/`** — four worked decision docs in different shapes (security / vendor, layering, philosophy, ops). See `examples/README.md` for the tour.
 
 ### Engineering docs (copy to `engineering/` in your project)
 
 - `engineering/ENGINEERING_PRINCIPLES.md`: KISS, SOLID, DRY, YAGNI, naming, failure policy. Pass-through port from a real production codebase, with all rules classified into Generic, Architecture-Conditional, Personal Preference, or Domain-Specific tags so the installer can tailor it to your project.
+- `engineering/TESTING_PRINCIPLES.md`: test philosophy, intent-first naming, mocking discipline, failure-mode coverage, flaky-test smells. Phil and `flaky_test_finder` read this.
+- `engineering/SECURITY_PRINCIPLES.md`: the portable security rules (input validation, identity binding, prompt-injection boundary, three-tier logging, secrets). Alice and `security_audit` read this. Your project's own answers go in `docs/SECURITY.md`.
+- `engineering/AI_AGENT_PRINCIPLES.md`: how to design an agent that calls a model. Whether to build one at all, tool-surface design, memory, prefix stability, evaluation. Only relevant if your project ships its own agents.
+- `engineering/OBSERVABILITY_PRINCIPLES.md`: what a log line should contain, correlation ids, trace spans, and the rule against truncating prose. Pairs with `docs/DEBUGGING.md`.
 - `engineering/PR_WORKFLOW.md`: opening PRs, greening CI, responding to review.
 - `engineering/BACKLOG_WORKFLOW.md`: issue lifecycle, Definition of Ready.
 

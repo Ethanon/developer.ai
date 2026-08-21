@@ -2,15 +2,48 @@
 
 <!--
 Alice (the security review agent) and the security_audit bot read this
-file as their source of truth. Every finding they raise is grounded in
-something this document says (or in the OWASP list of common web
-vulnerabilities, when this document is silent).
+file as their source of truth, alongside engineering/SECURITY_PRINCIPLES.md.
+
+The division of labour between the two:
+
+  engineering/SECURITY_PRINCIPLES.md  the RULES. Portable, stack-neutral,
+                                      the same for every project. Do not
+                                      edit per-project.
+  docs/SECURITY.md (this file)        YOUR ANSWERS. Which identity provider,
+                                      which secrets store, what your threat
+                                      model actually is, what you have
+                                      accepted as out of scope.
 
 The file ships pre-filled with opinionated defaults. The installer
 adjusts them during setup based on your Q&A answers; you edit further
 if your project's reality differs. Sections that only apply to certain
 architectures carry a tag in HTML comments.
+
+Sections marked TO FILL are the ones the defaults cannot guess for you.
 -->
+
+## Deployment context
+
+<!-- TO FILL -->
+
+Where this runs, who can reach it, and what the blast radius of a compromise is. Answer in a paragraph: hosting platform, network exposure (public internet, VPN, internal only), how many tenants share an instance, what data classes you hold (credentials, payment, health, personal, none of the above), and what stage you are at (pre-alpha, private beta, production with paying users). Every risk decision below is only defensible relative to this paragraph, and it changes as you grow.
+<!-- tag: Generic -->
+
+## Threat model
+
+<!-- TO FILL -->
+
+Who you are defending against, in priority order. Be specific enough to make trade-offs with. A useful default starting set:
+
+| Adversary | Motivation | What they would try first |
+|---|---|---|
+| Opportunistic scanner | Automated, untargeted | Known CVEs in dependencies, default credentials, exposed admin routes |
+| Curious authenticated user | Poking at boundaries | Changing an id in a URL, replaying a request against another tenant |
+| Credential-stuffing bot | Account takeover at scale | Reused passwords against your login endpoint |
+| Cost attacker | Burning your budget | Driving expensive operations (model calls, exports) on a stolen session |
+
+Anything you are explicitly NOT defending against belongs in "What we don't defend against (yet)" near the bottom, not here.
+<!-- tag: Generic -->
 
 ## Trust boundaries
 
@@ -95,6 +128,76 @@ If our project sends user input into an AI model (a prompt, a search query that 
 <!-- tag: Architecture-Conditional; applies-when: has-frontend -->
 
 **Streaming endpoints** (Server-Sent Events, WebSockets) must not forward server log output to the browser. A new SSE endpoint that writes server logs into the stream is a finding.
+<!-- tag: Generic -->
+
+## Transport
+
+<!-- TO FILL -->
+
+What protects each hop. Fill in per boundary from the trust-boundary table:
+
+| Hop | Protection | Notes |
+|---|---|---|
+| Client to edge | TLS 1.3, HSTS | Minimum version, cert source, HSTS max-age |
+| Edge to application | | Which proxy headers you trust, and why that is safe |
+| Application to internal services | | mTLS, network policy, or neither (say so) |
+| Egress to third parties | | Which external hosts you call, and whether egress is restricted |
+
+<!-- tag: Generic -->
+
+## Rate limiting
+
+<!-- TO FILL -->
+
+Per [`engineering/SECURITY_PRINCIPLES.md`](../engineering/SECURITY_PRINCIPLES.md) the structure is three layers with distinct goals. Record what each layer is set to here, since the numbers tune as you learn:
+
+| Layer | Goal | Current setting |
+|---|---|---|
+| Edge, per IP | Shed abusive traffic | |
+| Auth endpoints, per IP and per account | Defeat credential stuffing | |
+| Per-tenant budget on expensive operations | Cap the damage of a stolen session | |
+
+<!-- tag: Generic -->
+
+## Audit logging
+
+<!-- TO FILL -->
+
+Which events go to the audit stream, where that stream lives, how long it is retained, and what the field allowlist is. If you have not built one yet, say so explicitly and put it on the roadmap below rather than leaving this section blank.
+<!-- tag: Generic -->
+
+## Named exceptions
+
+Deliberate deviations from [`engineering/SECURITY_PRINCIPLES.md`](../engineering/SECURITY_PRINCIPLES.md), each with its reasoning. These exist so the next reader and your scanners can tell an intentional decision from an oversight.
+
+| Deviation | Why it is safe | What would make it unsafe |
+|---|---|---|
+| _example:_ `GET /auth/recover` mutates state | Recovery links are single-use and expire in 15 minutes; the mutation is idempotent | If the link became reusable, or the endpoint gained side effects beyond marking recovery started |
+
+> Add a row whenever you knowingly break a rule. An undocumented exception gets "fixed" by someone who does not know why it exists, or waved through the next time it is a real bug.
+<!-- tag: Generic -->
+
+## Tooling and audit cadence
+
+**Every commit:** security lint plugin, strict type checking, dependency audit in CI. High and critical findings block merge until triaged; documented exceptions live in one allowlist file with expiry dates.
+
+**Weekly:** the `security_audit` agent scans the repo against this document plus `engineering/SECURITY_PRINCIPLES.md` and writes a timestamped report to `.claude/reports/`. It does not modify code.
+
+**Every PR:** `alice_security` reviews the diff.
+
+**Per release, or quarterly:** human-led review. Which boundaries did new features cross, what control protects each crossing, what changed in the threat model, which assumption here is no longer true.
+<!-- tag: Generic -->
+
+## Implementation roadmap
+
+<!-- TO FILL -->
+
+Controls this document describes that are not built yet, in the order you intend to build them. Being honest here is what keeps the rest of the document trustworthy: a doc that describes controls as though they exist, when they do not, is worse than no doc.
+
+| Control | Status | Target |
+|---|---|---|
+| _example:_ per-service identity on internal calls | Not started | Before first external users |
+
 <!-- tag: Generic -->
 
 ## What we don't defend against (yet)

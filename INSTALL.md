@@ -29,7 +29,7 @@ The fastest way to get the agent kit running on your project is to let the insta
 
    (Or, equivalently, ask in plain English: "set this up on my project".)
 
-4. **Answer the wizard.** The installer asks ~19 questions across five groups:
+4. **Answer the wizard.** The installer asks ~22 questions across five groups:
    - About your project (what it does, who uses it, scale)
    - About your stack (language, frontend, database, auth, deployment, CI)
    - About your conventions (naming style, things you don't do)
@@ -38,7 +38,7 @@ The fastest way to get the agent kit running on your project is to let the insta
 
    You can revise any answer before confirming.
 
-5. **Review the plan.** The installer prints a one-paragraph summary of what it's about to do ("I'll copy 14 agents, 5 skills, 3 workflows..."). If anything looks wrong, say so; otherwise confirm.
+5. **Review the plan.** The installer prints a one-paragraph summary of what it's about to do ("I'll copy 20 agents, 5 skills, 2 workflows..."). If anything looks wrong, say so; otherwise confirm.
 
 6. **Wait for the install to finish.** The installer copies files, edits placeholders, and commits everything on a new branch (`chore/install-developer-ai`) in your target repo. Takes a minute or two.
 

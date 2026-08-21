@@ -57,7 +57,7 @@ The workflow checks for this secret and prints an error if missing.
 
 ## Step 4: Choose which review agents to include
 
-Six PR-review agents ship in this kit. There are no generic-vs-PWA variants any more. Frontend-specific rules live inline in each file, tagged Architecture-Conditional, and either survive or get stripped at install time based on whether your project has a frontend.
+Seven PR-review agents ship in this kit. There are no generic-vs-PWA variants any more. Frontend-specific rules live inline in each file, tagged Architecture-Conditional, and either survive or get stripped at install time based on whether your project has a frontend.
 
 ### Core review agents (always on)
 

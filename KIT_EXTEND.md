@@ -48,7 +48,7 @@ tag: Generic
 Tag options:
 
 - `Generic` — applies to any codebase. Universal value. Default; safe choice.
-- `Architecture-Conditional; applies-when: <condition>` — only useful for projects that have `<condition>` (e.g. `has-frontend`, `has-llm-prompts`, `has-database-migrations`). The installer asks the relevant question and strips the agent if the answer is no.
+- `Architecture-Conditional; applies-when: <condition>` — only useful for projects that have `<condition>` (e.g. `has-frontend`, `ships-llm-prompts`, `has-python`). The full set the installer recognizes is the flag table in `agents/installer.md`; use a flag from that table or add one there first. The installer asks the relevant question and strips the agent if the answer is no.
 - `Personal-Preference; default-on` or `Personal-Preference; default-off` — agent is real, but reasonable people disagree on whether to run it. The installer asks.
 - `Domain-Specific` — agent only makes sense for one kind of project (e.g. tabletop-RPG mechanics review, ML model evaluation). Adopters in other domains strip it.
 

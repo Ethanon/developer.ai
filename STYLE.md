@@ -1,6 +1,10 @@
-# Writing Style for Templates and Setup Docs
+# Writing Style
 
-These rules apply to every file in `templates/`, `examples/`, the calibration blocks inside agent files, and the setup docs (`readme.md`, `ADAPTING.md`, `CALIBRATE.md`). They exist because the people setting this up are not all senior engineers — they may be solo developers, students, or technical founders who have not seen the jargon we throw around at work.
+**The rule is in [`engineering/ENGINEERING_PRINCIPLES.md`](engineering/ENGINEERING_PRINCIPLES.md) under "Write So Anyone Can Read It".** It applies ISO 24495-1:2023 to every document in this kit, to code names, and to any text a user sees. Read it first; this file does not repeat it.
+
+What follows are the presentation conventions that sit on top of that rule. They apply everywhere the standard does, and they matter most in `templates/`, `examples/`, the calibration blocks inside agent files, and the setup docs (`readme.md`, `ADAPTING.md`, `CALIBRATE.md`). The people setting this up are not all senior engineers. They may be solo developers, students, or technical founders who have not seen the jargon we use at work.
+
+You can check the mechanical parts of the standard with `python scripts/check_plain_language.py`. It flags em-dash splices, idioms, sentences long enough to hold two ideas, and sentences that open by pointing backwards. The other rules need a reader.
 
 The agents themselves stay technical in the parts of their spec that only other agents read. The voice rules apply where humans set things up.
 
@@ -79,9 +83,11 @@ In template prose, every slot has a one-sentence lead-in explaining what the slo
 
 This is the difference between a template a reader fills in confidently and one they fill in by guessing.
 
-## 6. Prefer colons and full stops over em-dashes; no emoji; no aphorisms
+## 6. No em-dashes; no emoji; no aphorisms
 
-Em-dashes are a stylistic tic that compound in AI-written prose. The default rule: try a colon, a parenthesis, or a new sentence first. Reserve em-dashes for cases where the alternatives genuinely read worse (long parenthetical asides where parens would nest awkwardly, for instance).
+Em-dashes are a stylistic tic that compounds in AI-written prose, and they are usually rule 2 of the standard being broken: a sentence holding two clauses and a dash is normally two sentences. Use a colon, a comma, a parenthesis, or a full stop.
+
+This is a house rule with no exception carved out for it, because every exception anyone has proposed turned out to be a sentence that read better split.
 
 No emoji or icons in templates or setup docs. No aphorism-shaped closers ("at the end of the day...", "the rest is just plumbing"). Those read as filler when a reader is trying to extract meaning.
 

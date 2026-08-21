@@ -4,11 +4,11 @@ Every file in this folder is a Claude Code subagent spec — a markdown file who
 
 If you're orienting yourself for the first time, the folder splits three ways:
 
-- **`pr-review/`** — six agents that fire on every pull request, in two layers. Layer 1 is the first-pass reviewers running in parallel: Alice for security, Bob for engineering principles, Gomez for line-level clean code, and Carl for UX (only useful when the project has a frontend). Layer 2 runs after Layer 1 finishes: Jekyll and Hyde read the posted reviews and critique them, Jekyll from a best-practices angle and Hyde from an attacker's. Workflow wiring lives in `workflows/pr-review.yml`; the full diagram is in `readme.md`.
+- **`pr-review/`** — seven agents that fire on every pull request, in two layers. Layer 1 is the first-pass reviewers running in parallel: Alice for security, Bob for engineering principles, Phil for unit-testing discipline, Gomez for line-level clean code, and Carl for UX (only useful when the project has a frontend). Layer 2 runs after Layer 1 finishes: Jekyll and Hyde read the posted reviews and critique them, Jekyll from a best-practices angle and Hyde from an attacker's. Workflow wiring lives in `workflows/pr-review.yml`; the full diagram is in `readme.md`.
 
 - **`backlog/`** — four agents that run on a schedule and manage the issue tracker. `developer_agent` self-assigns one `ready` issue per day and opens a PR. `scrum_master` closes shipped issues weekly. `story_groomer` decomposes decision docs into stories and applies the `ready` label. `audit_groomer` turns weekly audit reports into pickup-ready issues.
 
-- **`audits/`** — six read-only scanners that run weekly. `security_audit`, `hanging_refs`, `naming_audit`, `class_size_audit`, `market_watch`, and the optional `prompt_audit` (only useful for projects that ship LLM prompts). Each writes a timestamped report to `.claude/reports/`; the `audit_groomer` then turns those reports into issues.
+- **`audits/`** — eight read-only scanners that run weekly. `security_audit`, `hanging_refs`, `naming_audit`, `class_size_audit`, `market_watch`, plus three optional ones: `prompt_audit` (projects that ship LLM prompts), `flaky_test_finder` (CI that emits JUnit XML), and `release_audit` (pre-release sweeps). Each writes a timestamped report to `.claude/reports/`; the `audit_groomer` then turns those reports into issues.
 
 Plus one agent at the top level of this folder, with no sub-subfolder of its own: **`installer.md`** runs from a fresh clone of developer.ai itself and walks the adopter through a Q&A wizard to deploy the kit into their target repo. It's the entry point most people use, documented end-to-end in `INSTALL.md`.
 

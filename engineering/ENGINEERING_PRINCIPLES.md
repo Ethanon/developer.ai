@@ -14,12 +14,68 @@ adopter's project at install time. If you're reading the kit verbatim,
 all defaults are on.
 -->
 
+## Write So Anyone Can Read It
+
+**Would a developer in Hanoi, reading English as their second language, understand this the first time?**
+<!-- tag: Generic -->
+
+Most design failures are communication failures. This rule covers three kinds of writing, and it is the same rule for all three: text a user sees, design documents, and code.
+
+[ISO 24495-1:2023](https://www.iso.org/standard/78907.html) is the international plain-language standard. It sets four tests. Writing passes when it is:
+
+- **Findable.** Headings say what the section is about, so a reader can go straight to the part they need.
+- **Understandable.** The words match what the reader already knows. Aim at B1: someone fluent but not native.
+- **Actionable.** The reader knows what to do next.
+- **Consistent.** The same idea uses the same word every time.
+
+Seven rules follow from that:
+
+1. **Use the plain word.** Write "belongs to" instead of "hangs off". Write "structure" instead of "shape of the thing". If a shorter and more common word means the same, use it.
+2. **One idea per sentence.** A sentence holding two clauses and a dash is usually two sentences.
+3. **Put the point first, then the reason.** A reader who stops after one sentence should still have the answer.
+4. **Do not invent a term.** If the code already has a word for something, use that word. If it does not, use the ordinary English one.
+5. **No idioms, and no metaphors that need a culture to decode.** "Belt and braces", "out of the gate" and "punching above its weight" do not survive translation, and they do not survive a reader who learned English from documentation.
+6. **Write out an abbreviation the first time it appears** on a page.
+7. **Name the thing you mean.** "It", "this" and "that" at the start of a sentence make the reader look backwards to find out what is being discussed.
+
+**This is not a rule against precision.** It is a rule against decoration. Removing a word that carries meaning makes the writing worse. Removing a word that only carries style makes it better.
+
+**In code, the same rule is about names.** A name is the sentence most people read. `solvedPerTier` says what it returns; `handle` and `process` say nothing. A comment explains why the code is surprising. If it explains what the code does, the code needed a better name instead.
+
+**In text a user reads, the rule is stricter**, because the reader may be tired, in a hurry, or reading a translation. If your project ships translated strings, give every string a note saying what it means and where it appears, so a translator never has to guess.
+
+This rule governs every document in this kit. `STYLE.md` adds presentation conventions on top of it.
+
+---
+
 ## The Prime Directive
 
 > **The preferred number of lines of code is zero.**
 
 Every line of code is a liability — it must be written, read, tested, debugged, and maintained. The best implementation of a feature is the simplest one that correctly solves the problem and no more. When in doubt, delete.
 <!-- tag: Generic -->
+
+---
+
+## The Working Loop — Design First, Ask, Test, Build, Clean Up
+
+**The question:** _before I write implementation code, is the design settled, are the tests written against it, and do I know what this change makes dead?_
+<!-- tag: Personal Preference; default-on -->
+<!-- override: this loop assumes you keep decision docs and write tests before implementation. If your team designs as it builds, or does not keep decision records, drop this section and keep "No Interim Implementations" as the weaker form of the same idea. Steps 1 and 2 are the parts that depend on decision docs; steps 3-5 stand on their own. -->
+
+Every code change runs the same five steps in order. The failure mode this section exists to stop: an implementation that ran ahead of its design, shipped without the tests that pin it, and left the superseded code behind. The steps differ in one place (step 2) depending on whether a human operator is driving the session or a scheduled agent is running autonomously; everything else is identical for both.
+
+1. **Match the change to its design.** Read the decision doc the work traces to. The implementation builds the shape the doc picked (see "No Interim Implementations"). If the doc has a gap, an open question, or an undecided mechanism the implementation would otherwise have to guess at, stop here. Do not guess, do not mint a new decision doc for the gap, and do not defer the question to a follow-up PR.
+
+2. **Resolve the gap before any code.** How you resolve it depends on who is driving:
+   - **Working with an operator (a live session):** ask the clarifying questions now. Write the answers into the decision doc that already owns the choice in this same change: extend it, do not mint a new number. See [`BACKLOG_WORKFLOW.md`](BACKLOG_WORKFLOW.md). Then continue.
+   - **Running autonomously (a scheduled agent, no operator):** resolve the gap from the existing design corpus (the approved decision plus the docs it links). If the gap needs an architectural call nobody has made, use the escape hatch rather than guessing: open a draft PR carrying the design question and stop for the owner. An autonomous agent never guesses past a real ambiguity and never proceeds on an unsettled design.
+
+3. **Write the tests against the design, before the implementation.** Both tiers, per [`TESTING_PRINCIPLES.md`](TESTING_PRINCIPLES.md), following the red-first discipline in the `test-driven-development` skill. The tests encode the decision doc's acceptance criteria. Watch each one fail for the right reason before writing a line of production code.
+
+4. **Implement to green, validating against the suite as you go.** Write the minimum production code that turns the tests green. Re-run the suite after each step; a pre-existing test that breaks means a contract changed, so fix the implementation, not the test.
+
+5. **Remove what this change supersedes.** Deleting the code your change made dead is part of the change, not a later cleanup. See "Remove What You Supersede".
 
 ---
 
@@ -65,18 +121,34 @@ function advance(subscription: Subscription, days: number): void {
 
 ### Single Responsibility
 
-Each class, function, and module does exactly one thing. If you need the word "and" to describe what something does, it does too much.
+**The question:** before writing any method, ask _who owns this responsibility?_
 <!-- tag: Generic -->
 
-- `DiceRoller` rolls dice formulas — it does not apply modifiers or check results.
-- `EmailSender` sends an email — it does not decide which template to use or whether to send.
-- `User` holds account state — it does not compute analytics descriptions.
-- `BillingService` computes invoice line items — it does not send the invoice.
-- `SearchClient` queries the search index — it does not decide ranking strategy.
+Each class, function, and module does exactly one thing. If you need the word "and" to describe what something does, it does too much. State and the behavior that maintains it live on the same entity. If you are about to write code on `Y` that asks `Y`'s caller to bring data back, you have split a single responsibility across two places, and the answer to the question is "not `Y`."
+
+The forcing test, applied per line you write:
+
+> _If I deleted this from where I'm about to put it and moved it to the entity that owns the state, would the call site shrink without losing capability?_
+
+If yes, the new line is on the wrong entity. Side-effects that update an object's own state are not a smell when that is what the object exists for; the smell is one object holding the state and another object doing the work. Well-encapsulated code is short at every layer: when an orchestrator, client, or route handler grows past roughly one method call per line, it is almost always doing work the entities below it should be doing instead.
+
+Worked answers, in the shape to write for your own codebase:
+
+| Question | Answer | Implication |
+| --- | --- | --- |
+| Who owns randomness? | `Random` | All randomness routes through it; never `Math.random` in testable logic |
+| Who owns sending mail? | `EmailSender` | Choosing the template and deciding whether to send are not its job |
+| Who owns account state? | `User` | Analytics descriptions are not `User`'s job |
+| Who owns invoice line items? | `BillingService` | Delivering the invoice is not its job |
+| Who owns index queries? | `SearchClient` | Ranking strategy is not its job |
+| Who owns parsing a composite identifier? | The identifier type itself | Every caller asks it; no caller re-parses |
+| Who owns mutations to a record's invariants? | That record's mutation API | Every caller goes through it; no caller spreads-and-replaces |
 
 ### Open / Closed
 
-A class is open for extension and closed for modification. When you find yourself reaching back into the same class for the *third* time to add another variant of the same behavior, the variants belong outside the class — typically as data, a strategy object, or a composed collaborator.
+**The question:** _if I add a new variant tomorrow (a new template, plan tier, item type, or backend), do I need to touch existing code?_
+
+If yes, the rule lives in logic instead of data; move it. A class is open for extension and closed for modification. When you find yourself reaching back into the same class for the *third* time to add another variant of the same behavior, the variants belong outside the class — typically as data, a strategy object, or a composed collaborator.
 <!-- tag: Generic -->
 
 Two common shapes this takes:
@@ -88,17 +160,23 @@ Two common shapes this takes:
 
 ### Liskov Substitution
 
-Implementations of an interface are substitutable. All model backends implement a `TextAdapter` / `EmbeddingAdapter` / `ImageAdapter` interface behind role-typed clients (`StoryClient`, `UtilityClient`, etc.) aggregated in a `Clients` container. Swapping a backend (one provider for another) is done by adding an adapter class and changing the role config — no caller changes. See `examples/decisions/028-client-layer.md`.
+**The question:** _can I swap one implementation for another without changing the callers?_
+
+If callers know which concrete backend they are talking to, they are coupled to the wrong layer. Implementations of an interface are substitutable. All model backends implement a `TextAdapter` / `EmbeddingAdapter` / `ImageAdapter` interface behind role-typed clients (`StoryClient`, `UtilityClient`, etc.) aggregated in a `Clients` container. Swapping a backend (one provider for another) is done by adding an adapter class and changing the role config — no caller changes. See `examples/decisions/028-client-layer.md`.
 <!-- tag: Generic -->
 
 ### Interface Segregation
 
-Consumers receive only the context they need. A `BillingService` does not receive search-pipeline state. A `SearchClient` does not receive the billing context. Pass the minimum required interface, not a god object.
+**The question:** _what is the minimum each caller needs to know?_
 <!-- tag: Generic -->
+
+Pass that, and only that. Consumers receive only the context they need. A `BillingService` does not receive search-pipeline state. A `SearchClient` does not receive the billing context. Pass the minimum required interface, not a god object. If a method takes a god object so the body can pick three fields out of it, the signature is lying about what it depends on.
 
 ### Dependency Inversion
 
-Business logic depends on role-typed interfaces (`EmailClient`, `SearchClient`, `PaymentClient`) — not on Resend, OpenSearch, Stripe, or any SDK directly. Concrete adapters are injected at startup by a registry. Business code never imports vendor SDK packages.
+**The question:** _does this class know about a specific backend, or about a contract?_
+
+If it knows about a named vendor or SDK directly, the layering is inverted. Business logic depends on role-typed interfaces (`EmailClient`, `SearchClient`, `PaymentClient`) — not on Resend, OpenSearch, Stripe, or any SDK directly. Concrete adapters are injected at startup by a registry. Business code never imports vendor SDK packages.
 <!-- tag: Generic -->
 
 ---
@@ -132,13 +210,14 @@ Inheritance creates a tight, compile-time coupling between parent and child: any
 
 Use inheritance only when:
 
-- The relationship is genuinely an "is-a" (a `MagicMissile` *is a* `Spell`, not a `MagicMissile` *has-a* `Spell`).
+- The relationship is genuinely an "is-a" (a `CardPayment` *is a* `Payment`, not a `CardPayment` *has-a* `Payment`).
 - The shared base is small, stable, and unlikely to grow new responsibilities (`Result<T, E>` discriminated union; an `Error` hierarchy used only for `instanceof` checks).
 - Composition would force callers to repeatedly do the same delegation by hand for no expressive gain.
 
 Default to composition. The instinct to reach for `extends` to share helper methods is almost always wrong — extract the helpers into a class that gets injected, not inherited.
 
 ### Law of Demeter — Only Talk to Friends
+<!-- tag: Generic -->
 
 A method on object A should call methods on:
 
@@ -179,8 +258,7 @@ Every piece of knowledge has one authoritative source:
 | Knowledge | Authoritative source (example) |
 |---|---|
 | Domain rules (validation, business invariants) | A `domain/` or shared package — one place |
-| Dice randomness | `DiceRoller` — nowhere else |
-| Non-dice randomness | `Random` — `Math.random` is forbidden in business logic; UI may use it for pure presentation (animation jitter) that never affects state |
+| Randomness | `Random` — `Math.random` is forbidden in business logic; UI may use it for pure presentation (animation jitter) that never affects state |
 | Persistent state | One repository / data service per record type, scoped by tenant or owner |
 | Configuration | One config module — never `process.env.*` scattered through business code |
 | Computed values | Derived at read time from the source of truth, never stored redundantly |
@@ -248,25 +326,26 @@ The reflex "ship something simpler now, refine later" is rework with extra steps
 
 ---
 
-## Design Review Checklist
+## Design Review Checklist — Six Questions
 
-Before finalizing any new code, ask:
+These are the questions to ask before any new code lands. They are question-shaped because that is how review actually works.
 <!-- tag: Generic -->
 
-1. **Single responsibility.** Is each class / function doing exactly one job? If a caller has to know implementation details (like checking sequence IDs, or knowing whether to sync to a server), the abstraction is leaking.
-2. **Right owner.** Does this logic belong in the class that owns the data? Persistence logic belongs in the data layer. Domain rules belong in the domain package. UI components should only call high-level methods, never orchestrate low-level operations.
-3. **Simplify the caller.** Can the call site be reduced to one line? If the caller needs multiple steps (save locally, then sync, then check version), those steps should be inside the method it's calling.
-4. **Already handled.** Is there an existing system that already manages this concern? Don't duplicate responsibility — extend the existing owner instead.
-5. **Shared code, shared package.** If both client and server need the same logic, it belongs in a shared package. Never duplicate domain rules between apps.
+1. **Single responsibility.** _Is each class / function doing exactly one job?_ If a caller has to know implementation details (like checking sequence IDs, or knowing whether to sync to a server), the abstraction is leaking.
+2. **Right owner.** _Does this logic belong in the class that owns the data?_ Persistence logic belongs in the data layer. Domain rules belong in the domain package. UI components should only call high-level methods, never orchestrate low-level operations.
+3. **Simplify the caller.** _Can the call site be reduced to one line?_ If the caller needs multiple steps (save locally, then sync, then check version), those steps should be inside the method it's calling.
+4. **Already handled.** _Is there an existing system that already manages this concern?_ Don't duplicate responsibility — extend the existing owner instead.
+5. **Shared code, shared package.** _Do both client and server need this logic?_ If yes, it belongs in a shared package. Never duplicate domain rules between apps.
    <!-- tag: Architecture-Conditional; applies-when: client-server-split -->
-6. **No god classes.** A god class is one that breaks single responsibility: blending unrelated capabilities into one place, tightly coupling things that should be independent, hard to test, a nightmare to debug. Those are the smells to chase. Size alone is not a god class. A large class with one cohesive concern, all methods sharing the same dependencies and consumers, and a clean test strategy is fine; it is earning its size. When a class crosses ~300 lines or ~8-10 methods, pause and ask: is this becoming a god class, or is it still cohesive? Evaluate against the smells (distinct *axes of change*, *independent client contracts*, *unrelated test strategies*, non-overlapping consumers). Split when the smells are real; otherwise keep it whole and consider extracting branches into named *private* helpers within the same file. The `class_size_audit` agent runs this evaluation periodically and writes a report to `.claude/reports/` for review. Entry-point methods (orchestrators) stay pure orchestration: a numbered list of single method calls on focused services, no inline logic.
+6. **No god classes.** _When this class crosses the size threshold, is it cohesive or is it accreting unrelated capabilities?_ A god class is one that breaks single responsibility: blending unrelated capabilities into one place, tightly coupling things that should be independent, hard to test, a nightmare to debug. Those are the smells to chase. Size alone is not a god class. A large class with one cohesive concern, all methods sharing the same dependencies and consumers, and a clean test strategy is fine; it is earning its size. When a class crosses ~300 lines or ~8-10 methods, pause and ask: is this becoming a god class, or is it still cohesive? Evaluate against the smells (distinct *axes of change*, *independent client contracts*, *unrelated test strategies*, non-overlapping consumers). Split when the smells are real; otherwise keep it whole and consider extracting branches into named *private* helpers within the same file. The `class_size_audit` agent runs this evaluation periodically and writes a report to `.claude/reports/` for review. Entry-point methods (orchestrators) stay pure orchestration: a numbered list of single method calls on focused services, no inline logic.
 
 ---
 
 ## Comments
 
 Default to zero comments. Well-named identifiers and small focused functions are the documentation. Only write a comment when the WHY is genuinely non-obvious: a hidden invariant, a subtle ordering constraint, a workaround for a specific bug, a trade-off that surprises the reader.
-<!-- tag: Generic -->
+<!-- tag: Personal Preference; default-on -->
+<!-- override: some teams and some domains (regulated code, published libraries, unusual algorithms) expect explanatory comments in source. If that is you, drop this section and state your own comment policy. -->
 
 - **One line when you must.** Multi-paragraph comments belong in design docs (`docs/decisions/`) or PR descriptions, not in source files.
 - **Never explain WHAT the code does.** Method names, type names, and function shape are the explanation. If the reader needs a comment to understand the happy path, rename the method.
@@ -297,8 +376,8 @@ When a reviewer can't answer "where would I change the heartbeat interval?" in u
 ## No Backwards Compatibility
 
 **This project has one client, always at the latest version. There is no "old client" to support.** Do not write code that accommodates a missing field, a legacy shape, or an out-of-date caller.
-<!-- tag: Personal Preference; default-on -->
-<!-- override: if your project ships a public API with external consumers (mobile apps, third-party integrators), backwards compatibility is a real requirement; replace this section with your versioning policy. -->
+<!-- tag: Architecture-Conditional; applies-when: single-client -->
+<!-- override: this section is kept only when nothing outside your repo consumes your API on a version you do not control. If you ship a public API, a mobile app, or an installed client, backwards compatibility is a real requirement and this section is replaced by your versioning policy. That is a fact about your architecture, not a preference. -->
 
 - **No optional-for-backwards-compatibility parameters.** If a method now requires an `idempotencyKey`, the parameter is required. Callers that forget to pass it are a bug, not a supported path.
 - **No missing-header / missing-field fallbacks.** If a route needs a header, it returns 400 when the header is absent. Do not silently degrade into "run the old path."
@@ -307,6 +386,21 @@ When a reviewer can't answer "where would I change the heartbeat interval?" in u
 - **No feature flags for the rollout.** A change lands or it doesn't. Temporary flags to stage a client update are not needed; there is one client, it ships in lockstep with the server.
 
 This rule explicitly overrides any reflex to "add an optional for safety." Safety here comes from a compiler that catches every caller at once, not from a runtime branch.
+
+---
+
+## Remove What You Supersede
+
+**The question:** _did this change make any existing code dead? Then deleting it is part of this change._
+<!-- tag: Generic -->
+
+"No Backwards Compatibility" says to delete the old-shape reader once the migration runs. This is the same rule stated as a scope boundary. What decides scope is the file you are already editing, not whether your change created the dead code:
+
+- **Code this change supersedes: in scope, same PR, required.** When your change replaces a path, the now-dead code, the now-unused exports, the now-orphaned tests, and the decision doc that path implemented all get removed or updated in the same PR. Leaving them is not tight scope: it ships a half-finished change that the `hanging_refs` audit files back as a defect. If you keep decision docs, a superseded decision moves to your historical folder in the same PR (see [`PR_WORKFLOW.md`](PR_WORKFLOW.md)).
+- **Dead code in files you are already touching: remove it while you are there.** A now-unused export, an orphaned branch, or a function with no remaining callers in a file your change already edits comes out in the same PR, whether your change killed it or it was already dead. Deleting dead code from a file you have open does not widen the blast radius, and cleaning up dead paths while you are testing the use cases is the point.
+- **Dead code in files your change does not otherwise touch: file a follow-up.** Opening unrelated files purely to delete things expands the diff and the reviewer's surface. That work goes to a follow-up issue per [`BACKLOG_WORKFLOW.md`](BACKLOG_WORKFLOW.md), or the `hanging_refs` audit catches it.
+
+The test that separates them: _am I already editing this file for this change?_ If yes, remove the dead code in it. If reaching it means opening a file the change otherwise leaves alone, file it for later.
 
 ---
 
@@ -338,7 +432,7 @@ Everything lives in a class. There are no free-standing exported functions.
 | Archetype | Has state? | Examples |
 |---|---|---|
 | **Stateful component** | Yes | `User`, `Cart`, `Workspace`, `Subscription` |
-| **Static utility** | No | `DiceRoller`, `Random`, `Formatter`, `WeightedPicker` |
+| **Static utility** | No | `Random`, `Formatter`, `WeightedPicker`, `PathCodec` |
 | **Service / Agent** | Injected deps only | `BillingService`, `EmailService`, `SearchAgent` |
 
 Static utility classes group related pure operations under one import. You pull in `Formatter` once and call `Formatter.toCurrency()`, `Formatter.toDuration()` — rather than importing each function individually. All methods are `static`, no instantiation required.
@@ -354,11 +448,26 @@ Formatter.toRelativeDate(timestamp)
 import { toCurrency, toDuration, toRelativeDate } from '@kit/utils/format'
 ```
 
-**Static utility methods are still pure** — same inputs always produce the same outputs (modulo intentional randomness in `DiceRoller`), no side effects, no shared mutable state. The class is purely an organizational container.
+**Static utility methods are still pure** — same inputs always produce the same outputs (modulo intentional randomness in `Random`), no side effects, no shared mutable state. The class is purely an organizational container.
 
 **Stateful components expose typed methods, not raw properties.** Internal state is private; mutation goes through methods that keep the object consistent.
 
 **Services and agents are instantiated classes** with constructor-injected dependencies. One public method per role.
+
+---
+
+## Names Never Leak a Technology
+
+**Does this name survive replacing the thing underneath it?**
+<!-- tag: Generic -->
+
+A name says what a thing is for, never what it is built on. Write `primaryDatabase`, not `postgresInstance`. Write `Db`, not `D1Database`. Write `objectStore`, not `s3Bucket`.
+
+The reason is not taste. Every vendor name in an identifier is a small bet that the vendor never changes. When that bet loses, a rename that should touch one interface touches every call site instead. A deployment meant to be portable cannot be portable in its code and married to a vendor in its vocabulary.
+
+Two things the rule does **not** reach. A provider's own resource types are not yours to choose: `google_sql_database_instance` is Terraform's name for a kind of resource, and what is yours is the identifier beside it. And a name for something that genuinely *is* the product is not a leak: a variable holding a Cloud Run URL may say so, because which product's URL it is happens to be the fact.
+
+The test is whether replacing the vendor tomorrow would leave the name lying. `Db` survives Postgres replacing SQLite. `postgresDb` is honest because it *is* the Postgres one. `D1Database` on an interface was a lie the moment a second implementation existed.
 
 ---
 
@@ -461,6 +570,20 @@ When a server-side operation hits an unrecoverable error — model call, JSON pa
 
 **Retry > fallback.** Graceful degradation is a polite name for shipping broken data.
 
+### The layered shape, concretely
+<!-- tag: Generic -->
+
+The rule above is abstract. This is what it looks like wired through a request:
+
+- **Deterministic layer:** returns `Result<T, E>`. It does not throw. See "The Result Type".
+- **Critical path:** unrecoverable failures throw, and are caught **once**, at the route boundary. The handler logs the real error and returns a generic error status. No fabricated payload, no stubbed directive, and no empty-but-successful response leaves the server.
+- **Client:** reverts optimistic state and offers a real retry. It does not paper over the gap with placeholder content.
+- **Non-critical dependencies:** degrade behind an explicit circuit breaker with a stated retry window (a search index or recommendation service returning empty results for 30 seconds beats failing the whole request). This is the exception above, made concrete: the feature is advisory, so its absence degrades presentation, not correctness.
+- **Adapters:** retry per adapter with a bounded attempt count from config. If every retry fails, the critical-path rule takes over.
+- **Write conflicts:** retry a bounded number of times before surfacing. A conflict is expected under concurrency; an unbounded retry loop is not a policy.
+
+The shape to notice: exactly one catch site on the critical path, and every degradation is named, bounded, and advisory. A `try/catch` in the middle of the deterministic layer that returns a default is the anti-pattern this whole section exists to prevent.
+
 ### What this rule is NOT about: user-facing UX on failure
 
 "Fail loud" is about **data correctness**, not the UI copy the user sees. The two are independent:
@@ -501,8 +624,8 @@ Any subset, any order, parsed by a `Path` utility at the top of the function for
 ## The Result Type — No Throwing from Business Logic
 
 Fallible operations return a discriminated union, not an exception:
-<!-- tag: Personal Preference; default-on -->
-<!-- override: a codebase that uses exceptions consistently (typical Python / Java style) may prefer to keep throwing. The rule then becomes "exceptions only for truly exceptional failures; return values for expected failure modes." Both styles work; pick one and stick to it. -->
+<!-- tag: Architecture-Conditional; applies-when: result-type-idiomatic -->
+<!-- override: this section is kept when your language makes a Result-shaped return natural (TypeScript, Rust). In a codebase whose language idiom is exceptions (Python, Java, Ruby, C#), following it means fighting the ecosystem, and the rule becomes "exceptions only for truly exceptional failures; return values for expected failure modes." Both styles work; pick the one your language already pulls toward. -->
 
 ```typescript
 type Result<T> = { ok: true; value: T } | { ok: false; error: string }
@@ -536,6 +659,35 @@ this.attainedProgress = (this.daysTrained / this.daysNeeded) * 100
 
 ---
 
+## Behavior Lives With the Entity That Owns It (Orchestrators Only Coordinate)
+
+**The question:** _am I writing condition, effect, or variant-specific logic inside a coordinator?_
+<!-- tag: Generic -->
+
+If yes, stop. A coordinator loads entities, persists state, emits events, dispatches to handlers, gathers candidates, and orders work. It does not decide *what a condition does*, *how a condition ends*, or *what a specific variant grants*. Those belong to the entity that owns that state.
+
+**The smell that you got it wrong:** a `switch` or `if` on a kind (`effect.kind === 'expired'`), a type id (`account.tier === 'enterprise'`), or a specific feature id, sitting inside a coordinator.
+
+Three homes, by what the behavior is about:
+
+1. **A condition or effect owns its own lifecycle and restrictions.** How it ends (a repeat check, ends-on-event, a duration) and what it forbids while active live on the condition type itself, resolved from data the condition carries. A coordinator asks the effect ("are you active? what do you block?"); it does not compute the answer.
+2. **A variant applies a NAMED effect; it never defines that effect's resolution.** A premium tier says "apply the extended-grace condition to this account" and passes only what is variant-specific (the duration). The condition itself knows how it ends. When the same condition is imposed from three places, its end-rule is defined once on the condition, not three times at the three call sites.
+3. **A variant capability is a data-driven feature row the generic engine reads, never a variant-name branch.** A bonus, grant, or rider keys off a feature record that a catalog resolves by variant and level, consumed by the generic path. The generic engine never names a variant; it iterates the active features.
+
+| The behavior | Lives in | Not in |
+|---|---|---|
+| How a condition ends, and what it restricts | the condition type plus its end-rule data | the coordinator |
+| A per-variant hook after some shared event | the per-variant subclass hook | the shared resolution service |
+| A bonus to a computation, gated by variant or choice | a feature row read by the generic resolver | the calculation service |
+| A permission or capability a choice grants | a data-driven grant folded in when the choice is made | inline derivation in a service |
+| Gathering candidates, thresholds, persistence, events | the coordinator (this is its job) | (n/a) |
+
+**The forward test**, applied before you write the code: _if I add this capability for a second variant, does my change touch a coordinator?_ If yes, you are about to hardcode a variant into a coordinator. Define a feature row, a subclass hook, or a condition with its own end-rule instead. Adding a variant should be data plus an effect or feature, never an `if` in a coordinator.
+
+This is the sharpened form of Refactoring Heuristic 2 below ("Logic lives with the data it owns"). The heuristic tells you how to read an existing diff; the forward test tells you what to write before there is a diff to read.
+
+---
+
 ## Refactoring Heuristics — How to Read a Diff
 
 These are the patterns we apply when reviewing a diff and deciding whether the shape is right. Each is a question the reader should ask before approving any orchestrator-side or service-side change.
@@ -564,29 +716,94 @@ These show up as PR review questions. If a diff adds a five-line block to the or
 
 ---
 
-## Two Failed Attempts → Look It Up
+## Facts Before Fixes
 
-When a fix doesn't work and the second attempt also doesn't, stop iterating in a vacuum. WebSearch / WebFetch the specific signature (error string, component versions, stack involved). These problems have been solved before. Patching symptom-by-symptom is how you burn an afternoon discovering a one-line config flag documented in a GitHub discussion.
+**Have you reproduced it, or are you reasoning about it?**
 <!-- tag: Generic -->
+
+Do not change code to chase a symptom you have not seen yourself. Reproduce it first, under the conditions where it happens. Keep the evidence: a screenshot, a log line, or a failing test. A fix aimed at a described defect fixes the description.
+
+The real cost of skipping this is not the wasted change. It is that the wasted change usually works well enough to look like a fix, so the actual defect is now hidden behind something that resembles a solution.
+
+This matters most for what a unit test cannot check. A test proves a number came from the right function. Only a screenshot proves the sentence fits on the screen.
 
 ---
 
-## Three Failed Attempts → Step Back
+## Follow the Data
 
-Related to the "look it up" rule above, but broader. When you've tried the same task three times and it's still wrong, stop pushing on the narrow problem and zoom out. The fourth narrow attempt costs roughly the same as a re-think and almost always pays back worse.
-
-Applies to any engineering task: deploys that don't come up, tests that won't go green, refactors that keep growing, prompt iterations that don't move the needle, design choices that keep producing the same mistake. After three attempts:
-
-1. Stop. Don't open the editor for the fourth attempt yet.
-2. Re-read the original ask, the original error, the original constraint. Half of "this isn't working" is a misread of what "working" means.
-3. Question one of your assumptions explicitly. Common offenders: "the right tool for this is X," "this should fit in one file," "this is a one-line fix," "the framework does this for me."
-4. If the broader view says yes, you were on the right path, then go look it up (the rule above). If the broader view says you were on the wrong path, abandon the attempt; don't sunk-cost it.
-5. Resist the reflex to create a new doc / file / config / abstraction to escape the problem. An existing one almost always wants to be amended instead.
-
-A worked example: a flaky deploy where attempts 1-3 added retries / wait loops / health-check tweaks. Attempt 4 should not be "more retries"; the broader-view question is "is the service actually starting correctly, or am I masking a startup ordering bug?"
-
-The cost of pausing for a re-read is small; the cost of three more narrow attempts is large and usually grows.
+**What did you measure, and what are you assuming?**
 <!-- tag: Generic -->
+
+Trust the number the machine reports over the number you expect. Ask the process which port it bound, ask the container which image it is running, read the configuration file that already holds the answer. Where a value can be measured, measure it. Where it has to be assumed, say so in a comment at the point where you assume it.
+
+The expensive defects are believable ideas that nobody measured. "A successful bind proves the port was free" and "the proxy forwards the host header unchanged" are both false, and both are one command away from being disproved. Thinking harder disproves neither.
+
+---
+
+## Understand the Root Cause
+
+**Would this change still be needed if the underlying cause were fixed?**
+<!-- tag: Generic -->
+
+If the answer is no, the change is a workaround. Ship a workaround only on purpose, with the real cause written down beside it and a reason it was not fixed now.
+
+Symptoms arrive in groups. Three components truncating their text on a narrow screen is one layout that does not fit, not three components that each need a line limit. Fix the cause once instead of the symptom three times, and prefer the fix that deletes the other two.
+
+---
+
+## Ask Rather Than Assume
+
+**Which reading of the requirement did you pick, and would the other one change the work?**
+<!-- tag: Generic -->
+
+Where two readings lead to clearly different work, ask. Where they do not, choose one and write the choice down where the next reader will find it: in a comment, a commit message, or a decision document.
+
+Asking costs one message. Assuming costs the implementation, the review, and the rework. The assumption is usually invisible in the diff, so review does not catch it and a user finds it instead.
+
+---
+
+## Troubleshooting Discipline
+
+**How many times have you tried this, and did the approach change?**
+<!-- tag: Generic -->
+
+After two failed attempts against the same symptom, look up the exact error and the versions involved in the official documentation. Searching for the specific error string beats a third guess, because the second guess already told you that the model of the problem in your head is wrong.
+
+After three failed attempts on the same task, read the original requirement again and question one assumption before trying a fourth small fix. Consider a flaky deploy where attempts one through three added retries, wait loops, and health-check tweaks. Attempt four should not be more retries. The broader question is whether the service starts correctly at all, or whether the retries are masking a startup ordering bug.
+
+---
+
+## Decision Document Structure
+
+A decision doc is the design contract for a feature. Agents and humans read it to understand intent, implement against it, and audit what shipped. These are the required elements for any decision that spans more than one agent or introduces a new model call. See `templates/decisions/DECISION_TEMPLATE.md` for the skeleton and `examples/decisions/` for worked examples.
+<!-- tag: Architecture-Conditional; applies-when: uses-decision-docs -->
+
+**1. Agent responsibility table.** Multi-agent features list every agent in the pipeline, the phase it runs in, and the single question it answers:
+
+```markdown
+| Agent               | Phase      | Question answered                                    |
+| ------------------- | ---------- | ---------------------------------------------------- |
+| `IntentClassifier`  | Pre-model  | What kind of request is this? Is it in scope?         |
+| `ContextBuilder`    | Pre-model  | What context does the responder need for this turn?   |
+| `ResponderAgent`    | Generation | Execute the response type given. Make no decisions.   |
+| `OutcomeEvaluator`  | Post-model | Did the state change? What follow-up does it trigger? |
+```
+
+The "question answered" column enforces single responsibility: if an agent's row cannot be reduced to one question, it is doing too much.
+<!-- tag: Architecture-Conditional; applies-when: ships-llm-prompts -->
+
+**2. ASCII pipeline flow diagram.** For any feature that chains three or more agents or jobs, include a numbered flow showing inputs, decision points, and branch paths: numbered steps, `|` connectors, `├─` / `└─` for branches, bracketed stage labels, and a `↑` pointer for the input that closes the loop.
+
+A diagram is not optional: it is how an agent reads the feature without executing the code. Prose that describes a pipeline in sentences produces ambiguous reading order and conflates stages.
+
+**3. Prompt inventory table with a status column.** Any decision that adds or modifies prompts includes a table with these columns: `Prompt`, `Purpose`, `Model`, `Status`. The `Status` column uses exactly `Shipped` or `TO BUILD`. A doc that lists prompts without a status column forces the reader to audit the filesystem to understand what is implemented.
+
+When a prompt ships, update the status in the same PR that adds the file. An entry that says `TO BUILD` in a doc whose phase section says `SHIPPED` is a contradiction.
+<!-- tag: Architecture-Conditional; applies-when: ships-llm-prompts -->
+
+**4. Implementation phases with SHIPPED / TO BUILD markers.** Multi-phase features list each phase with its exact status. Heading format: `### Phase N — Description (SHIPPED)` or `### Phase N — Description (TO BUILD)`. Each `SHIPPED` phase lists the specific files added or modified. This is what makes the doc auditable after the feature lands: a reader can grep the listed filenames to confirm the claim.
+
+**5. Status field tracks implementation state.** The `**Status:**` header line in each decision doc reflects the current implementation state, not the original proposal state. Values: `Proposed`, `Approved`, `Partially Implemented`, `Implemented`. Update it in the same PR that completes the final phase.
 
 ---
 
@@ -647,3 +864,18 @@ The preferred number of CSS lines in a component module is zero.
 **Design tokens never live in component files.** All `--color-*`, `--font-*`, `--radius`, `--spacing` are declared once in `global.css :root`. Components reference them via `var(--token)` — they never define their own values.
 
 **Duplication in CSS is a bug.** If the same colour value, font size, or transition appears in two component modules, one of them is wrong.
+
+---
+
+## References
+
+The rest of the kit's engineering canon. Read these when this document does not answer the question.
+
+| Document | What it covers |
+|---|---|
+| [`TESTING_PRINCIPLES.md`](TESTING_PRINCIPLES.md) | Test philosophy, intent-first naming, mocking discipline, failure-mode coverage, flaky-test smells |
+| [`PR_WORKFLOW.md`](PR_WORKFLOW.md) | Opening a PR, greening CI, responding to review, design-docs-in-the-same-PR |
+| [`BACKLOG_WORKFLOW.md`](BACKLOG_WORKFLOW.md) | How issues come into existence, the Definition of Ready, follow-up filing |
+| [`../DOMAIN_SPECIFIC.md`](../DOMAIN_SPECIFIC.md) | Worked examples of these rules applied to one concrete domain |
+| [`../templates/ARCHITECTURE.md`](../templates/ARCHITECTURE.md) | The architecture doc your project fills in |
+| [`../templates/decisions/DECISION_TEMPLATE.md`](../templates/decisions/DECISION_TEMPLATE.md) | The decision-doc skeleton referenced by "Decision Document Structure" |

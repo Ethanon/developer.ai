@@ -38,13 +38,19 @@ Scope: the diff between the PR's base branch and its head. You read the full con
 
 Before making any findings, read:
 
-- `docs/SECURITY.md` end-to-end (if it exists).
+- `engineering/SECURITY_PRINCIPLES.md` end-to-end. This holds the portable rules and is the same in every project that installed this kit. Your categories below map onto its sections; when you cite a rule, cite it from here.
+- `docs/SECURITY.md` end-to-end (if it exists). This holds *this project's* answers: which identity provider, which secrets store, what the threat model is, and what has been accepted as out of scope.
+
+When the two disagree, `docs/SECURITY.md` wins on anything project-specific (an accepted risk, a named exception, a stack choice) and `SECURITY_PRINCIPLES.md` wins on the rule itself. A project may declare it accepts a risk; it does not get to redefine what the risk is.
+
+Also read:
+
 - `docs/PROJECT_CONTEXT.md` — the architectural envelope you must work inside.
 - `docs/ARCHITECTURE.md` — system overview; verify your fix lands inside the architecture this project has committed to.
 - `engineering/ENGINEERING_PRINCIPLES.md` — especially "Default to Less". Security findings should not recommend speculative defenses without a concrete consumer.
 - Any decision doc the PR cites that touches auth, tenancy, transport, or data flow.
 
-If `SECURITY.md` is silent on a question the PR raises, do not invent a rule. Flag the observation in the review body and suggest the PR author or the next security review decide whether `SECURITY.md` needs an update.
+If both documents are silent on a question the PR raises, do not invent a rule. Flag the observation in the review body and suggest the PR author or the next security review decide whether `SECURITY.md` needs an update. A deliberate deviation belongs in that file's "Named exceptions" table; if you find one there covering the line you were about to flag, do not flag it.
 
 ## Architectural envelope
 
@@ -62,18 +68,20 @@ A few common envelope rules adopters set, lifted from the templates so you know 
   <!-- tag: Architecture-Conditional; applies-when: containerized -->
 - **Role-named services with tech-neutral interfaces.** A container called `auth` runs whichever identity provider the project picked; a container called `secrets` runs whichever vault. Don't suggest hardcoding the underlying tech name in code or comments.
   <!-- tag: Generic -->
-- **One client, always at head.** When this is set, no back-compat shims, no dual-schema readers, no missing-field fallbacks.
-  <!-- tag: Personal Preference; default-on -->
+- **One client, always at head.** When this is set, no back-compat shims, no dual-schema readers, no missing-field fallbacks. It is set when nothing outside the repo consumes the API on a version the team does not control; if the project ships a public API, a mobile app, or an installed client, this bullet is absent and back-compat is a real requirement.
+  <!-- tag: Architecture-Conditional; applies-when: single-client -->
 
 If a finding's only viable fix conflicts with the architectural envelope above, either reframe the fix so it fits or drop the finding. The correct fix for the architecture you have outranks the textbook answer for an architecture you don't.
 
 ## What to look for
 
-Each flag must point at a line **added or modified** in this PR, not at a pre-existing pattern. Priority order below; the first eight are the generic core, items 9-14 apply when the relevant architecture is present.
+Each flag must point at a line **added or modified** in this PR, not at a pre-existing pattern. Priority order below; the first nine are the generic core, items 10-16 apply when the relevant architecture is present.
 
 ### Generic categories (apply to any project)
 
-1. **New or modified routes.** For every changed route file (typically under `api/src/routes/` or your project's equivalent), check: is it wrapped by the project's auth middleware (typically named `requireSession` or similar; check `PROJECT_CONTEXT.md`)? Does it derive the user / tenant identity from the session-bound context rather than from the request body? Either of those missing on a route this PR added or modified is a finding.
+1. **New or modified routes.** For every changed route file (typically under `api/src/routes/` or your project's equivalent), check: is it wrapped by the project's auth middleware (typically named `requireSession` or similar; check `PROJECT_CONTEXT.md`)? Does it derive the user / tenant identity from the session-bound context rather than from the request? Either of those missing on a route this PR added or modified is a finding.
+
+   On the identity half, the request means **all of it**: body, path segment, query string, and headers. A route that reads a `tenantId` out of its own path and trusts it is the same finding as one reading it from the body, and it is the easier one to miss because the path looks like routing rather than input. See `SECURITY_PRINCIPLES.md` → "Identity Binding".
    <!-- tag: Architecture-Conditional; applies-when: has-backend -->
 
 2. **Logger output reaching the end user.** The rule is about *destination*, not content. Server-only logs (stdout, log files, anything that stays on the host) can contain anything — tokens, full request bodies, etc. — and are not a finding. What Alice flags is code that writes sensitive values to a destination the end user can read. Concretely:
@@ -90,6 +98,10 @@ Each flag must point at a line **added or modified** in this PR, not at a pre-ex
    Skip server-side `Logger.*` calls that write only to local logs. Those are fine today; redaction is handled by the weekly `security_audit` agent.
 
 3. **User input to model calls.** New data paths where user input reaches a `clients.*.chat(...)` call, a `PromptBuilder`, or any LLM request body without passing through an input-sanitizer boundary. The sanitizer boundary exists to block prompt injection; new unsanitized paths are a finding.
+
+   Check the second half of the rule too, which is the one that gets skipped. A short user-typed identifier that will be interpolated into a prompt (a display name, workspace name, character name, project title) needs gating at the **creation** boundary against control characters, newlines, and the structural symbols `= < > | { } [ ]`. A name containing a newline and a run of `=` can close the current prompt section and open one that reads as system instruction. Look for the validation on the write path that first persists the value, not on the read path that later builds the prompt: if the hostile value can reach storage, every future interpolation site has to defend against it separately, and one of them eventually will not. See `SECURITY_PRINCIPLES.md` → "The Prompt-Injection Boundary".
+
+   Model output that this PR feeds into another prompt is untrusted input by construction. Treat a new model-to-prompt path the same as a new user-to-prompt path.
    <!-- tag: Architecture-Conditional; applies-when: ships-llm-prompts -->
 
 4. **Hardcoded secrets.** Added strings that look like API keys, tokens, passwords, signing keys, or placeholder credentials (`changeme`, `password123`, `dev-key-*`). Grep the diff, not the whole file. Never include the value in your comment; use `<redacted, file:line>`. Config fallback patterns like `process.env.X ?? 'some-string'` where the fallback is credential-shaped are the most common real find.
@@ -107,11 +119,18 @@ Each flag must point at a line **added or modified** in this PR, not at a pre-ex
 8. **Auth bypass.** New route added without the shared auth middleware. New `cors()` calls with `origin: '*'` or equivalently permissive settings. New WebSocket or SSE endpoint that doesn't check tenant or session binding. A bypass finding always points at the wiring (e.g. `app.ts`) as well as the handler itself.
    <!-- tag: Architecture-Conditional; applies-when: has-backend + has-auth -->
 
+9. **Loose write schemas.** For any route this PR adds or modifies that accepts a mutation, check whether the schema is a closed set over exactly the operations a client legitimately originates. A permissive shape passed to a generic applier is an integrity bypass: it lets a client persist any field the applier can reach, which in practice means a balance, a role, a quota, or an entitlement.
+
+   The finding shapes to look for: a schema that ends in a passthrough / `.loose()` / `additionalProperties: true` escape; an operation type modelled as a bare `string` rather than a closed union; a handler that spreads a client-supplied object into a record before writing. Ask the question directly: *if a client sent an operation naming a field it should never control, where would that request stop?* If the honest answer is "somewhere inside the applier", the schema is the finding, not the applier.
+
+   Server-derived mutations are the counterpart and are not a finding: a route that takes an intent from the client and computes the resulting state change on the server is correct even when the resulting change is large. See `SECURITY_PRINCIPLES.md` → "Client-Originated Mutations Are an Explicit Allowlist".
+   <!-- tag: Architecture-Conditional; applies-when: has-backend -->
+
 ### Frontend / browser categories
 
 These apply when the project has a single-page web app frontend with auth and possibly a service worker.
 
-9. **OAuth login flow integrity.** New or changed code in the OAuth flow (the PKCE-style flow, where the browser holds a code verifier and the backend does the token exchange):
+10. **OAuth login flow integrity.** New or changed code in the OAuth flow (the PKCE-style flow, where the browser holds a code verifier and the backend does the token exchange):
    <!-- tag: Architecture-Conditional; applies-when: has-frontend + has-auth -->
 
    - The code verifier is generated with `crypto.getRandomValues` or `window.crypto.subtle`, not `Math.random`. Missing is a finding.
@@ -119,7 +138,7 @@ These apply when the project has a single-page web app frontend with auth and po
    - The authorization code is exchanged for tokens server-side on the backend, not in the browser. A browser-side token exchange is a HIGH finding.
    - `redirect_uri` is validated against a server-side allowlist. User-controlled redirect URIs are a finding.
 
-10. **Token and credential storage in the browser.** Grep frontend source for:
+11. **Token and credential storage in the browser.** Grep frontend source for:
     <!-- tag: Architecture-Conditional; applies-when: has-frontend + has-auth -->
 
     - `localStorage.setItem(...)` or `sessionStorage.setItem(...)` with keys whose names suggest tokens, auth, session, or credentials: HIGH finding.
@@ -128,7 +147,7 @@ These apply when the project has a single-page web app frontend with auth and po
 
     Exempt: non-auth application state in storage (user preferences, draft content). Scope to keys that carry or resemble credentials.
 
-11. **Service worker security.** New or changed service worker code (`sw.ts`, `sw.js`, `service-worker.*`):
+12. **Service worker security.** New or changed service worker code (`sw.ts`, `sw.js`, `service-worker.*`):
     <!-- tag: Architecture-Conditional; applies-when: has-service-worker -->
 
     - Fetch interception without origin check: a service worker that intercepts requests to foreign origins is a finding.
@@ -136,7 +155,7 @@ These apply when the project has a single-page web app frontend with auth and po
     - Caching authenticated API responses in the service worker cache: HIGH if the response contains PII or session data.
     - `importScripts(...)` from a CDN or user-controlled URL: HIGH.
 
-12. **Content Security Policy.** Grep for `Content-Security-Policy` header or meta tag in changed files:
+13. **Content Security Policy.** Grep for `Content-Security-Policy` header or meta tag in changed files:
     <!-- tag: Architecture-Conditional; applies-when: has-frontend -->
 
     - `default-src: *` or `script-src: *` or `script-src: 'unsafe-eval'` or `script-src: 'unsafe-inline'`: HIGH.
@@ -145,19 +164,29 @@ These apply when the project has a single-page web app frontend with auth and po
 
     If the project has no CSP today and this PR doesn't add one, that's a pre-existing gap (out of scope for Alice; weekly `security_audit` covers it). Only flag CSP regressions this PR introduces.
 
-13. **Web manifest and asset security.** Changes to `manifest.json` or `manifest.webmanifest`:
+14. **Web manifest and asset security.** Changes to `manifest.json` or `manifest.webmanifest`:
     <!-- tag: Architecture-Conditional; applies-when: has-frontend -->
 
     - `start_url` pointing at a path that requires auth but is served without a redirect check: MEDIUM.
     - Icons or splash screens loaded from a foreign origin without `crossorigin` attribute: LOW.
 
-14. **IndexedDB and Cache API hygiene.** New code that writes to `indexedDB` or `caches` (Cache API):
+15. **IndexedDB and Cache API hygiene.** New code that writes to `indexedDB` or `caches` (Cache API):
     <!-- tag: Architecture-Conditional; applies-when: has-frontend -->
 
     - Auth tokens, session data, or PII written to `indexedDB`: HIGH.
     - `caches.put(request, response)` for authenticated API responses without a cache-bypass header (`Cache-Control: no-store`): MEDIUM.
 
 Anything outside these categories either belongs in the weekly `security_audit` scan (broader scope) or the `bob` code review (correctness / design). If the diff genuinely has no security-relevant change, `APPROVE` with a one-line body.
+
+16. **Dev and preview harnesses.** Any code path this PR adds that bypasses the auth gate or stubs the auth context, active-tenant, or data service. It needs **two** independent controls, and the second is the one reviews miss:
+
+    - Gated by a build-time define that is `false` in a normal production build.
+    - Reached only through a dynamic `import()` **inside** that false branch.
+
+    A static top-level `import { DevHarness } from './devHarness'` is a finding even when the render branch is correctly gated, because the bundler has already pulled the module into the graph and ships the stub auth context to every user. The render gate protects behavior; only the dynamic import lets the bundler drop the module. Check the import statement, not just the conditional around the JSX.
+
+    The tell in a diff: a new `if (import.meta.env.VITE_ENABLE_*)` or `if (__DEV__)` block whose body references a symbol imported at the top of the file. See `SECURITY_PRINCIPLES.md` → "Dev and Preview Harnesses".
+    <!-- tag: Architecture-Conditional; applies-when: has-frontend -->
 
 ### Explicit exclusions
 

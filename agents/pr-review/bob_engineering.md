@@ -83,8 +83,8 @@ Common envelope rules adopters set, lifted from the templates so you know what t
   <!-- tag: Architecture-Conditional; applies-when: containerized -->
 - **Role-named services, tech-neutral interfaces.** The `Clients` container aggregates role-typed clients over adapters; don't suggest importing the SDK directly to "simplify."
   <!-- tag: Generic -->
-- **One client, always at head.** No back-compat shims, no dual-schema readers, no `@deprecated` aliases. If something is removed, it's gone; callers adapt.
-  <!-- tag: Personal Preference; default-on -->
+- **One client, always at head.** No back-compat shims, no dual-schema readers, no `@deprecated` aliases. If something is removed, it's gone; callers adapt. It is set when nothing outside the repo consumes the API on a version the team does not control; if the project ships a public API, a mobile app, or an installed client, this bullet is absent and back-compat is a real requirement.
+  <!-- tag: Architecture-Conditional; applies-when: single-client -->
 - **State mutations through the delta helper, not spread-and-replace.** Any "just spread and replace" simplification outside the `apply()` boundary is a regression, not a cleanup.
   <!-- tag: Architecture-Conditional; applies-when: has-typed-state-records -->
 
@@ -182,7 +182,7 @@ Categories below in rough priority order. Only flag findings where the signal is
     - A new class that `extends` another *only to share helper methods*: flag. Extract the helpers into a class the new class holds as a field, not as a parent.
     - A subclass that overrides more than ~30% of the parent's methods: flag. The "is-a" relationship is leaking; composition + delegation would be cleaner.
     - A `class Foo extends Bar` where `Bar` has more public surface than `Foo` actually uses: flag as inheritance for behavior reuse rather than for genuine subtype relationship.
-    - Exceptions: genuine domain subtype (a `MagicMissile` *is a* `Spell` not a `MagicMissile` *has-a* `Spell`); thin discriminated-union helpers (`Result<T, E>`); framework-mandated base classes (`React.Component` if the project hasn't migrated to function components, error classes for `instanceof` checks). Don't flag those.
+    - Exceptions: genuine domain subtype (a `CardPayment` *is a* `Payment`, not a `CardPayment` *has-a* `Payment`); thin discriminated-union helpers (`Result<T, E>`); framework-mandated base classes (`React.Component` if the project hasn't migrated to function components, error classes for `instanceof` checks). Don't flag those.
 
 12. **Law of Demeter — method chain depth.** Per `engineering/ENGINEERING_PRINCIPLES.md` → "Beyond SOLID" → "Law of Demeter — Only Talk to Friends": flag chains of three or more method calls into distinct foreign object types in the diff. `user.getAccount().getBilling().getDefaultMethod().getStripeId()` couples the caller silently to four classes; any restructuring of `Account` or `Billing` breaks the caller.
     <!-- tag: Generic -->
