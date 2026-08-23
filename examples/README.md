@@ -16,6 +16,6 @@ The four were chosen to teach four different shapes of decision:
 
 You don't have to write decision docs today. But when you do (and you should) copy `templates/decisions/DECISION_TEMPLATE.md` and look at whichever of these is closest in shape to what you're writing.
 
-## What used to be here
+## Where the filled-in examples are
 
-Earlier versions of this kit shipped filled `PROJECT_CONTEXT.md`, `ARCHITECTURE.md`, and `SECURITY.md` examples in this folder. Those are gone now: the templates themselves under `templates/` ship with opinionated defaults, so you read the templates directly to see what "good" looks like.
+There are no worked `PROJECT_CONTEXT.md`, `ARCHITECTURE.md`, or `SECURITY.md` examples here. The templates under `templates/` ship with opinionated defaults already in place, so the template itself is the worked example. Read it directly.

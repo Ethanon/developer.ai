@@ -1,0 +1,149 @@
+# developer.ai on Azure DevOps Pipelines.
+#
+# Pull-request review and weekly audits. The backlog agents are not here: they
+# are built on GitHub Issues and labels and do not port. See ci/README.md.
+#
+# Setup:
+#   1. Copy this file to azure-pipelines.yml at your repo root.
+#   2. Copy ci/scripts/ to ci/scripts/ in your repo.
+#   3. Add two secret pipeline variables:
+#        CLAUDE_CODE_OAUTH_TOKEN   from `claude setup-token`
+#        AZURE_DEVOPS_TOKEN        a PAT with Code (read and write), or use
+#                                  $(System.AccessToken) if the build service
+#                                  identity has "Contribute to pull requests"
+#   4. In Branch policies on your default branch, add this as a Build validation
+#      policy. `pr:` triggers are ignored for Azure Repos, so the policy is what
+#      actually fires the review. That is the single most common setup mistake.
+
+trigger: none
+
+schedules:
+  - cron: '0 9 * * 1'
+    displayName: Weekly audits, Mondays 09:00 UTC
+    branches:
+      include: [main]
+    always: true
+
+variables:
+  - name: isPullRequest
+    value: $[eq(variables['Build.Reason'], 'PullRequest')]
+  - name: isScheduled
+    value: $[eq(variables['Build.Reason'], 'Schedule')]
+
+stages:
+  # --- Pull-request review ----------------------------------------------------
+  - stage: review
+    condition: eq(variables.isPullRequest, true)
+    jobs:
+      - job: review
+        displayName: Reviewers
+        pool:
+          vmImage: ubuntu-latest
+        strategy:
+          matrix:
+            # The model is pinned per agent, and pinning it is not optional. A
+            # floating alias repoints under you: `sonnet` moved from 4.6 to 5
+            # mid-2026 with no change on any adopter's side, and a fleet went
+            # silent. Pinning per agent is also the staged rollout lever.
+            alice:
+              AGENT: alice_security
+              AGENT_MODEL: claude-sonnet-5
+            bob:
+              AGENT: bob_engineering
+              AGENT_MODEL: claude-sonnet-5
+            phil:
+              AGENT: phil_testing
+              AGENT_MODEL: claude-sonnet-5
+          maxParallel: 2
+        steps:
+          - checkout: self
+            fetchDepth: 0
+            persistCredentials: true
+          - task: NodeTool@0
+            inputs: { versionSpec: '22.x' }
+          - bash: bash ci/scripts/azure-review.sh
+            displayName: Review with $(AGENT)
+            env:
+              CLAUDE_CODE_OAUTH_TOKEN: $(CLAUDE_CODE_OAUTH_TOKEN)
+              AZURE_DEVOPS_TOKEN: $(AZURE_DEVOPS_TOKEN)
+          # The one file, not the whole working directory. Published whether the
+          # job passed or failed: on a failure this file, or its absence, is the
+          # only evidence of what the agent did.
+          - publish: $(System.DefaultWorkingDirectory)/review-$(AGENT).json
+            artifact: review-$(AGENT)
+            condition: always()
+
+  # --- Critique ---------------------------------------------------------------
+  #
+  # Jekyll and Hyde critique what the first wave found, so this stage depends on
+  # `review` rather than running beside it. It downloads the review artifacts and
+  # reads them off disk: no comment-read API, and each finding arrives carrying
+  # the path and line it was anchored to.
+  #
+  # `succeededOrFailed()` because a critic still has something useful to say when
+  # a reviewer failed. It reports which first-wave files are missing rather than
+  # quietly critiquing a partial set.
+  - stage: critique
+    dependsOn: review
+    condition: and(eq(variables.isPullRequest, true), succeededOrFailed())
+    jobs:
+      - job: critique
+        displayName: Critics
+        pool:
+          vmImage: ubuntu-latest
+        strategy:
+          matrix:
+            jekyll:
+              AGENT: jekyll_whitehat
+              AGENT_MODEL: claude-sonnet-5
+            hyde:
+              AGENT: hyde_blackhat
+              AGENT_MODEL: claude-sonnet-5
+          maxParallel: 2
+        steps:
+          - checkout: self
+            fetchDepth: 0
+            persistCredentials: true
+          - task: NodeTool@0
+            inputs: { versionSpec: '22.x' }
+          - download: current
+            patterns: '**/review-*.json'
+            displayName: Fetch the first-wave reviews
+          - bash: bash ci/scripts/azure-critique.sh
+            displayName: Critique with $(AGENT)
+            env:
+              CLAUDE_CODE_OAUTH_TOKEN: $(CLAUDE_CODE_OAUTH_TOKEN)
+              AZURE_DEVOPS_TOKEN: $(AZURE_DEVOPS_TOKEN)
+              REVIEWS_DIR: $(Pipeline.Workspace)
+          - publish: $(System.DefaultWorkingDirectory)/critique-$(AGENT).json
+            artifact: critique-$(AGENT)
+            condition: always()
+
+  # --- Weekly audits ----------------------------------------------------------
+  - stage: audit
+    condition: eq(variables.isScheduled, true)
+    jobs:
+      - job: audit
+        displayName: Audits
+        pool:
+          vmImage: ubuntu-latest
+        strategy:
+          matrix:
+            security: { AGENT: security_audit }
+            hanging: { AGENT: hanging_refs }
+            naming: { AGENT: naming_audit }
+            classsize: { AGENT: class_size_audit }
+            release: { AGENT: release_audit }
+          maxParallel: 3
+        steps:
+          - checkout: self
+            fetchDepth: 0
+          - task: NodeTool@0
+            inputs: { versionSpec: '22.x' }
+          - bash: bash ci/scripts/azure-audit.sh
+            displayName: Run $(AGENT)
+            env:
+              CLAUDE_CODE_OAUTH_TOKEN: $(CLAUDE_CODE_OAUTH_TOKEN)
+          - publish: $(System.DefaultWorkingDirectory)/.claude/reports
+            artifact: report-$(AGENT)
+            condition: always()

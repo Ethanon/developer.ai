@@ -10,7 +10,9 @@ If you've already read `ADAPTING.md`, this doc picks up where it leaves off. ADA
 
 ## Don't enable the full fleet on day one
 
-The installer happily wires up every agent in the kit at once. Don't let it. Adopt the agents in stages so each one earns your trust before the next one is allowed to act on your code. The arc:
+The installer asks which capabilities you want before anything else, and it defaults to the
+engineering principles alone. Take that default, or close to it. What follows is the order
+to switch the rest on. Adopt the agents in stages so each one earns your trust before the next one is allowed to act on your code. The arc:
 
 **Stage 1: Observe-only.** Enable only the read-only agents: Alice, Bob, Phil, optionally Gomez and Carl. These post review comments on your PRs and nothing else. You read their findings, decide which are signal vs noise, and tune the templates accordingly. Nothing changes in your repo without your hand on the wheel.
 
@@ -24,7 +26,7 @@ The installer happily wires up every agent in the kit at once. Don't let it. Ado
 
 Most projects burn out on AI adoption when an early agent makes a visible mistake on a write operation in week two. The staged approach prevents that: every write-capable agent comes online only after the read-only agents that feed it have proven trustworthy.
 
-The installer's wizard has a question (#13-#16 in the Q&A) for which optional agents you want enabled today. Pick conservatively; you can always enable more later by adding the agent's file to `.claude/agents/` and the workflow matrix.
+Question 0 in the wizard picks the capabilities and questions 17 to 19 tune individual agents inside them. Pick conservatively. Adding a capability later is an edit to one workflow file; removing an agent that has already filed issues and opened pull requests is not.
 
 ---
 
@@ -143,9 +145,10 @@ If you're in a heavily off-UTC timezone, edit the cron expressions so reports ar
 
 ## Step 8: Keep a calibration log
 
-Copy `templates/AGENT_CALIBRATION.md` to `docs/AGENT_CALIBRATION.md` and fill one row per
-finding as you close each PR. Two minutes of work, and it is the only step here that keeps
-paying after the first month.
+Copy `templates/AGENT_CALIBRATION.md` to `.claude/calibration/<agent>.md`, one file per
+reviewer. Each file is appended to that reviewer's prompt at review time, so what you write
+there changes what it says next week. It is the only step here that keeps paying after the
+first month.
 
 Everything above this point is calibration you do once, from guesses. This step is how you
 find out whether the guesses were right.
@@ -156,9 +159,14 @@ merges. What changes is that you begin skimming. Once skimming is the habit, the
 in the middle of the batch gets skimmed too, and the fleet is costing you money to be
 ignored. Nobody notices the day that starts.
 
-Grade each finding signal, noise, or judgment. Recount monthly. When an agent's signal rate
-drops below roughly 30%, edit its spec and write down what you expected the edit to do. The
-template carries the thresholds and the tables.
+Grade each finding signal, noise, or judgment as you close the pull request, while the diff
+is still in front of you. When the same finding is graded noise three times, it earns an entry
+in that reviewer's calibration file, with the pull requests that produced it. Three, not one:
+a single dismissal is usually the finding being right and the moment being wrong.
+
+The rule of thumb for where something goes. A rule you would want on every project is a spec
+edit. A decision about this project belongs in `docs/PROJECT_CONTEXT.md`. Only "this reviewer,
+this repo" lands in the calibration file.
 
 The other direction matters as much. An agent that suddenly posts nothing has either become
 perfectly calibrated or stopped working, and those look identical from the PR window. See

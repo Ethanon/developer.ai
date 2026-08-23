@@ -4,13 +4,26 @@
 
 # developer.ai
 
-**The end-to-end Claude Code loop for solo developers and small teams.** Scheduled audit bots scan your repo and file ready-state GitHub issues. A feature agent picks one up, drafts a design for you to approve, then builds it. A named seven-person review fleet (security, engineering, unit testing, UX, clean-code, plus a blackhat and whitehat critic pair) leaves advisory comments on every PR. None of the reviewers block merge: the author always decides. Claude-only by design; install with `/install` in Claude Code.
+**One developer, with the whole organization behind them.**
+
+A real engineering org gives you things a solo developer simply does not have: a review board that reads every change, a QA function, a platform team watching for drift, a PM who keeps the backlog honest. Not advice about those things. The functions themselves, doing the work.
+
+This kit is that organization, as agents.
 
 ![The developer.ai agent crew](assets/agent-crew.png)
 
-This isn't another agent collection. It's the full workflow loop one developer needs to operate a repo. The kit ships opinionated defaults you tune via an install-time wizard, plus convention docs (`CLAUDE.md`, `ENGINEERING_PRINCIPLES.md`, PR/backlog workflows) tag-classified Generic / Architecture-Conditional / Personal-Preference / Domain-Specific so you know what to keep and what to strip.
+**You stay the architect.** Every other seat is filled.
 
-You clone this repo, open Claude Code in it, and run `/install`. The installer asks you about your stack, your conventions, and your repo identity; it then writes the calibrated kit into your target repo on a new branch. Once you add the `CLAUDE_CODE_OAUTH_TOKEN` GitHub secret, the agents start firing on your next PR.
+- **Your development agent** designs before it builds, writes the tests first, draws the diagram, and drives a real browser to check the thing actually works.
+- **Seven reviewers** read every pull request in two waves, each in their own lane, and argue with each other before they agree.
+- **Eight weekly agents** scan for the drift nobody has time to look for, and report on the system itself.
+- **Four backlog agents** turn decisions into stories that are ready to pick up, by you or by an agent.
+
+The functions run whether or not you remembered to ask. That is the whole point: an organization is not a set of good intentions, it is work that happens on a schedule.
+
+Install with `/install`. The principles install for whichever AI tools your team uses; the agents run on Claude Code.
+
+You clone this repo, open Claude Code in it, and run `/install`. The installer asks which of the four capabilities you want before anything else, then about your stack, your conventions, and your repo identity. It writes the calibrated kit into your target repo on a new branch. Once you add the `CLAUDE_CODE_OAUTH_TOKEN` GitHub secret, the agents start firing on your next pull request.
 
 > **The fast install path:** [`INSTALL.md`](INSTALL.md).
 > **The manual install path:** [`ADAPTING.md`](ADAPTING.md).
@@ -19,393 +32,172 @@ You clone this repo, open Claude Code in it, and run `/install`. The installer a
 
 ---
 
-## What this repo is, and what it isn't
+## How it actually works
 
-**This repo is a kit.** It contains agent specs (markdown files Claude Code reads at runtime), reference GitHub Actions workflows, project-context templates, worked examples, and a small library of skills. It is not a service you sign up for: there's no SaaS dashboard, no API to call. Everything runs inside your own GitHub repo against your own Actions minutes (or self-hosted runners), and you pay Anthropic for the model calls the agents make.
+### A normal day
 
-**This repo is not the agents themselves.** The agents run inside Claude Code via the [`anthropics/claude-code-action`](https://github.com/anthropics/claude-code-action) GitHub Action. This repo is what tells those agents who they are, what to look for, and what your project's conventions are. Think of it as a job description plus a company handbook.
+You open Claude Code and ask for a feature. Not a spec, just tell it what you want.
 
-**The kit ships opinionated defaults.** Most projects don't want to fill in 47 blank slots before the agents do anything useful. The templates, the engineering principles, and the agent rules ship with sensible defaults already in place, based on patterns from a real production codebase. The installer adjusts those defaults based on your wizard answers; you edit further if your project's reality differs. The kit is MIT-licensed; fork and modify freely.
+It comes back with a **design document, not code.** You read it, push back on the parts that are
+wrong, and when it looks right you tell it to go build.
+
+Now it works. Tests first, then the implementation, then it actually runs the thing. If there
+is a UI, it drives a real browser and looks at the screen. Only then does it call the feature
+done.
+
+You ask for a pull request. And while you are reading the diff, **your review board is already
+on it.** Alice on security. Bob on architecture. Carl on whether the screen is usable at all.
+Gomez on names. Phil on whether those tests cover anything. Each one specialized, each one in
+its own lane, none of them repeating the others.
+
+You leave your own comments. Then you go back to Claude and run `/code-review`. It pulls every
+finding, yours and all seven agents', into **one list**, tells you which ones are worth acting
+on and which are noise, and waits for you to decide.
+
+A couple of rounds of that and you merge. Then you do it again.
+
+### Monday morning
+
+There are pull requests waiting that nobody asked for. A market analysis of what moved in your
+stack last week. Security drift in your own code. Dead references, naming that has slipped,
+classes that grew while you were not looking.
+
+You skim them over coffee, decide what matters, and either promote a finding into real work or
+merge the notes and get on with your day.
+
+### The things you do not want to deal with right now
+
+You hit a defect mid-task, or you think of a feature you want later. You do not context-switch
+and you do not write a TODO nobody reads. You say **"make a backlog item for that"** and keep
+going.
+
+If it is small and well-shaped, the crew picks it up on its own: designs it, builds it, and
+hands you a code review. Meanwhile the scrum master walks the backlog once a week and closes
+out everything you already fixed, so **you never manage a backlog again.**
+
+### That is the whole thing
+
+A shorter loop, and every colleague you would have in a real organization: reviewers, QA,
+ops, and a PM who keeps the queue honest.
+
+One person, one team.
 
 ---
 
-## Who should use it
+## The org chart you get
 
-- **Solo developers and small teams** who want code review without a second human. Alice and Bob catch most of what an experienced reviewer would catch, and Jekyll and Hyde catch the parts where Alice and Bob were wrong.
-- **Teams adopting AI-assisted development** who want guardrails on what the AI writes. The same review pipeline that reviews human PRs reviews AI-written PRs.
-- **Open-source maintainers** who want consistent automated review on contributor PRs.
-- **Anyone tired of manually filing tracking issues for shipped work.** The scrum-master agent does that bookkeeping autonomously.
+Every seat below is a function a real engineering organization performs and a solo developer
+goes without.
 
-You should probably NOT use it if:
+| The seat | Filled by | When it works |
+|---|---|---|
+| **Architect** | **You.** Design docs are the architecture artifact, and every agent reads the principles that govern them. | Deliberately not automated |
+| **Developers** | `feature_agent` plus the skills: test-driven development, refactoring, dev harness, and visual smoke that drives a real browser | Daily, one unit of work at a time |
+| **Review board** | Alice, Bob, Phil, Gomez, Carl, then Jekyll and Hyde critiquing them | Every pull request |
+| **Platform and ops** | Eight scanners: security drift, dead code, naming, class size, flaky tests, release readiness, prompts, market signals | Monday mornings |
+| **PM and scrum** | `story_groomer`, `scrum_master`, `audit_groomer` | Daily and weekly |
+| **Tech writer** | Not yet filled | |
 
-- Your project is a one-off prototype you'll throw away in a month (setup cost won't pay back).
-- You don't have a GitHub repo (the agents file issues and post PR reviews via the GitHub API; that's the integration surface).
-- You can't budget for Anthropic API tokens. See "What it costs" below for what drives the number and how to bound it.
+Those seats install as four capabilities, and **you pick which ones you want** before the
+installer asks anything else. It defaults to the principles alone, which is a real install and
+not a demo: better rules in front of whatever agent you already use is most of the value, and
+it costs nothing per run.
+
+Two constraints the installer enforces rather than hopes for. Backlog automation implies the
+review fleet, because `feature_agent` opens pull requests and a PR nobody reviews is the
+outcome this kit exists to prevent. Backlog automation also needs GitHub specifically, because
+it is built on GitHub Issues and labels.
+
+**Pipelines ship for GitHub Actions, GitLab CI, Bitbucket, and Azure DevOps.** GitHub is the
+reference implementation and gets all seven reviewers plus the backlog agents; the other three
+get the principles, the audits, and five reviewers. They are stubbed against each platform's
+API and want validation in a real tenant, so if you deploy one, please open an issue and tell
+us what happened. Details in [`ci/README.md`](ci/README.md).
 
 ---
 
 ## What it costs
 
 The agents authenticate with a Claude Code OAuth token, so they draw on **your Claude
-subscription**, not a per-token API bill. The practical question is therefore not "how many
-dollars" but "does this fit inside my plan alongside my own work?"
+subscription**, not a per-token API bill. The question is not "how many dollars" but "does
+this fit inside my plan alongside my own work?"
 
-### One real data point
+**One real data point.** On a Max plan, working 8-10 hours a day in Claude Code, running 5-10
+full PR reviews per day for a week fit inside the plan alongside normal development. That is
+the whole fleet on each PR, not a single reviewer. One repo, one working pattern, one week:
+treat it as an order-of-magnitude anchor, not a guarantee.
 
-On a Max plan, working 8-10 hours a day in Claude Code, running **5-10 full PR reviews per
-day for a week** fit inside the plan alongside normal development. That is the whole fleet
-on each PR, not a single reviewer.
+**Almost all consumption is PR review.** The audits look like a large fleet on the diagram,
+but they run once a week and round to nothing against a week of development. The only variable
+worth watching is **reviewers enabled, times PRs opened, times diff size**.
 
-Those numbers cover one repo, one working pattern, one week. Treat it as an order-of-magnitude anchor
-rather than a guarantee: a repo with much larger diffs, or a team opening far more PRs, will
-land somewhere different.
+Levers, most effective first:
 
-### The model split that makes it fit
+1. **Drop optional reviewers.** Gomez and Carl are the two most commonly dropped, and this is by far the biggest lever.
+2. **Use `skip-ci` liberally.** Doc-only and lockfile-bump PRs burn a full pass for nothing.
+3. **Lower `effort`.** Each workflow job passes `--effort`; one step down noticeably reduces spend at some cost in depth.
+4. **Split large PRs.** One 900-line PR costs every reviewer more than three 300-line PRs cost them individually.
 
-**Opus 5 as the orchestrator, Sonnet 5 as the sub-agent workers.** The expensive reasoning
-is concentrated in the layer deciding what to look at and how to weigh what came back; the
-sub-agents doing the actual reading are largely mechanical and do not need the top tier.
+Retuning the audit schedule is deliberately not on that list. It is a rounding error, and
+turning audits off trades away the drift detection that is the cheapest thing the kit does.
 
-This holds review quality roughly steady while keeping the bulk of the work on the cheaper
-model. The `--model` flag in each workflow job is where you set it.
-
-### Where the consumption actually is
-
-Almost all of it is PR review. The scheduled audits look like a large fleet on the diagram,
-but they run once a week and there are only a handful of them, so they round to nothing
-against a week of development. In practice you will run more ad-hoc analysis during normal
-work than the Monday audit pass does all week.
-
-So the only variable worth watching is **reviewers enabled × PRs opened × diff size**. If
-the load is higher than you want, that product is the thing to shrink; the audit schedule is
-not where the money is.
-
-### Levers, most effective first
-
-1. **Drop optional reviewers.** Gomez and Carl are the two most commonly dropped. Each one
-   removed is a proportional cut on every PR, and this is by far the biggest lever.
-2. **Use `skip-ci` liberally.** Doc-only, generated-file, and lockfile-bump PRs burn a full
-   pass for nothing.
-3. **Lower `effort`.** Each workflow job passes `--effort`; one step down noticeably reduces
-   spend at some cost in depth.
-4. **Split large PRs.** Cost scales with diff size per reviewer, so one 900-line PR costs
-   every reviewer more than three 300-line PRs cost them individually.
-
-Retuning the audit schedule is not on this list on purpose. It is a rounding error, and
-turning audits off to save budget trades away the drift detection that is the cheapest thing
-the kit does.
+The model split that makes it fit: **Opus 5 orchestrating, Sonnet 5 as the workers.** The
+expensive reasoning belongs in the layer deciding what to look at; the reading is largely
+mechanical. `--model` in each workflow job is where you set it.
 
 ---
 
-## How a typical adopter uses it
+## Controlling the agents
 
-1. **Install.** Clone this repo, open Claude Code in it, run `/install`. Answer the wizard. The installer commits the kit on a new branch in your target repo.
-2. **Add the GitHub secret.** Set `CLAUDE_CODE_OAUTH_TOKEN` in your target repo's GitHub Secrets.
-3. **Calibrate.** Read the templates the installer just created. Tighten anything where your reality differs from the defaults the installer picked. See `docs/CALIBRATE.md` in your target repo for the walkthrough.
-4. **Test PR.** Open a throwaway PR (even a one-line README edit). The agents should fire. Tune the templates if findings are noisy.
-5. **Normal use.** Open PRs as you normally would. The agents fire automatically. On the rare PR where you don't want them (a giant infra refactor, an emergency hotfix), add the `skip-ci` label.
-6. **Weekly bots.** Mondays by default: the audit bots scan the codebase for drift, dead code, naming violations, security drift, and ecosystem changes. They write reports to `.claude/reports/`. The `audit-groomer` bot reads those reports the next day and files pickup-ready issues. The `feature-agent` bot holds one unit of work at a time: it opens a design PR, waits for your `design-approved` label, then builds on the same branch.
-7. **Periodic re-read.** Re-read your templates whenever you notice their assumptions drifting from reality (your scale target grew, you added a new service, you changed your hosting model). The agents pick up the new calibration on the next run.
+**Labels.** Add `skip-ci` to a pull request and the review pipeline does not fire. Add it
+before the agents run: they trigger on `opened` and `synchronize`, so on an in-flight PR you
+add the label then push an empty commit to retrigger. Renovate-authored PRs skip
+automatically. For a per-agent skip, edit the matrix in `workflows/pr-review.yml`.
 
----
-
-## Two ways the agents get invoked
-
-Every agent in this kit runs in one of two modes; both are first-class and they're complementary, not redundant.
-
-**On-demand (conversational).** You ask in Claude Code and the agent runs. The frontmatter `description` on every agent file ends with a list of natural-language phrases that activate it, so "scan for dead code" triggers `hanging_refs`, "groom the backlog" triggers `scrum_master`, and "set this up on my project" triggers the installer. Use this when something's bugging you and you don't want to wait for the scheduled run, or when you want to invoke an agent ad-hoc on a one-off question.
-
-**Automatic (workflows).** The PR review pipeline and the weekly audit scanners run on a fixed schedule with no human in the loop. The PR review fires on every pull request (Alice, Bob, Phil, optional Gomez and Carl, then Jekyll and Hyde); the audit scanners fire Monday morning, the audit-groomer fires Monday noon, the feature-agent fires daily. Use this for everything that needs to happen on every PR or every Monday whether you remembered or not. Nobody's going to manually invoke seven agents on every commit; this has to be automatic.
-
-The two modes share the same agent files. The same Alice that fires automatically in the workflow is the one that fires when you say "security review this PR" in chat. The schedule is the difference, not the agent.
-
-A useful pattern: leave the scheduled bots on, but also ask conversationally whenever the impulse strikes. If you wonder "is anything bloating up over 300 lines" on a Wednesday, ask; the next Monday's `class_size_audit` will run too, but you don't have to wait.
+**Or just ask.** Every agent runs conversationally as well as on a schedule, and it is the
+same file either way. "Security review this PR" runs the same Alice the workflow runs. Leave
+the schedule on and ask whenever the impulse strikes: if you wonder on a Wednesday whether
+anything has bloated past 300 lines, ask, rather than waiting for Monday.
 
 ---
 
-## The PR labels you can use to control the agents
+## Getting it
 
-GitHub PR labels are how you tell the workflows "don't fire on this one." Two labels are wired up out of the box:
+Clone this repo, open Claude Code in it, run `/install`. The wizard asks which capabilities
+you want, then your stack, conventions, and repo identity, and writes the calibrated kit into
+your target repo on a new branch. Add the `CLAUDE_CODE_OAUTH_TOKEN` secret and the agents
+start firing on your next pull request.
 
-| Label | Effect |
+Then open a throwaway PR and watch them post. Tune from there.
+
+**The kit is worth it if** you want code review without a second human, you want guardrails on what
+an AI writes into your repo, or you are tired of filing tracking issues by hand. **It is
+probably not worth it if** the project is a prototype you will throw away next month.
+
+---
+
+## Where everything lives
+
+| | |
 |---|---|
-| `skip-ci` | The PR review workflow (Alice, Bob, Phil, Gomez, Carl, plus Jekyll and Hyde) does not fire on this PR. Use it for very large infrastructure-only PRs, doc-only PRs, or other changes where agent review would burn Claude tokens without exercising any meaningful code path. |
-| `renovate[bot]` (PR author, not a label) | Renovate-authored PRs (dependency bumps) skip agent review automatically. You don't add this; Renovate sets it as the PR author when it opens its PRs. |
-
-To skip review on a PR, add the `skip-ci` label **before** the agents fire. The agents trigger on `pull_request` `opened` / `synchronize` / `reopened` events, so:
-
-- **For a new PR**: add the label immediately after opening.
-- **For an in-flight PR**: add the label, then push an empty commit (`git commit --allow-empty -m "skip ci"`) to retrigger.
-
-To re-enable review on a PR you previously skipped: remove the label, then push a commit (any commit) to retrigger.
-
-If you want a per-agent skip (run Alice but not Bob, for example), edit the matrix in `workflows/pr-review.yml` and remove the agent from the list.
-
----
-
-## The GitHub Actions workflows we ship as examples
-
-Two workflow files in `workflows/`. The installer copies both into your target repo's `.github/workflows/` folder, editing the `REPO_OWNER/REPO_NAME` and default-branch placeholders to match your wizard answers.
-
-### The whole system, end to end
-
-```mermaid
-flowchart LR
-    classDef human    fill:#fef3c7,stroke:#92400e,color:#78350f
-    classDef workflow fill:#dbeafe,stroke:#1e40af,color:#1e3a8a
-    classDef artifact fill:#f3f4f6,stroke:#6b7280,color:#111827
-
-    Codebase[(your codebase)]:::artifact
-    Decisions[(decision docs)]:::artifact
-    Issues[(GitHub Issues)]:::artifact
-    PRs[(Pull Requests)]:::artifact
-
-    Human(["you<br/>(write decisions,<br/>merge PRs)"]):::human
-
-    Human -->|writes / approves| Decisions
-    Human -->|merges| PRs
-
-    subgraph Scheduled ["workflows/scheduled-agents.yml<br/>(cron + dispatch)"]
-        Scanners["audit scanners<br/>(weekly Mon 09:00)"]:::workflow
-        AG["audit_groomer<br/>(weekly Mon 12:00)"]:::workflow
-        SG["story_groomer<br/>(daily 08:00)"]:::workflow
-        DA["feature_agent<br/>(daily 08:00)"]:::workflow
-        SM["scrum_master<br/>(weekly Mon)"]:::workflow
-    end
-
-    subgraph PRReview ["workflows/pr-review.yml<br/>(on every PR)"]
-        L1["Layer 1<br/>Alice / Bob / Phil / Gomez / Carl"]:::workflow
-        L2["Layer 2<br/>Jekyll / Hyde"]:::workflow
-    end
-
-    Codebase -.->|scanned by| Scanners
-    Scanners -->|write reports| AG
-    AG -->|files| Issues
-    Decisions -.->|scanned by| SG
-    SG -->|files story-tagged issues<br/>+ adds 'ready' label| Issues
-    Issues -->|picks one| DA
-    DA -->|opens| PRs
-    PRs --> L1
-    L1 --> L2
-    L2 -->|reviews ready to read| Human
-
-    Human -.->|opens own PRs| PRs
-    SM -.->|closes shipped issues<br/>tracks drift| Issues
-```
-
-### `workflows/pr-review.yml`
-
-**When it fires:** every `opened` / `synchronize` / `reopened` event on a pull request targeting the default branch.
-
-**What it does:** two layers, in sequence.
-
-```mermaid
-sequenceDiagram
-    actor Author
-    participant GH as GitHub PR
-    participant L1 as Layer 1<br/>reviewers
-    participant L2 as Layer 2<br/>critics
-
-    Author->>GH: open PR / push commit
-
-    Note over L1: review job fires (parallel)
-    par
-        L1->>GH: Alice — security
-    and
-        L1->>GH: Bob — engineering
-    and
-        L1->>GH: Gomez — clean code<br/>(optional)
-    and
-        L1->>GH: Carl — UX<br/>(optional, only if has-frontend)
-    end
-
-    Note over L2: critique job waits for review job<br/>(needs: review)
-    GH-->>L2: posted reviews + diff
-    par
-        L2->>GH: Jekyll — whitehat critic
-    and
-        L2->>GH: Hyde — blackhat critic
-    end
-
-    GH-->>Author: 4-6 reviews ready to read
-```
-
-**Skip conditions:** fork PRs, Renovate PRs, and PRs with the `skip-ci` label.
-
-### `workflows/scheduled-agents.yml`
-
-Twelve jobs, each a ten-line call into the reusable `workflows/run-agent.yml`. What that file
-owns, why the `if:` conditions look the way they do, and what to change when you add an agent
-are all in [`workflows/README.md`](workflows/README.md).
-
-**When it fires:** the bots are layered across the week so the outputs of one feed the inputs of the next.
-
-```mermaid
-flowchart TD
-    classDef scanner fill:#dbeafe,stroke:#1e40af,color:#1e3a8a
-    classDef groomer fill:#fde68a,stroke:#92400e,color:#78350f
-    classDef worker  fill:#bbf7d0,stroke:#166534,color:#14532d
-    classDef artifact fill:#f3f4f6,stroke:#6b7280,color:#111827
-    classDef human    fill:#fef3c7,stroke:#92400e,color:#78350f
-
-    subgraph WeeklyMon09 ["Mondays 09:00 UTC — audit scanners (run in parallel)"]
-        HR[hanging_refs]:::scanner
-        NA[naming_audit]:::scanner
-        CS[class_size_audit]:::scanner
-        SA[security_audit]:::scanner
-        PA[prompt_audit<br/>optional]:::scanner
-        SM[scrum_master]:::scanner
-        MW[market_watch<br/>Fridays only]:::scanner
-    end
-
-    Reports[(.claude/reports/<br/>timestamped audit reports)]:::artifact
-
-    HR --> Reports
-    NA --> Reports
-    CS --> Reports
-    SA --> Reports
-    PA --> Reports
-
-    subgraph WeeklyMon12 ["Mondays 12:00 UTC — 3h gap absorbs schedule skew"]
-        AG[audit_groomer]:::groomer
-    end
-    Reports --> AG
-
-    Issues[(GitHub Issues<br/>labeled audit-finding)]:::artifact
-    AG --> Issues
-
-    subgraph Daily08 ["Daily 08:00 UTC"]
-        SGRM[story_groomer]:::groomer
-        DEV[feature_agent]:::worker
-    end
-
-    SGRM -->|adds 'ready' / 'build-ready'| Issues
-    Issues -->|picks one, WIP=1| DEV
-
-    PR[/Draft PR: design doc only<br/>label: design-pending/]:::artifact
-    DEV --> PR
-    Owner{{Owner adds<br/>design-approved}}:::human
-    PR --> Owner
-    Built[/Same PR, now built<br/>label: design-implementation/]:::artifact
-    Owner --> DEV
-    DEV --> Built
-    Built -.->|triggers pr-review.yml| PRRev[[PR review pipeline<br/>see diagram above]]
-    Built --> Merge{{Owner merges.<br/>No agent ever does.}}:::human
-```
-
----
-
-## What's in this repo (full inventory)
-
-### PR review pipeline (up to 7 agents)
-
-| Agent | What it does | What you used to do by hand |
-|---|---|---|
-| Alice (`alice_security.md`) | Security review: routes, auth, secrets, cookies, log-leak hygiene; frontend sections (OAuth, service worker, CSP) when applicable | Manually scan every PR for missing auth middleware, secret leaks, and cookie-flag misses |
-| Bob (`bob_engineering.md`) | Engineering review: god classes, naming contracts, fail-loud, over-abstraction; frontend sections when applicable | Catch over-abstraction, naming drift, and structural smells before merge |
-| Phil (`phil_testing.md`) | Unit-testing review: test-first signal, intent-first naming, mocking discipline, failure-mode coverage | Check whether the tests actually pin the behavior, or just execute it for coverage |
-| Gomez (`gomez_cleancode.md`) | Line-level clean-code review: names that communicate intent, density, idiom | Rename `processData` to something useful; spot the `let` that should be `const` |
-| Carl (`carl_ux.md`) | UX review: mobile fit, copy quality, latency masking, studio-quality polish. Skipped for projects with no frontend. | Walk through the diff on a 360-pixel viewport, check tap targets, eyeball loading states |
-| Jekyll (`jekyll_whitehat.md`) | Whitehat critic: challenges the first-pass reviews from a best-practices angle | Push back on a reviewer who's about to overfit to a single pattern |
-| Hyde (`hyde_blackhat.md`) | Blackhat critic: attacks the first-pass fixes for real bypasses | Stress-test a security fix to see if it actually closes the hole |
-
-There are no PWA / non-PWA variants. Alice and Bob contain frontend-specific sections inline, tagged Architecture-Conditional. The installer strips them at install time if your project has no frontend.
-
-### Backlog automation (4 agents)
-
-| Agent | What it does | What you used to do by hand |
-|---|---|---|
-| Feature (`feature_agent.md`) | Owns one unit of work at a time: drafts a design PR, waits for your `design-approved` label, then builds on the same branch and shepherds it through review | Pick the next issue, think through the shape, branch, write the tests, push, open the PR, respond to comments |
-| Scrum Master (`scrum_master.md`) | Closes shipped issues, auto-creates tracking issues, cleans up backlog | The Friday backlog-grooming session that nobody enjoys |
-| Story Groomer (`story_groomer.md`) | Decomposes decision docs into stories; grades each issue `ready` (design it) or `build-ready` (build it) | Read the latest decision doc and translate "we agreed to do X" into pickup-ready GitHub issues |
-| Audit Groomer (`audit_groomer.md`) | Turns weekly audit findings into pickup-ready issues | Read Monday's audit reports and file individual cleanup issues with enough context to pick up |
-
-### Weekly audits (8 agents)
-
-| Agent | What it does | What you used to do by hand |
-|---|---|---|
-| Hanging Refs (`hanging_refs.md`) | Dead imports, unused exports, orphan routes, stale env vars | Periodically grep for imports that point at deleted files |
-| Naming Audit (`naming_audit.md`) | Suffix / contract mismatches against your naming rules | Spot the class named `FooManager` that should be `FooService` (and the other twelve like it) |
-| Class Size Audit (`class_size_audit.md`) | Flags oversized classes (over ~300 lines or 8 methods) | Scan for the class that grew past the threshold while everyone was focused on features |
-| Security Audit (`security_audit.md`) | Auth routes, schema validation, secrets, log-leak, cookie hygiene | A full sweep of the codebase for security drift, the kind that builds up between releases |
-| Prompt Audit (`prompt_audit.md`) | (Optional, only if your project ships LLM prompts.) Prompt templates against your prompt-rules doc | Check every prompt template for fragment-loading drift, negative directives in narrative prompts, schema mismatches |
-| Flaky Test Finder (`flaky_test_finder.md`) | (Optional, only if your CI emits JUnit XML.) Pulls the last ~100 CI runs, builds a per-test pass/fail histogram, separates flaky from real failures, plus a static-smell scan | Read 100 CI runs by hand to figure out whether that test fails sometimes or all the time |
-| Release Audit (`release_audit.md`) | (Optional.) Pre-release sweep: unreleased changes, migration steps, breaking-change surface, deploy-checklist drift | Reconstruct what actually changed since the last tag, and what a deploy needs to do about it |
-| Market Watch (`market_watch.md`) | Weekly ecosystem and tooling scan | A Friday afternoon spent reading release notes, blog posts, and HackerNews to see if anything matters this week |
-
-### Installer (1 agent)
-
-| Agent | What it does | What you used to do by hand |
-|---|---|---|
-| Installer (`installer.md`) | The wizard that puts the kit into your target repo. Invoked via `/install` from a freshly-cloned developer.ai folder. | Copy 14 agent files, edit `REPO_OWNER/REPO_NAME` placeholders, set up workflow YAML, write three calibration docs from scratch |
-
-### Skills (copy to `.claude/skills/` in your project)
-
-**TypeScript** (`skills/typescript/`): receiving-code-review, test-driven-development, code-refactoring, visual-smoke, dev-harness-for-ui-iteration.
-
-**Python** (`skills/python/`): receiving-code-review, test-driven-development, code-refactoring, visual-smoke.
-
-The installer copies the language set that matches your stack answer.
-
-### Templates (copy to `docs/` in your project)
-
-| File | What it calibrates |
-|---|---|
-| `templates/PROJECT_CONTEXT.md` | What this project is. Every agent reads this. Ships with opinionated defaults. |
-| `templates/ARCHITECTURE.md` | System shape and layer responsibilities. Bob and the audits read this. |
-| `templates/SECURITY.md` | Trust boundaries, sign-in flow, cookies. Alice and security-audit read this. |
-| `templates/DEBUGGING.md` | Your project's runbook: symptom decision tree, request path, log commands, and the failure modes that already cost someone an hour. |
-| `templates/AGENT_CALIBRATION.md` | A living log of which findings were signal and which were noise, so a drifting reviewer gets caught before you start skimming it. |
-| `templates/decisions/DECISION_TEMPLATE.md` | Shape of a decision doc, with inline guidance comments. |
-
-### Examples (read for shape, don't copy)
-
-- **`examples/reviews/findings-gallery.md`**: what each reviewer actually catches, as short before/after entries grouped by agent. A few lines of code, the comment that got posted against it, and the one-line reason it lands. Read this first if you want to know whether the output is worth the tokens.
-- **`examples/decisions/`**: four worked decision docs in different shapes (security / vendor, layering, philosophy, ops). See `examples/README.md` for the tour.
-
-### Engineering docs (copy to `engineering/` in your project)
-
-- `engineering/ENGINEERING_PRINCIPLES.md`: KISS, SOLID, DRY, YAGNI, naming, failure policy. Pass-through port from a real production codebase, with all rules classified into Generic, Architecture-Conditional, Personal Preference, or Domain-Specific tags so the installer can tailor it to your project.
-- `engineering/TESTING_PRINCIPLES.md`: test philosophy, intent-first naming, mocking discipline, failure-mode coverage, flaky-test smells. Phil and `flaky_test_finder` read this.
-- `engineering/SECURITY_PRINCIPLES.md`: the portable security rules (input validation, identity binding, prompt-injection boundary, three-tier logging, secrets). Alice and `security_audit` read this. Your project's own answers go in `docs/SECURITY.md`.
-- `engineering/AI_AGENT_PRINCIPLES.md`: how to design an agent that calls a model. Whether to build one at all, tool-surface design, memory, prefix stability, evaluation. Only relevant if your project ships its own agents.
-- `engineering/OBSERVABILITY_PRINCIPLES.md`: what a log line should contain, correlation ids, trace spans, and the rule against truncating prose. Pairs with `docs/DEBUGGING.md`.
-- `engineering/PR_WORKFLOW.md`: opening PRs, greening CI, responding to review.
-- `engineering/BACKLOG_WORKFLOW.md`: issue lifecycle, Definition of Ready.
-
-### Reference docs (read; don't copy unless relevant)
-
-- `AGENT_RELIABILITY.md`: the six rules that stop a reviewer job reporting success when it posted nothing, plus the checklist to run before shipping any change to an agent workflow.
-- `STYLE.md`: writing-style rules for templates and setup docs.
-- `DOMAIN_SPECIFIC.md`: worked examples of patterns that don't apply to every project (turn-based state machines, AI-narrative pipelines, memory strategies). Read the section that matches what you're building.
-
----
-
-## The tag convention
-
-Every rule in this kit carries a classification tag in an HTML comment. Tags are invisible in the rendered markdown but tell the installer what to keep, what to strip, and what to customize.
-
-```markdown
-- **Default to zero comments.** Comments are a symptom of unclear names.
-  <!-- tag: Generic -->
-
-- **Backend holds the user's session; the browser only has a cookie.**
-  <!-- tag: Architecture-Conditional; applies-when: has-frontend + has-auth -->
-
-- **No em-dashes, no emoji in prose.** Use colons or new sentences.
-  <!-- tag: Personal Preference; default-on -->
-```
-
-Four tags:
-- **`Generic`**: applies to any project. Kept verbatim.
-- **`Architecture-Conditional`**: applies under certain conditions (`has-frontend`, `has-auth`, `ships-llm-prompts`, etc.). Kept or stripped based on your wizard answers.
-- **`Personal Preference`**: strong opinion, reasonable to disagree. Kit's opinion by default; overridable.
-- **`Domain-Specific`**: content that didn't get a useful generalization. Lives in `DOMAIN_SPECIFIC.md` as a worked example; cross-referenced from generic files.
-
-The full set of `applies-when` flags the installer recognizes is documented in `agents/installer.md`. You don't have to know them to install; the wizard collects everything you need to answer.
+| [`INSTALL.md`](INSTALL.md) | The fast install path |
+| [`ADAPTING.md`](ADAPTING.md) | The manual path, and taking only the parts you want |
+| [`CALIBRATE.md`](CALIBRATE.md) | Tuning the agents to your project after install |
+| [`agents/`](agents/) | Every agent, what it does, and the full inventory |
+| [`engineering/`](engineering/) | The principles the agents enforce: [engineering](engineering/ENGINEERING_PRINCIPLES.md), [testing](engineering/TESTING_PRINCIPLES.md), [security](engineering/SECURITY_PRINCIPLES.md), [observability](engineering/OBSERVABILITY_PRINCIPLES.md), [AI agents](engineering/AI_AGENT_PRINCIPLES.md), [PR workflow](engineering/PR_WORKFLOW.md), [backlog workflow](engineering/BACKLOG_WORKFLOW.md) |
+| [`workflows/`](workflows/) | GitHub Actions pipelines, the diagrams, and why they are shaped this way |
+| [`ci/`](ci/) | GitLab, Bitbucket, and Azure DevOps |
+| [`toolconfigs/`](toolconfigs/) | Config for the seven AI coding tools |
+| [`templates/`](templates/) | What you fill in: project context, architecture, security, debugging, calibration |
+| [`examples/reviews/`](examples/reviews/) | Real, unedited output from five agents on a fixture you can rerun |
+| [`KIT_EXTEND.md`](KIT_EXTEND.md) | Adding your own agents, and the tag convention |
+| [`AGENT_RELIABILITY.md`](AGENT_RELIABILITY.md) | Why a silent agent fails the build |
+| [`BENCHMARKING.md`](BENCHMARKING.md) | How we plan to measure whether the fleet is accurate |
+| [`STYLE.md`](STYLE.md) | Writing conventions for the docs |
+| [`DOMAIN_SPECIFIC.md`](DOMAIN_SPECIFIC.md) | Patterns that did not generalize, kept as worked examples |
 
 ---
 
 ## License
 
-MIT. Fork, extend, ship.
+MIT. See [LICENSE](LICENSE).

@@ -1,0 +1,158 @@
+# developer.ai on GitLab CI.
+#
+# Merge-request review and weekly audits. The backlog agents are not here: they
+# are built on GitHub Issues and labels and do not port. See ci/README.md.
+#
+# Setup:
+#   1. Copy this file to .gitlab-ci.yml, or `include:` it from yours.
+#   2. Copy ci/scripts/ to ci/scripts/ in your repo.
+#   3. Add two masked CI/CD variables:
+#        CLAUDE_CODE_OAUTH_TOKEN   from `claude setup-token`
+#        GITLAB_TOKEN              a project access token with `api` scope
+#      CI_JOB_TOKEN cannot post discussions, which is why the second one exists.
+#   4. Add a pipeline schedule for the audits, Mondays 09:00, with
+#      RUN_AUDITS = "true".
+
+stages:
+  - review
+  - critique
+  - audit
+
+.agent_base:
+  image: node:22
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq git >/dev/null
+    - npm install -g @anthropic-ai/claude-code >/dev/null
+    - chmod +x ci/scripts/*.sh
+
+# --- Merge-request review -----------------------------------------------------
+
+review:
+  extends: .agent_base
+  stage: review
+  # Fork MRs do not receive the project's masked variables, so every job would
+  # fail on a missing token. Skip them before any model call rather than after.
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_PROJECT_ID == $CI_PROJECT_ID
+  parallel:
+    matrix:
+      # The model is pinned per agent, and pinning it is not optional. A floating
+      # alias repoints under you: `sonnet` moved from 4.6 to 5 mid-2026 with no
+      # change on any adopter's side. A per-agent column is also the staged
+      # rollout lever: flip one reviewer as a canary before the rest.
+      - AGENT: alice_security
+        AGENT_MODEL: claude-sonnet-5
+      - AGENT: bob_engineering
+        AGENT_MODEL: claude-sonnet-5
+      - AGENT: phil_testing
+        AGENT_MODEL: claude-sonnet-5
+  variables:
+    GIT_DEPTH: 0
+    REVIEW_PLATFORM: gitlab
+    AGENT_EFFORT: medium
+    # No Edit. Every reviewer in this kit is read-only, and one that cannot write
+    # cannot rewrite the code it is judging. Write is here only for the review file.
+    AGENT_TOOLS: "Bash,Read,Grep,Glob,WebSearch,WebFetch,Write"
+  script:
+    - git fetch origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+    - export DIFF_BASE_SHA=$(git merge-base "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" HEAD)
+    - export DIFF_START_SHA="$DIFF_BASE_SHA"
+    - export DIFF_HEAD_SHA=$(git rev-parse HEAD)
+    - export REVIEW_TARGET="merge request !${CI_MERGE_REQUEST_IID} in ${CI_PROJECT_PATH}"
+    - export DIFF_COMMAND="git diff ${DIFF_BASE_SHA}...HEAD"
+    - ci/scripts/review-task.sh "$AGENT" "review-${AGENT}.json" > task.md
+    - ci/scripts/run-agent.sh "$AGENT" task.md
+    - node ci/scripts/post-review.mjs "review-${AGENT}.json" "$AGENT"
+  artifacts:
+    # Kept whether the job passed or failed. On a failure this file, or its
+    # absence, is the only evidence of what the agent did.
+    when: always
+    paths:
+      - review-*.json
+    expire_in: 14 days
+
+# --- Critique -----------------------------------------------------------------
+#
+# Jekyll and Hyde critique what the first wave found, so they run after it rather
+# than beside it. They read the review-*.json artifacts the review stage produced,
+# which GitLab passes down the stage order automatically. No comment-read API is
+# involved, and the findings arrive already carrying the path and line each one
+# was anchored to.
+#
+# `when: always` because a critic still has something useful to say when a
+# reviewer failed: it reports which first-wave files are missing instead of
+# quietly critiquing a partial set.
+
+critique:
+  extends: .agent_base
+  stage: critique
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_PROJECT_ID == $CI_PROJECT_ID
+      when: always
+  parallel:
+    matrix:
+      - AGENT: jekyll_whitehat
+        AGENT_MODEL: claude-sonnet-5
+      - AGENT: hyde_blackhat
+        AGENT_MODEL: claude-sonnet-5
+  variables:
+    GIT_DEPTH: 0
+    REVIEW_PLATFORM: gitlab
+    AGENT_EFFORT: medium
+    AGENT_TOOLS: "Bash,Read,Grep,Glob,WebSearch,WebFetch,Write"
+  script:
+    - git fetch origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+    - export DIFF_BASE_SHA=$(git merge-base "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" HEAD)
+    - export DIFF_START_SHA="$DIFF_BASE_SHA"
+    - export DIFF_HEAD_SHA=$(git rev-parse HEAD)
+    - export REVIEW_TARGET="merge request !${CI_MERGE_REQUEST_IID} in ${CI_PROJECT_PATH}"
+    - export DIFF_COMMAND="git diff ${DIFF_BASE_SHA}...HEAD"
+    - ci/scripts/critique-task.sh "$AGENT" . "critique-${AGENT}.json" > task.md
+    - ci/scripts/run-agent.sh "$AGENT" task.md
+    - node ci/scripts/post-review.mjs "critique-${AGENT}.json" "$AGENT"
+  artifacts:
+    when: always
+    paths:
+      # Not review-*.json: those were downloaded from the review stage, and
+      # re-uploading them would make it unclear which job produced what.
+      - critique-*.json
+    expire_in: 14 days
+
+# --- Weekly audits ------------------------------------------------------------
+
+audit:
+  extends: .agent_base
+  stage: audit
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $RUN_AUDITS == "true"
+  parallel:
+    matrix:
+      - AGENT:
+          - security_audit
+          - hanging_refs
+          - naming_audit
+          - class_size_audit
+          - release_audit
+          - scrum_master
+  variables:
+    GIT_DEPTH: 0
+    AGENT_MODEL: claude-sonnet-5
+    AGENT_EFFORT: medium
+    AGENT_TOOLS: "Bash,Read,Grep,Glob,WebSearch,WebFetch,Write,Edit"
+  script:
+    - mkdir -p .claude/reports
+    - |
+      cat > task.md <<'TASK'
+      ---
+
+      TASK: Run the audit defined above against this repository now. Write the timestamped
+      report under .claude/reports/ and reply with only the report path. A report that
+      exists only in this runner is gone when the job ends, so the file must be written to
+      the working tree.
+      TASK
+    - ci/scripts/run-agent.sh "$AGENT" task.md
+  artifacts:
+    when: always
+    paths:
+      - .claude/reports/
+    expire_in: 90 days

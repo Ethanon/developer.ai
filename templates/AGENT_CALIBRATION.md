@@ -1,123 +1,93 @@
-<!-- Copy to docs/AGENT_CALIBRATION.md and keep it there. This is a living log,
-     not a document you finish. Sections marked TO FILL start empty. -->
+<!--
+  Copy to .claude/calibration/<agent-name>.md, one file per reviewer.
 
-# Agent Calibration Log
+  Each file is appended to that reviewer's prompt at review time, after its spec.
+  Appended, not merged into the spec, for three reasons:
 
-Which findings from the fleet were worth reading, and what was changed as a result.
+    1. The spec is the prompt prefix. Rewriting it weekly busts the cache on every
+       reviewer on every PR. Appending at the end does not.
+    2. Delete this file and you are back to default behaviour. Undoing spec edits
+       is git archaeology.
+    3. The file only ever holds calibration, so `git log` on this path is the
+       calibration history. No database, no dashboard, no service.
 
-Reviewer agents are advisory, so nothing forces you to notice one going bad. An agent that
-started posting three plausible-sounding non-findings per PR looks exactly like an agent
-doing its job, right up until you catch yourself skimming its comments. By then you have
-stopped reading the real findings too, and the fleet has quietly become decoration.
+  Write it by hand today. When `calibration_agent` ships, it maintains this file
+  and you review its commits instead of typing rows.
+-->
 
-This log is the cheapest instrument that catches that. It costs about two minutes per PR.
+# Calibration: `<agent-name>`
 
-**Update it when you close a PR, not later.** The judgment you want is the one you made
-while the diff was in front of you.
+What this repo has taught this reviewer. Rules only, in plain language, each with the evidence
+that produced it.
 
----
-
-## How to grade a finding
-
-Three verdicts, and only three. Resist adding a fourth.
-
-| Verdict | Means | Test |
-|---|---|---|
-| **signal** | You changed the code, or you would have if it were cheaper. | Would you have wanted to know this before merging? |
-| **noise** | Wrong, already decided against, or true but not worth a comment. | Did reading it cost you more than skipping it would have? |
-| **judgment** | Defensible either way. You disagreed, but a reasonable reviewer would not. | Could you argue the agent's side without straining? |
-
-Grade the finding, not the wording. An abrasive comment about a real bug is signal.
-
-**`judgment` is not a place to park anything you cannot decide.** If more than about a fifth
-of an agent's findings land there, the agent's lane is fuzzy and its spec needs a sharper
-statement of what it does not review. That is itself a finding about the agent.
+**Every entry names the pull requests behind it.** A rule with no evidence is a preference
+someone typed once, and it will still be here in a year with nobody able to say why.
 
 ---
 
-## Per-PR entries
+## Stay silent on
 
-One line per finding. Append; never rewrite history, because the trend is the whole point.
+Findings this reviewer keeps raising that this project keeps declining. Not wrong in general;
+wrong here.
 
-| Date | PR | Agent | Finding (5 words) | Verdict | Note |
-|---|---|---|---|---|---|
-| <!-- TO FILL: 2026-01-14 --> | #<!-- 42 --> | alice_security | tenantId read from path | signal | Real IDOR, fixed in this PR |
-| | | | | | |
+- **`<the finding, in one line>`**: raised on #NN, #NN, #NN; dismissed each time with no code
+  change. `<one sentence on why this project is different>`
 
-Delete the example row once you have real ones.
-
----
-
-## Running tallies
-
-Recount monthly from the table above. Do not maintain these by hand as you go, because a
-hand-maintained counter drifts in whichever direction flatters the agent.
-
-| Agent | Findings | signal | noise | judgment | Signal rate | Last spec edit |
-|---|---|---|---|---|---|---|
-| alice_security | | | | | | |
-| bob_engineering | | | | | | |
-| phil_testing | | | | | | |
-| gomez_cleancode | | | | | | |
-| carl_ux | | | | | | |
-| jekyll_whitehat | | | | | | |
-| hyde_blackhat | | | | | | |
-
-### What the numbers mean
-
-Signal rate is `signal / (signal + noise + judgment)`. Read it against how much the agent
-says, not on its own.
-
-- **Above roughly 60%:** healthy. Leave the spec alone.
-- **30% to 60%:** tolerable for a broad reviewer such as Gomez, who posts many small
-  comments cheaply. Not tolerable for a narrow one such as Alice, whose value is that you
-  read every comment.
-- **Below roughly 30%:** the agent has drifted. Edit its spec before the next PR, and record
-  the edit below.
-
-**A very low finding count is its own signal, and the more dangerous one.** An agent posting
-nothing at 100% signal rate may be perfectly calibrated, or may be silently failing. Check
-that it actually ran: `finalize-agent-review.sh` exists to make that distinction visible.
-See `AGENT_RELIABILITY.md` in the kit.
+<!-- Example:
+- **`req.params` reaching a query without validation inside `scripts/`.** Raised on #40, #43,
+  #51, #55; dismissed each time with no code change. Those are one-shot maintenance scripts
+  run by hand with no untrusted caller.
+-->
 
 ---
 
-## Spec edits
+## Raise severity on
 
-Every change to an agent's spec, and what prompted it. This is the part that pays back, and
-it is the part everyone skips.
+The opposite: things this reviewer treats as minor that this project treats as serious.
 
-Write down what you expected the edit to do. A month later, the tallies say whether it did,
-and you will not remember what you were aiming for.
-
-| Date | Agent | What changed | Prompted by | Expected effect |
-|---|---|---|---|---|
-| <!-- TO FILL --> | | | | |
-
-Six months of this is a specification of what review means on your project, which is worth
-more than any of the individual edits.
+- **`<the finding>`**: flagged LOW on #NN, fixed immediately and shipped as a hotfix. Treat as
+  HIGH here.
 
 ---
 
-## Standing exclusions
+## Project facts worth knowing
 
-Findings you have decided, once and permanently, that you do not want. Move a rule here
-rather than grading the same non-finding as noise every fortnight.
+Ground truth that changes a judgment and is not obvious from the diff. Keep it short. Anything
+that belongs to the whole project belongs in `docs/PROJECT_CONTEXT.md` instead, where every
+agent reads it.
 
-Each entry belongs in exactly one of two places, and putting it in both is how the two
-disagree:
-
-- **A project decision** goes in `docs/PROJECT_CONTEXT.md` under "What we don't do." Every
-  agent reads it, and it stays true if you swap agents.
-- **An agent's lane** goes in that agent's spec, in its own words.
-
-| Excluded finding | Where the rule now lives | Why |
-|---|---|---|
-| <!-- TO FILL --> | | |
+- `<fact>`: `<why it changes this reviewer's judgment>`
 
 ---
 
-## Notes to self
+<!--
+  HOW TO DECIDE WHAT GOES HERE
 
-<!-- TO FILL: anything that does not fit a table. Agents that disagree with each other
-     regularly, categories nobody covers, findings you wish someone were making. -->
+  Grade each finding as you close a pull request, while the diff is still in front
+  of you. Three verdicts and only three:
+
+    signal    You changed the code, or would have if it were cheaper.
+    noise     Wrong, already decided against, or true but not worth a comment.
+    judgment  Defensible either way. You disagreed; a reasonable reviewer would not.
+
+  A finding becomes an entry above when the same one is graded noise three times.
+  Three, not one: a single dismissal is usually the finding being right and the
+  moment being wrong.
+
+  If more than about a fifth of a reviewer's findings land in `judgment`, its lane
+  is fuzzy. That is a finding about the agent, and it belongs in the agent's spec
+  under "what you do not review" rather than here.
+
+  A very low finding count is its own signal, and the more dangerous one. An agent
+  posting nothing may be perfectly calibrated or silently failing, and those look
+  identical. See AGENT_RELIABILITY.md.
+
+  WHAT DOES NOT GO HERE
+
+  A rule you want on every project. That is a spec edit, and it belongs upstream in
+  the agent file so every adopter gets it.
+
+  A decision about the project itself ("we don't use ORMs"). That goes in
+  docs/PROJECT_CONTEXT.md under "What we don't do", where every agent reads it and
+  it survives you swapping reviewers.
+-->

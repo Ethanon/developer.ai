@@ -1,0 +1,121 @@
+# developer.ai on Bitbucket Pipelines.
+#
+# Pull-request review and weekly audits. The backlog agents are not here: they
+# are built on GitHub Issues and labels and do not port. See ci/README.md.
+#
+# Setup:
+#   1. Copy this file to bitbucket-pipelines.yml at your repo root.
+#   2. Copy ci/scripts/ to ci/scripts/ in your repo.
+#   3. Add two secured repository variables:
+#        CLAUDE_CODE_OAUTH_TOKEN   from `claude setup-token`
+#        BITBUCKET_TOKEN           a repository access token with pullrequest:write
+#   4. Schedule the `audits` custom pipeline for Mondays 09:00.
+#
+# Bitbucket has no build matrix, so each agent is its own step. Every step is two
+# lines, because the work lives in ci/scripts/. Adding a reviewer is a step here
+# plus nothing else.
+#
+# The model is pinned per agent, and pinning it is not optional. A floating alias
+# repoints under you: `sonnet` moved from 4.6 to 5 mid-2026 with no change on any
+# adopter's side, and a fleet went silent. Pinning per agent is also the staged
+# rollout lever: flip one reviewer as a canary before the rest.
+
+image: node:22
+
+definitions:
+  steps:
+    - step: &review
+        size: 2x
+        clone: { depth: full }
+        script:
+          - bash ci/scripts/bitbucket-review.sh
+        artifacts:
+          - review-*.json
+
+    - step: &critique
+        size: 2x
+        clone: { depth: full }
+        script:
+          - bash ci/scripts/bitbucket-critique.sh
+        artifacts:
+          # Not review-*.json: those came from the review steps, and re-declaring
+          # them would make it unclear which step produced what.
+          - critique-*.json
+
+    - step: &audit
+        clone: { depth: full }
+        script:
+          - bash ci/scripts/bitbucket-audit.sh
+        artifacts:
+          - .claude/reports/**
+
+pipelines:
+  # Fork pull requests do not receive secured variables, so run-agent.sh fails on
+  # the missing token before any model call. That is the intended outcome.
+  pull-requests:
+    '**':
+      - parallel:
+          fail-fast: false
+          steps:
+            - step:
+                <<: *review
+                name: Alice (security)
+                script:
+                  - AGENT=alice_security AGENT_MODEL=claude-sonnet-5 bash ci/scripts/bitbucket-review.sh
+            - step:
+                <<: *review
+                name: Bob (engineering)
+                script:
+                  - AGENT=bob_engineering AGENT_MODEL=claude-sonnet-5 bash ci/scripts/bitbucket-review.sh
+            - step:
+                <<: *review
+                name: Phil (testing)
+                script:
+                  - AGENT=phil_testing AGENT_MODEL=claude-sonnet-5 bash ci/scripts/bitbucket-review.sh
+      # The critics run after the parallel block, not inside it. They critique
+      # what the first wave found, and read the review-*.json artifacts those
+      # steps produced. Nothing to critique until those files exist.
+      - parallel:
+          fail-fast: false
+          steps:
+            - step:
+                <<: *critique
+                name: Jekyll (whitehat critic)
+                script:
+                  - AGENT=jekyll_whitehat AGENT_MODEL=claude-sonnet-5 bash ci/scripts/bitbucket-critique.sh
+            - step:
+                <<: *critique
+                name: Hyde (blackhat critic)
+                script:
+                  - AGENT=hyde_blackhat AGENT_MODEL=claude-sonnet-5 bash ci/scripts/bitbucket-critique.sh
+
+  custom:
+    audits:
+      - parallel:
+          fail-fast: false
+          steps:
+            - step:
+                <<: *audit
+                name: security_audit
+                script:
+                  - AGENT=security_audit bash ci/scripts/bitbucket-audit.sh
+            - step:
+                <<: *audit
+                name: hanging_refs
+                script:
+                  - AGENT=hanging_refs bash ci/scripts/bitbucket-audit.sh
+            - step:
+                <<: *audit
+                name: naming_audit
+                script:
+                  - AGENT=naming_audit bash ci/scripts/bitbucket-audit.sh
+            - step:
+                <<: *audit
+                name: class_size_audit
+                script:
+                  - AGENT=class_size_audit bash ci/scripts/bitbucket-audit.sh
+            - step:
+                <<: *audit
+                name: release_audit
+                script:
+                  - AGENT=release_audit bash ci/scripts/bitbucket-audit.sh
