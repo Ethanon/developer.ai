@@ -276,6 +276,6 @@ where their categories are empty, their output is one line:
 
 > **Jekyll** — No notes.
 
-This is the behaviour the kit works hardest to produce. An agent asked to review a diff
+A one-line deferral is the behaviour the kit works hardest to produce. An agent asked to review a diff
 will, by default, find *something*. Once an author learns the reviews contain filler, they
 skim, and once they skim, Phil's `NaN` finding gets skimmed too.

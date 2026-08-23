@@ -46,10 +46,10 @@ Then read `engineering/SECURITY_PRINCIPLES.md` end-to-end, followed by `docs/SEC
 
 Tag every finding with exactly one:
 
-- **HIGH** — A control `SECURITY.md` names as required is absent at a boundary that protects user data. Examples: a hardcoded credential in a committed file; a cookie that sets a session without `HttpOnly`; a route reading user input that bypasses all validation.
-- **MEDIUM** — A control is present but weakened, or a defensive practice from `SECURITY.md` is missed in a way that does not directly leak data today but reduces depth. Examples: a route with no Zod schema; a Logger call that includes a value that could carry user input without redaction; a `dangerouslySetInnerHTML` on a value from a non-trivially-trusted source.
-- **LOW** — A documentation, naming, or hygiene issue that points at a security topic. Examples: a stale doc reference to a deleted middleware; a comment that says "TODO: validate input" with no follow-up.
-- **NOTE** — An observation worth flagging that `SECURITY.md` does not currently cover. The reviewer decides whether to add a rule. Do not block on these; they are advisory.
+- **HIGH**: A control `SECURITY.md` names as required is absent at a boundary that protects user data. Examples: a hardcoded credential in a committed file; a cookie that sets a session without `HttpOnly`; a route reading user input that bypasses all validation.
+- **MEDIUM**: A control is present but weakened, or a defensive practice from `SECURITY.md` is missed in a way that does not directly leak data today but reduces depth. Examples: a route with no Zod schema; a Logger call that includes a value that could carry user input without redaction; a `dangerouslySetInnerHTML` on a value from a non-trivially-trusted source.
+- **LOW**: A documentation, naming, or hygiene issue that points at a security topic. Examples: a stale doc reference to a deleted middleware; a comment that says "TODO: validate input" with no follow-up.
+- **NOTE**: An observation worth flagging that `SECURITY.md` does not currently cover. The reviewer decides whether to add a rule. Do not block on these; they are advisory.
 
 When unsure, downgrade. A false MEDIUM costs the reviewer a minute; a false HIGH erodes trust in the report.
 

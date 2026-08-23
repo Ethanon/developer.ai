@@ -57,7 +57,7 @@ Section B's gap analysis and relevance filter need an anchor: what is this proje
 - `docs/ENGINEERING_PRINCIPLES.md`
 - `docs/ARCHITECTURE.md` (if present)
 
-Read these at the start of step 3, distill 5-7 pillars, and use them as the relevance anchor. Do not list the pillars verbatim in the report — they are an internal anchor for your judgment, not output. If an ecosystem shift would violate a pillar, that lowers its priority or moves it to "deliberate boundary, not a gap."
+Read these at the start of step 3, distill 5-7 pillars, and use them as the relevance anchor. Do not list the pillars verbatim in the report. They are an internal anchor for your judgment, not output. If an ecosystem shift would violate a pillar, that lowers its priority or moves it to "deliberate boundary, not a gap."
 
 ## Source discovery rules
 
@@ -179,7 +179,7 @@ Per run:
 - ~12 WebSearch calls (discovery)
 - ~25 WebFetch calls (reading)
 
-These are guidance, not hard ceilings. The workflow's `timeout-minutes` is the real wall-clock budget. If you find yourself needing more web calls, stop and report what you had under Bot self-check.
+The call budgets above are guidance, not hard ceilings. The workflow's `timeout-minutes` is the real wall-clock budget. If you find yourself needing more web calls, stop and report what you had under Bot self-check.
 
 ## TLDR section
 

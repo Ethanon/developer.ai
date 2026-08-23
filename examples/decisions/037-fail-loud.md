@@ -14,7 +14,7 @@ Our engineering principles say: *critical-path operations must fail loudly.* An 
 - Two chained `.catch()` handlers doing the same.
 - One silent early return that fabricated a result string and returned an empty payload, never throwing.
 
-The worst was the workspace-creation handler's outer catch. If anything threw upstream — a database timeout, an email-send failure, a malformed user record — the handler returned a fabricated `{ workspace: { id: 'pending', name: 'New workspace' } }` to the frontend, as if the creation had succeeded. The frontend would happily display the fake workspace until the user refreshed the page and noticed it was gone.
+The worst was the workspace-creation handler's outer catch. If anything threw upstream (a database timeout, an email-send failure, a malformed user record) the handler returned a fabricated `{ workspace: { id: 'pending', name: 'New workspace' } }` to the frontend, as if the creation had succeeded. The frontend would happily display the fake workspace until the user refreshed the page and noticed it was gone.
 
 The pattern was always well-intentioned: "don't show a 500 to the user, give them something to look at." The result was uniformly bad: it papered over real bugs, made debugging much harder, and confused users in ways a clear error never would have.
 
@@ -22,16 +22,16 @@ The pattern was always well-intentioned: "don't show a 500 to the user, give the
 
 **Delete every silent catch on the critical path. Let errors throw.**
 
-The Hono route handlers in `api/src/routes/*.ts` already wrap service calls in a `try/catch` that logs once and returns `500 { error: 'Action failed' }`. That is exactly the right place — one catch at the boundary, not a `try/catch` at every layer. The frontend's existing error handling (revert the optimistic update plus a friendly retry button) takes it from there.
+The Hono route handlers in `api/src/routes/*.ts` already wrap service calls in a `try/catch` that logs once and returns `500 { error: 'Action failed' }`. That is exactly the right place. One catch at the boundary, not a `try/catch` at every layer. The frontend's existing error handling (revert the optimistic update plus a friendly retry button) takes it from there.
 
 Two exceptions, both **explicit** and both adding nothing semantic:
 
-- `EmailService.sendInvite` — wraps the call to the email client in `try { ... } catch (err) { Logger.error('email/invite', err); throw err }`. A specific log tag adds diagnostic value at this boundary; the re-throw is pass-through.
-- `WorkspaceService.create` — same pattern around the database write. Workspace creation is user-visible enough that we want an obvious entry in the log when it fails.
+- `EmailService.sendInvite`: wraps the call to the email client in `try { ... } catch (err) { Logger.error('email/invite', err); throw err }`. A specific log tag adds diagnostic value at this boundary; the re-throw is pass-through.
+- `WorkspaceService.create`: same pattern around the database write. Workspace creation is user-visible enough that we want an obvious entry in the log when it fails.
 
 Neither returns a fallback. Neither suppresses the error. Both just add a named log point before re-throwing.
 
-**No lint rule.** Silent-catch detection is a semantic judgment — sometimes a catch genuinely is the right call (advisory or background work; see below). A lint rule would produce too many false positives. Code review plus this decision doc is the enforcement.
+**No lint rule.** Silent-catch detection is a semantic judgment: sometimes a catch genuinely is the right call (advisory or background work; see below). A lint rule would produce too many false positives. Code review plus this decision doc is the enforcement.
 
 ## What we considered and rejected
 
@@ -43,7 +43,7 @@ Neither returns a fallback. Neither suppresses the error. Both just add a named 
 
 Two categories of failure are legitimately advisory:
 
-**Background writes that follow the user's request.** A request that creates a workspace also writes an analytics event. The analytics write happens after the response has been sent. If it fails, we log and move on — the user's request already succeeded, and a missing analytics event is not user-visible.
+**Background writes that follow the user's request.** A request that creates a workspace also writes an analytics event. The analytics write happens after the response has been sent. If it fails, we log and move on: the user's request already succeeded, and a missing analytics event is not user-visible.
 
 ```ts
 this.analytics.track('workspace_created', { ... }).catch(err => {
@@ -53,11 +53,11 @@ this.analytics.track('workspace_created', { ... }).catch(err => {
 
 **Background-job handlers.** Per-item failures inside a batch job (e.g., one of fifty invite emails fails) log-and-continue. The job overall finishes; the user sees the items that succeeded and can retry the one that didn't.
 
-These are explicitly advisory and explicitly documented. A new advisory catch should have a one-line comment naming why it's advisory.
+Both exceptions are explicitly advisory and explicitly documented. A new advisory catch should have a one-line comment naming why it's advisory.
 
 ## How we'll know if this was wrong
 
-- 500 rates climb to the point where users notice. (Suggests the real failures we are now surfacing are too common — fix the underlying causes, don't go back to swallowing.)
+- 500 rates climb to the point where users notice. (Suggests the real failures we are now surfacing are too common, fix the underlying causes, don't go back to swallowing.)
 - The frontend's retry UX stops working in some flow. (Suggests we missed a flow when removing the catches; add it back, but loudly, not silently.)
 
 Neither of these is a reason to put the catches back. The fail-loud rule is about *where* the boundary lives, not whether one exists.
@@ -66,9 +66,9 @@ Neither of these is a reason to put the catches back. The fail-loud rule is abou
 
 Three tests codified the old fabricate-and-continue behavior. They were updated to assert the error now propagates:
 
-- `WorkspaceService.test.ts` — `returns fallback workspace when db fails` → `throws when db fails`
-- `WorkspaceService.test.ts` — `creates anyway when email fails` → `throws when email fails`
-- `InviteService.test.ts` — `returns success when email is unavailable` → `throws when email is unavailable`
+- `WorkspaceService.test.ts`: `returns fallback workspace when db fails` → `throws when db fails`
+- `WorkspaceService.test.ts`: `creates anyway when email fails` → `throws when email fails`
+- `InviteService.test.ts`: `returns success when email is unavailable` → `throws when email is unavailable`
 
 Each asserts `await expect(service.method(...)).rejects.toThrow(...)`. The route-level `try/catch → 500` flow does the rest.
 

@@ -12,7 +12,7 @@ If you are an agent: read this in full once, then read the linked doc(s) for the
 
 The agents cover:
 - Automated PR review (security, engineering principles, whitehat/blackhat critique)
-- Backlog automation (story grooming, issue lifecycle, developer-agent that self-assigns and ships issues)
+- Backlog automation (story grooming, issue lifecycle, a feature agent that designs, waits for your approval, then builds)
 - Weekly audits (dead code, naming violations, class size, security drift, market signals)
 - Workflow utilities (receiving code review, metered conflict resolution)
 
@@ -30,6 +30,7 @@ See [ADAPTING.md](ADAPTING.md) for the one-time setup steps to point everything 
 | Writing or reviewing tests | [`engineering/TESTING_PRINCIPLES.md`](engineering/TESTING_PRINCIPLES.md) |
 | Anything touching auth, input, secrets, logging, or prompts | [`engineering/SECURITY_PRINCIPLES.md`](engineering/SECURITY_PRINCIPLES.md) |
 | Architecture / data flow | `docs/ARCHITECTURE.md` (add your own) |
+| Changing an agent or a review workflow | [`AGENT_RELIABILITY.md`](AGENT_RELIABILITY.md) |
 | Logging, tracing, or debugging | [`engineering/OBSERVABILITY_PRINCIPLES.md`](engineering/OBSERVABILITY_PRINCIPLES.md) |
 | Building an agent that calls a model | [`engineering/AI_AGENT_PRINCIPLES.md`](engineering/AI_AGENT_PRINCIPLES.md) |
 | AI agents (all roles, variants) | [`agents/`](agents/) |
@@ -50,7 +51,7 @@ Every line is a liability. Write the minimum that correctly solves the problem. 
 
 ## Headline rules: the ones agents violate most often
 
-These are pointers to the full rules in [`engineering/ENGINEERING_PRINCIPLES.md`](engineering/ENGINEERING_PRINCIPLES.md).
+Each rule below is a pointer to the full text in [`engineering/ENGINEERING_PRINCIPLES.md`](engineering/ENGINEERING_PRINCIPLES.md).
 
 - **Fail loud, never fabricate.** Critical-path errors throw; client retries. No placeholder data, no synthetic ops, no "graceful degradation" that hides real failures. → "Failure Policy".
 - **No interim implementations.** If the design picked a shape, build to that shape. "Phase 1 easy, phase 2 real" is a smell. → "YAGNI".
@@ -58,12 +59,12 @@ These are pointers to the full rules in [`engineering/ENGINEERING_PRINCIPLES.md`
 - **Default to zero comments.** Comments are a symptom of unclear names. One line max when WHY is genuinely non-obvious. → "Comments".
 - **Timeouts and intervals never inline.** Read from a config module, never hardcode in business logic. → "Timeouts, Intervals, and Retries".
 - **Tests are deterministic, offline, fast.** No real-time waits, no real network, fake timers. → "Testing".
-- **`Result<T, E>` for fallible operations.** No throwing from business logic — use discriminated unions. → "Failure Policy".
+- **`Result<T, E>` for fallible operations.** No throwing from business logic: use discriminated unions. → "Failure Policy".
 - **Write so anyone can read it.** Plain language is a rule, not a preference: ISO 24495-1 findable, understandable, actionable, consistent. Applies to code names, docs, and user-facing text alike. → "Write So Anyone Can Read It".
 - **Names never leak a technology.** A name says what a thing is for, never what it is built on. `Db`, not `D1Database`. → "Names Never Leak a Technology".
 - **Facts before fixes.** Reproduce it before you change code for it. A fix aimed at a described defect fixes the description. → "Facts Before Fixes".
 - **Two failed attempts, look it up. Three, step back.** The second failure already told you your model of the problem is wrong. → "Troubleshooting Discipline".
-- **Reviews are advisory; subsequent rounds taper.** Reviewer agents never block merge. On Round 2+ of the same PR, only flag NEW issues or fixes that are worse than the original — don't relitigate prior findings the author chose not to act on. → "Review Etiquette".
+- **Reviews are advisory; subsequent rounds taper.** Reviewer agents never block merge. On Round 2+ of the same PR, only flag NEW issues or fixes that are worse than the original: don't relitigate prior findings the author chose not to act on. → "Review Etiquette".
 
 ---
 
@@ -112,7 +113,7 @@ The full rules are in [`engineering/ENGINEERING_PRINCIPLES.md`](engineering/ENGI
 
 ## Agents
 
-No PWA / generic variants — single file per agent. Frontend-specific rules live inline in each file, tagged `Architecture-Conditional`, and the installer strips them at install time for backend-only projects.
+No PWA / generic variants: single file per agent. Frontend-specific rules live inline in each file, tagged `Architecture-Conditional`, and the installer strips them at install time for backend-only projects.
 
 | Agent file | What it does |
 |---|---|
@@ -123,10 +124,10 @@ No PWA / generic variants — single file per agent. Frontend-specific rules liv
 | `carl_ux.md` | UX review on every PR; installer omits the file entirely for backend-only projects |
 | `jekyll_whitehat.md` | Whitehat critic of Alice / Bob / Phil findings, runs in the second review job |
 | `hyde_blackhat.md` | Blackhat critic of Alice / Bob / Phil findings, runs in the second review job |
-| `developer_agent.md` | Self-assigns a `ready` issue, opens a PR, shepherds it through review |
+| `feature_agent.md` | Owns one unit of work at a time: drafts a design PR, waits for your `design-approved` label, then builds on the same branch |
 | `scrum_master.md` | Closes shipped issues, auto-creates tracking issues, cleans up backlog |
-| `story_groomer.md` | Decomposes decision docs into stories; evaluates issues against the Definition of Ready |
-| `audit_groomer.md` | Turns weekly audit findings into pickup-ready issues for the developer agent |
+| `story_groomer.md` | Decomposes decision docs into stories; grades issues `ready` (design it) or `build-ready` (build it) |
+| `audit_groomer.md` | Turns weekly audit findings into pickup-ready issues for `feature_agent` |
 | `hanging_refs.md` | Dead imports, unused exports, orphan routes, stale env vars, CSS dead classes |
 | `naming_audit.md` | Suffix/contract mismatches against ENGINEERING_PRINCIPLES naming rules |
 | `class_size_audit.md` | Flags classes >= 300 lines or >= 8 public methods |
@@ -144,7 +145,7 @@ Both are bot-managed. Read these before opening an issue or PR:
 - [`engineering/BACKLOG_WORKFLOW.md`](engineering/BACKLOG_WORKFLOW.md): how issues come into existence, the Definition of Ready, the `[story]` heading convention.
 - [`engineering/PR_WORKFLOW.md`](engineering/PR_WORKFLOW.md): opening, greening CI, responding to review.
 
-The agent fleet is documented in [`agents/`](agents/) and the reference workflows are in [`workflows/`](workflows/).
+The agent fleet is documented in [`agents/`](agents/). The reference workflows are in [`workflows/`](workflows/), and [`workflows/README.md`](workflows/README.md) explains why they are shaped the way they are.
 
 ---
 

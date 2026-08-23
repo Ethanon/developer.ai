@@ -115,7 +115,7 @@ displays it. A developer overlay, a log viewer, or a terminal pager can collapse
 value and expand it again on demand. The call site does not know which reader it is
 writing for and should not guess.
 
-This is "never truncate" stated from the other end. Both exist because the call site is
+The rule above is "never truncate" stated from the other end. Both exist because the call site is
 the one place where the loss is permanent.
 
 ---

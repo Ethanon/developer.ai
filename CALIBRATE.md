@@ -20,7 +20,7 @@ The installer happily wires up every agent in the kit at once. Don't let it. Ado
 
 **Stage 4: Add backlog grooming.** Once the audit reports look useful, enable `audit_groomer` (turns reports into issues), `story_groomer` (labels issues `ready`), and `scrum_master` (closes shipped issues). These write to GitHub Issues but never to your code.
 
-**Stage 5: Add the developer agent.** This is the only agent that opens its own pull requests. Enable it last, after every upstream agent has earned its keep. If `developer_agent` opens a noisy PR in week one, the most common cause is that an upstream agent (Alice / Bob / story_groomer) was tuned poorly and the issue it picked up had bad acceptance criteria; that calibration debt rolls downhill.
+**Stage 5: Add the feature agent.** This is the only agent that opens its own pull requests. Enable it last, after every upstream agent has earned its keep. Its first PR on any issue holds a design document and nothing else, so the cheapest place to catch a bad pickup is that design review, before any code exists. If `feature_agent` drafts a design that misses the point, the most common cause is that an upstream agent (Alice / Bob / story_groomer) was tuned poorly and the issue it picked up had bad acceptance criteria; that calibration debt rolls downhill.
 
 Most projects burn out on AI adoption when an early agent makes a visible mistake on a write operation in week two. The staged approach prevents that: every write-capable agent comes online only after the read-only agents that feed it have proven trustworthy.
 
@@ -141,6 +141,31 @@ If you're in a heavily off-UTC timezone, edit the cron expressions so reports ar
 
 ---
 
+## Step 8: Keep a calibration log
+
+Copy `templates/AGENT_CALIBRATION.md` to `docs/AGENT_CALIBRATION.md` and fill one row per
+finding as you close each PR. Two minutes of work, and it is the only step here that keeps
+paying after the first month.
+
+Everything above this point is calibration you do once, from guesses. This step is how you
+find out whether the guesses were right.
+
+The failure it catches is specific. A reviewer agent that starts producing plausible
+non-findings does not announce itself: its comments still read like review, and the PR still
+merges. What changes is that you begin skimming. Once skimming is the habit, the real finding
+in the middle of the batch gets skimmed too, and the fleet is costing you money to be
+ignored. Nobody notices the day that starts.
+
+Grade each finding signal, noise, or judgment. Recount monthly. When an agent's signal rate
+drops below roughly 30%, edit its spec and write down what you expected the edit to do. The
+template carries the thresholds and the tables.
+
+The other direction matters as much. An agent that suddenly posts nothing has either become
+perfectly calibrated or stopped working, and those look identical from the PR window. See
+[`AGENT_RELIABILITY.md`](AGENT_RELIABILITY.md).
+
+---
+
 ## When to revisit calibration
 
 Calibration drifts as your project evolves. Re-read your `PROJECT_CONTEXT.md` quarterly. Specifically check:
@@ -148,5 +173,9 @@ Calibration drifts as your project evolves. Re-read your `PROJECT_CONTEXT.md` qu
 - The **scale target.** Did you cross from "a few hundred users" to "thousands"? Findings that were noise before may be real now.
 - The **services table.** Did you add a new container or rename one? The agents won't know unless this table says so.
 - The **"what we don't do" list.** Have any of those decisions softened? Time to update.
+
+Your calibration log answers all three faster than re-reading the templates does, because it
+records what the agents actually said about your code rather than what you predicted they
+would need.
 
 The agents are advisory; they always tell you what they think. Calibration is how you tell them what you think.

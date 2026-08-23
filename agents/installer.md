@@ -42,30 +42,46 @@ Don't ask all questions at once. Walk through them one group at a time, in this 
 ### Group 1 — about the target project
 
 1. **What's the path to your target repo?** (absolute path on this machine)
-2. **What does your project do?** (one sentence — describes what the agents will see in PROJECT_CONTEXT.md)
-3. **Who uses it?** (one sentence — drives UX, security, and scale judgments)
+2. **What does your project do?** (one sentence, describes what the agents will see in PROJECT_CONTEXT.md)
+3. **Who uses it?** (one sentence, drives UX, security, and scale judgments)
 4. **Scale you're designing for?** (small under 1k users / thousands / tens of thousands / more)
 5. **Multi-tenant?** (yes / no)
 
 ### Group 2 — about the stack
 
-6. **Primary backend language?** (TypeScript / Python / Go / Rust / Java / Ruby / other — affects naming-convention defaults and which skill set you copy)
-7. **Frontend, if any?** (React / Vue / Svelte / other / none — if "none", you skip Carl entirely and tag frontend-only sections in Alice and Bob as stripped)
+6. **Primary backend language?** (TypeScript / Python / Go / Rust / Java / Ruby / other, affects naming-convention defaults and which skill set you copy)
+7. **Frontend, if any?** (React / Vue / Svelte / other / none, if "none", you skip Carl entirely and tag frontend-only sections in Alice and Bob as stripped)
 8. **Database?** (Postgres / MySQL / SQLite / Mongo / other / none)
-9. **User auth?** (Keycloak / Auth0 / Clerk / Cognito / NextAuth / custom / none yet — if "none", you tag auth sections as stripped)
+9. **User auth?** (Keycloak / Auth0 / Clerk / Cognito / NextAuth / custom / none yet, if "none", you tag auth sections as stripped)
 10. **Deployment shape?** (Docker Compose / Kubernetes / serverless / static / other)
-11. **CI provider?** (GitHub Actions / GitLab CI / CircleCI / other — affects which workflow files apply)
+11. **CI provider?** (GitHub Actions / GitLab CI / CircleCI / other)
+
+    **Only GitHub Actions workflows ship today.** Say so plainly rather than implying
+    otherwise, and tell the adopter what their answer changes:
+
+    - **GitHub Actions:** you copy `workflows/*.yml` and `workflows/scripts/` as normal.
+      Everything works.
+    - **Anything else:** you copy no workflow files at all, and you say which parts of the
+      kit still work. The eight audit agents in `agents/audits/` have no GitHub coupling:
+      they read the filesystem and write a report to `.claude/reports/`, so any scheduler
+      that can run Claude Code will run them. The seven PR reviewers read a diff and post
+      a review, and only the posting step is GitHub-specific, so they need an adapter the
+      kit does not ship. The four backlog agents are built on GitHub Issues and labels and
+      do not port without real work.
+
+    Record the answer either way. An adopter on GitLab should finish the install knowing
+    exactly what they got and what they did not, rather than discovering it later.
 
 ### Group 3 — about conventions
 
 12. **Filename / identifier case?** (defaults from your language answer: PascalCase classes plus camelCase utilities for TypeScript; snake_case for Python; etc. Answer "use defaults" or describe your preference)
-13. **What's OFF the table for your project?** (free text — managed services, specific vendors, deployment patterns, whatever you've already decided you don't do. This populates the "What we don't do" list in PROJECT_CONTEXT.md)
-14. **Do you keep architectural decision records?** (yes / no — decision docs under `docs/decisions/`, or an equivalent. If no, the sections that assume they exist are stripped. Default: yes)
-15. **Does anything outside this repo consume your API on a version you don't control?** (yes / no — a mobile app in an app store, a public API with third-party integrators, an installed desktop client, a partner webhook contract. Default: no)
+13. **What's OFF the table for your project?** (free text, managed services, specific vendors, deployment patterns, whatever you've already decided you don't do. This populates the "What we don't do" list in PROJECT_CONTEXT.md)
+14. **Do you keep architectural decision records?** (yes / no, decision docs under `docs/decisions/`, or an equivalent. If no, the sections that assume they exist are stripped. Default: yes)
+15. **Does anything outside this repo consume your API on a version you don't control?** (yes / no, a mobile app in an app store, a public API with third-party integrators, an installed desktop client, a partner webhook contract. Default: no)
 
-    This is a question of fact, not preference, and it decides the "No Backwards Compatibility" rule on its own. A "no" answer means one client shipping in lockstep with the server, and the rule holds. A "yes" answer means the rule is simply wrong for this project, and no amount of taste changes that. Do not present it as something the adopter can choose to want.
+    Question 15 asks about fact, not preference, and it decides the "No Backwards Compatibility" rule on its own. A "no" answer means one client shipping in lockstep with the server, and the rule holds. A "yes" answer means the rule is simply wrong for this project, and no amount of taste changes that. Do not present it as something the adopter can choose to want.
 
-16. **Any of these house rules you do NOT want?** (default: none — the adopter opts out, they do not opt in)
+16. **Any of these house rules you do NOT want?** (default: none, the adopter opts out, they do not opt in)
 
     Present all nine on one screen. These are genuine positions where a competent team could reasonably run the opposite policy. Read the trade-off with each; do not just list names.
 
@@ -87,9 +103,9 @@ Don't ask all questions at once. Walk through them one group at a time, in this 
 
 ### Group 4 — about the review fleet
 
-17. **Want the UX reviewer (Carl)?** (yes / no — only useful with a frontend; auto-skipped if Q7 was "none")
-18. **Want the clean-code reviewer (Gomez)?** (yes / no — recommended for any project)
-19. **Want the prompt audit?** (yes / no — only useful if your project ships LLM prompt templates)
+17. **Want the UX reviewer (Carl)?** (yes / no, only useful with a frontend; auto-skipped if Q7 was "none")
+18. **Want the clean-code reviewer (Gomez)?** (yes / no, recommended for any project)
+19. **Want the prompt audit?** (yes / no, only useful if your project ships LLM prompt templates)
 
 ### Group 5 — about GitHub
 
@@ -139,7 +155,7 @@ When you copy a file from `agents/`, `templates/`, or `engineering/`, you read e
 | `tag: Domain-Specific; see-DOMAIN_SPECIFIC.md` | Copy verbatim only if the user opts in to DOMAIN_SPECIFIC.md in Group 4. Otherwise strip. |
 | No tag | Treat as Generic. |
 
-If a tag has an `override:` comment alongside it, leave the override comment in place — the adopter will read it later if they want to customize.
+If a tag has an `override:` comment alongside it, leave the override comment in place. The adopter will read it later if they want to customize.
 
 ### Q16 rule-to-section mapping
 
@@ -147,10 +163,10 @@ Each row of the Q16 table maps to exactly one `Personal Preference` section. Unq
 
 | Q16 rule | Section in `engineering/ENGINEERING_PRINCIPLES.md` |
 |---|---|
-| The design-first working loop | The Working Loop — Design First, Ask, Test, Build, Clean Up |
+| The design-first working loop | The Working Loop: Design First, Ask, Test, Build, Clean Up |
 | Default to zero comments | Comments |
 | Class-based design, one class per file | Class-Based Design |
-| Naming suffixes are contracts | Naming Conventions — Suffixes Are Contracts |
+| Naming suffixes are contracts | Naming Conventions: Suffixes Are Contracts |
 | No interim implementations | No Interim Implementations |
 | No new config or env files | No New Config or Env Files |
 | A worktree per change | `PR_WORKFLOW.md` -> Start every change in its own worktree |
@@ -162,7 +178,7 @@ Two more sections behave like house rules but are NOT on that list, because they
 | Section | Flag | Kept when |
 |---|---|---|
 | No Backwards Compatibility | `single-client` | Nothing outside the repo consumes the API on an uncontrolled version (Q15 no) |
-| The Result Type — No Throwing from Business Logic | `result-type-idiomatic` | The language makes a Result-shaped return natural rather than a fight (Q6) |
+| The Result Type: No Throwing from Business Logic | `result-type-idiomatic` | The language makes a Result-shaped return natural rather than a fight (Q6) |
 
 Dropping a rule has knock-on effects elsewhere, and you handle these in the same pass:
 
@@ -172,21 +188,63 @@ Dropping a rule has knock-on effects elsewhere, and you handle these in the same
 
 A section is the heading line plus all content up to the next heading at the same level or higher. Strip cleanly; don't leave dangling "above" / "below" references in surrounding prose.
 
-If a whole file is tagged (the tag is right after the frontmatter or at the top of the body), the tag governs the whole file — strip the file entirely if it doesn't match, including from `.claude/agents/` after copying.
+If a whole file is tagged (the tag is right after the frontmatter or at the top of the body), the tag governs the whole file: strip the file entirely if it doesn't match, including from `.claude/agents/` after copying.
 
 ## Files that get straight copied (no tag processing)
 
 - Anything in `examples/` (the worked decision docs).
 - `LICENSE`.
-- `.gitignore` patterns relevant to `.claude/reports/` and similar — appended to the target repo's `.gitignore`, not overwriting it.
+- `.gitignore` patterns relevant to `.claude/reports/` and similar: appended to the target repo's `.gitignore`, not overwriting it.
 
 ## Files that get edited after copying
 
-- **`docs/PROJECT_CONTEXT.md`** — replace placeholder paragraphs with the user's answers from Groups 1, 2, 3.
-- **`docs/ARCHITECTURE.md`** — replace the services table with the user's actual services (you can leave the default if the user couldn't list them yet; they'll edit later).
-- **`docs/SECURITY.md`** — replace placeholder paragraphs with the user's answers.
-- **All workflow files** — replace `REPO_OWNER/REPO_NAME` with Q20, replace `master` with Q21 if the user picked `main`.
-- **All backlog agent files** — replace `REPO_OWNER`, `REPO_NAME`, and `master`/`main` placeholders in the "Repo identity" sections.
+- **`docs/PROJECT_CONTEXT.md`**: replace placeholder paragraphs with the user's answers from Groups 1, 2, 3.
+- **`docs/ARCHITECTURE.md`**: replace the services table with the user's actual services (you can leave the default if the user couldn't list them yet; they'll edit later).
+- **`docs/SECURITY.md`**: replace placeholder paragraphs with the user's answers.
+- **All workflow files**: replace `REPO_OWNER/REPO_NAME` with Q20, replace `master` with Q21 if the user picked `main`.
+- **All backlog agent files**: replace `REPO_OWNER`, `REPO_NAME`, and `master`/`main` placeholders in the "Repo identity" sections.
+
+## Labels the backlog agents require
+
+Skip this whole section when the user declined the backlog agents in Q11.
+
+The four backlog agents drive everything through GitHub labels, and a label that does not
+exist is a silent no-op: `story_groomer` grades an issue, tries to apply `build-ready`, and
+the API rejects it. Create them before the first scheduled run.
+
+**Readiness**, applied by `story_groomer` and consumed by `feature_agent`:
+
+| Label | Colour | Description |
+|---|---|---|
+| `ready` | `0e8a16` | Enough here to start a design document |
+| `build-ready` | `1d76db` | Design is settled, build it |
+| `epic` | `5319e7` | Umbrella over several stories, design decomposes it |
+
+**Lifecycle**, the state machine on `feature_agent`'s one open PR. The owner sets the two
+that grant permission:
+
+| Label | Colour | Description |
+|---|---|---|
+| `design-pending` | `fbca04` | Draft PR holds the design document, awaiting owner review |
+| `design-approved` | `0e8a16` | Owner accepted the design, agent may build |
+| `design-implementation` | `1d76db` | Built or building, PR ready for review |
+| `design-completed` | `5319e7` | Owner gave final approval and will merge |
+
+**Bookkeeping**, applied by `scrum_master` and `audit_groomer`:
+
+| Label | Colour | Description |
+|---|---|---|
+| `shipped` | `c5def5` | Tracking issue for a merged PR |
+| `doc-drift` | `d93f0b` | Docs and code diverged, human-handled |
+| `audit-finding` | `d4c5f9` | Filed from a weekly audit report |
+
+Create each one with `gh label create <name> --color <hex> --description "<text>" --force`.
+The `--force` flag makes the whole step idempotent, so re-running an install over an
+existing repo updates descriptions rather than failing.
+
+Type and domain labels are deliberately not created here. Those carve up the user's own
+codebase and only they know the right set. Point at "Labels" in
+`engineering/BACKLOG_WORKFLOW.md` in the "what's next" screen instead.
 
 ## CLAUDE.md handling
 
@@ -233,6 +291,10 @@ If the target repo already has a `CLAUDE.md`, leave it alone. Print a note in th
 
 6. **Edit files** that need post-copy customization (workflows, templates, backlog agents).
 
+   **Create the GitHub labels** from "Labels the backlog agents require" above, unless the
+   user declined the backlog agents. If `gh` is not authenticated, do not fail the install:
+   print the exact commands in the "what's next" screen and carry on.
+
 7. **Commit** on a new branch. Commit message:
    ```
    chore: install developer.ai agent kit
@@ -259,9 +321,14 @@ If the target repo already has a `CLAUDE.md`, leave it alone. Print a note in th
         cd <target path>
         git diff main...chore/install-developer-ai
 
-   3. Open a small test PR to see the agents fire.
+   3. Pick your type and domain labels. The kit created the readiness, lifecycle,
+      and bookkeeping labels; type (feature / bug / refactor) and domain (api / ui /
+      data) carve up your codebase and are yours to choose. See "Labels" in
+      engineering/BACKLOG_WORKFLOW.md.
 
-   4. Read docs/CALIBRATE.md for further tuning.
+   4. Open a small test PR to see the agents fire.
+
+   5. Read docs/CALIBRATE.md for further tuning.
 
    The agents will not run until you complete step 1 and push a PR.
    ```

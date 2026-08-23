@@ -81,13 +81,13 @@ In template prose, every slot has a one-sentence lead-in explaining what the slo
 
 - "**Why we ask:** Alice (the security review agent) needs to know where your routes live so she can spot a new route that forgot to attach the auth middleware."
 
-This is the difference between a template a reader fills in confidently and one they fill in by guessing.
+Saying why you ask is the difference between a template a reader fills in confidently and one they fill in by guessing.
 
 ## 6. No em-dashes; no emoji; no aphorisms
 
 Em-dashes are a stylistic tic that compounds in AI-written prose, and they are usually rule 2 of the standard being broken: a sentence holding two clauses and a dash is normally two sentences. Use a colon, a comma, a parenthesis, or a full stop.
 
-This is a house rule with no exception carved out for it, because every exception anyone has proposed turned out to be a sentence that read better split.
+The em-dash ban is a house rule with no exception carved out for it, because every exception anyone has proposed turned out to be a sentence that read better split.
 
 No emoji or icons in templates or setup docs. No aphorism-shaped closers ("at the end of the day...", "the rest is just plumbing"). Those read as filler when a reader is trying to extract meaning.
 

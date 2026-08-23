@@ -213,7 +213,7 @@ Keep the actual numbers out of this document and in your configuration. They tun
 **The rule:** a code path that bypasses authentication must be both build-gated and dynamically imported.
 <!-- tag: Architecture-Conditional; applies-when: has-frontend -->
 
-This is the subtlest rule in this document and the one most likely to ship a real hole.
+Dev harnesses carry the subtlest rule in this document, and the one most likely to ship a real hole.
 
 A dev harness (any path that bypasses the auth gate, or stubs the auth context, active-tenant, or data service) needs two independent controls:
 

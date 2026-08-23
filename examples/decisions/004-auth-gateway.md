@@ -8,11 +8,11 @@
 
 ## Problem
 
-Our first cut at user sign-in lived inside the `api` container. We had our own `auth` service in code — password hashing, session tokens, password-reset emails, the lot. A design review identified three problems with this shape:
+Our first cut at user sign-in lived inside the `api` container. We had our own `auth` service in code: password hashing, session tokens, password-reset emails, the lot. A design review identified three problems with this shape:
 
 1. **Coupling.** Bundling identity into the API container blocks horizontal scaling. If we ever want to put the API behind a load balancer with several instances, sessions become tricky (every instance has to share session state).
-2. **Hand-rolled identity is expensive to get right.** Password hashing, session minting, one-time email codes — all of these have a "battle-tested open-source" equivalent. Owning that code means we own its bugs.
-3. **Federation is a years-long footgun.** "Sign in with Google" sounds simple. Implementing it in-house, plus Apple, plus customer SAML for the enterprise plan later, becomes a large surface area to keep correct.
+2. **Hand-rolled identity is expensive to get right.** Password hashing, session minting, one-time email codes: all of these have a "battle-tested open-source" equivalent. Owning that code means we own its bugs.
+3. **Federation is a years-long maintenance burden.** "Sign in with Google" sounds simple. Implementing it in-house, plus Apple, plus customer SAML for the enterprise plan later, becomes a large surface area to keep correct.
 
 This decision replaces that shape. It specifies: **a dedicated `auth` container runs our identity provider; the `api` container is a stateless gateway that holds the user's session on the browser's behalf.**
 
@@ -118,13 +118,13 @@ The refresh cookie's narrow path scope is important. Even if some future bug at 
 
 The first time a user signs in, the `auth` container creates them in its realm and assigns a stable internal ID. The `api` container's callback handler then creates a matching row in `datastore-sql` (`userId` from `auth`'s claim, plus the user's tenant assignment).
 
-We do this in the auth container's signup flow as a server-side plugin, not in the API container's callback handler. The reason: the API doing the user creation cannot be atomic with the auth container's own user creation. If the user closes the browser between those two writes, we end up with an account in `auth` and nothing in our database — a broken state that blocks the user from ever signing in again on the same email. The auth-container plugin runs inside the same transaction as the user creation, so a half-finished signup rolls back cleanly.
+We do this in the auth container's signup flow as a server-side plugin, not in the API container's callback handler. The reason: the API doing the user creation cannot be atomic with the auth container's own user creation. If the user closes the browser between those two writes, we end up with an account in `auth` and nothing in our database: a broken state that blocks the user from ever signing in again on the same email. The auth-container plugin runs inside the same transaction as the user creation, so a half-finished signup rolls back cleanly.
 
 ## What we considered and rejected
 
 - **Custom in-process auth (where we started).** Rejected after design review. We do not want to own password hashing and email-code flows.
 - **A managed identity provider (Auth0, Cognito, Clerk, WorkOS).** Rejected because we keep all user data inside our own cluster (`PROJECT_CONTEXT.md` "How we host it"). Managed identity also has per-user pricing that hurts at scale.
-- **Tokens directly in the browser (frontend talks to `auth` over OAuth itself).** Rejected. The browser holding a real token is a big browser-attack surface for no real benefit — the backend still has to do everything anyway.
+- **Tokens directly in the browser (frontend talks to `auth` over OAuth itself).** Rejected. The browser holding a real token is a big browser-attack surface for no real benefit: the backend still has to do everything anyway.
 - **A library inside the API container that just wraps an identity provider's SDK.** Rejected. We want a hard process boundary between user identity and our business logic. The container line is the simplest place to draw it.
 
 ## Trade-offs we accept
@@ -145,13 +145,13 @@ If we hit any of these, the right next step is usually a tuning change, not a re
 
 | File | Change |
 |---|---|
-| `api/src/auth/login.ts` | New — `/auth/login` route |
-| `api/src/auth/callback.ts` | New — `/auth/callback` route |
-| `api/src/auth/refresh.ts` | New — `/auth/refresh` route |
-| `api/src/auth/logout.ts` | New — `/auth/logout` route |
-| `api/src/middleware/requireSession.ts` | New — auth middleware |
-| `api/src/system/SessionVerifier.ts` | New — verifier interface + Keycloak impl |
-| `api/src/system/AuthBroker.ts` | New — broker interface + Keycloak impl |
+| `api/src/auth/login.ts` | New: `/auth/login` route |
+| `api/src/auth/callback.ts` | New: `/auth/callback` route |
+| `api/src/auth/refresh.ts` | New: `/auth/refresh` route |
+| `api/src/auth/logout.ts` | New: `/auth/logout` route |
+| `api/src/middleware/requireSession.ts` | New: auth middleware |
+| `api/src/system/SessionVerifier.ts` | New: verifier interface + Keycloak impl |
+| `api/src/system/AuthBroker.ts` | New: broker interface + Keycloak impl |
 | `api/src/auth/legacy/*` | Deleted (old in-process auth code) |
 | `frontend/src/login/Form.tsx` | Deleted (Keycloak owns the sign-in UI) |
 | Containers: `auth/`, `datastore-sql/`, `secrets/` | New container definitions |

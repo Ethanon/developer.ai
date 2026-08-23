@@ -10,21 +10,21 @@
 
 We run nine maintenance bots on daily and weekly schedules:
 
-- **story-groomer** (daily) — turns approved decision-doc sections into GitHub issues.
-- **developer-agent** (daily) — picks up a `ready` issue and opens a PR for it.
-- **scrum-master** (weekly) — closes shipped issues, opens drift-tracking issues.
-- **audit-groomer** (weekly) — converts audit reports into ready issues.
-- **security-audit** (weekly) — scans the codebase for security drift.
-- **hanging-refs** (weekly) — scans for dead imports and orphaned routes.
-- **naming-audit** (weekly) — scans for naming-contract violations.
-- **class-size-audit** (weekly) — flags oversized classes.
-- **market-watch** (weekly) — surveys ecosystem changes.
+- **story-groomer** (daily): turns approved decision-doc sections into GitHub issues.
+- **feature-agent** (daily): picks up a `ready` issue and opens a PR for it.
+- **scrum-master** (weekly): closes shipped issues, opens drift-tracking issues.
+- **audit-groomer** (weekly): converts audit reports into ready issues.
+- **security-audit** (weekly): scans the codebase for security drift.
+- **hanging-refs** (weekly): scans for dead imports and orphaned routes.
+- **naming-audit** (weekly): scans for naming-contract violations.
+- **class-size-audit** (weekly): flags oversized classes.
+- **market-watch** (weekly): surveys ecosystem changes.
 
-Until now the schedule lived in the maintainer's personal Claude Code "coworker routines" — a per-developer config that fires the bots against the local repo on a clock the developer's own machine owns.
+Until now the schedule lived in the maintainer's personal Claude Code "coworker routines": a per-developer config that fires the bots against the local repo on a clock the developer's own machine owns.
 
 Two failure modes follow:
 
-1. **The pipeline pauses whenever the maintainer's machine is off.** The backlog (issues filed by groomers, PRs opened by the developer-agent) is the spine of how work flows through this project; pausing it pauses everything else.
+1. **The pipeline pauses whenever the maintainer's machine is off.** The backlog (issues filed by groomers, PRs opened by the feature-agent) is the spine of how work flows through this project; pausing it pauses everything else.
 2. **Onboarding a second maintainer means re-creating the routines on their box.** The schedule is not in the repo, so it cannot be reviewed, version-controlled, or transferred.
 
 We already invoke our PR-review bots (alice_security, bob_engineering, jekyll_whitehat, hyde_blackhat) from a GitHub Actions workflow on `pull_request`. The same action accepts a `schedule:` trigger; the migration is mechanical.
@@ -39,17 +39,17 @@ A matrix-style "run all bots from one workflow" was tempting and rejected. The b
 
 - **Cadence.** Daily for two bots; weekly for the rest, on different days.
 - **Token.** Most need a fine-grained access token so their writes trigger downstream workflows. One bot (scrum-master) only touches issues and is fine on the built-in workflow token.
-- **Failure handling.** developer-agent opens PRs that humans review; a runaway costs a wasted PR. security-audit writes a report we publish; a silent failure costs us the Monday-morning ping. The right retry, runtime budget, and on-failure handling are different per bot.
+- **Failure handling.** feature-agent opens PRs that humans review; a runaway costs a wasted PR. security-audit writes a report we publish; a silent failure costs us the Monday-morning ping. The right retry, runtime budget, and on-failure handling are different per bot.
 - **Concurrency keys.** story-groomer cannot run twice at once (its commits to `main` would race themselves). security-audit has no such constraint.
 
-Collapsing all of this into one matrix-driven workflow forces the union of every difference into a config rendered as YAML. Per-bot files are mechanical — each is roughly 40 lines, mirroring the same skeleton — and editing one when its needs change is a single-file edit.
+Collapsing all of this into one matrix-driven workflow forces the union of every difference into a config rendered as YAML. Per-bot files are mechanical (each is roughly 40 lines, mirroring the same skeleton) and editing one when its needs change is a single-file edit.
 
 ### Schedule (in UTC)
 
 | Bot | Cadence | Cron | Eastern time |
 |---|---|---|---|
 | story-groomer | daily | `0 12 * * *` | 07:00 |
-| developer-agent | daily | `0 13 * * *` | 08:00 |
+| feature-agent | daily | `0 13 * * *` | 08:00 |
 | security-audit | weekly Monday | `0 9 * * 1` | 04:00 |
 | hanging-refs | weekly Monday | `0 9 * * 1` | 04:00 |
 | naming-audit | weekly Monday | `0 9 * * 1` | 04:00 |
@@ -71,7 +71,7 @@ Two tokens, one already built in:
 | Token | Used by | Why |
 |---|---|---|
 | Built-in workflow token | scrum-master only | Files, closes, and comments on issues. None of these writes trigger another workflow, so the default-token restriction (writes by the built-in token don't fire downstream workflows) doesn't bite. |
-| Project access token (in repo secret `BOT_TOKEN`) | every other bot | Two needs: writes that must fire downstream workflows (a story-groomer commit must trigger the report-notify workflow; a developer-agent PR must trigger the PR-review workflow), and the ability to push directly to the protected default branch. |
+| Project access token (in repo secret `BOT_TOKEN`) | every other bot | Two needs: writes that must fire downstream workflows (a story-groomer commit must trigger the report-notify workflow; a feature-agent PR must trigger the PR-review workflow), and the ability to push directly to the protected default branch. |
 
 The project access token is fine-grained (`Contents: Read & Write`, `Issues: Read & Write`, `Pull requests: Read & Write`) scoped to this repo only. The maintainer adds it as a repo secret before merging the first workflow that needs it.
 
@@ -104,18 +104,18 @@ GitHub Actions's `timeout-minutes` is the only wall-clock abort we have. Per-bot
 | hanging-refs | 15 |
 | naming-audit | 15 |
 | class-size-audit | 15 |
-| developer-agent | 25 |
+| feature-agent | 25 |
 | market-watch | 20 |
 
-The developer-agent gets the largest budget because it does real source edits and waits on its own commit round-trip. market-watch gets 20 because every web-fetch adds latency. The seven scan-and-report bots finish in single digits; 15 minutes is a comfortable ceiling.
+The feature-agent gets the largest budget because it does real source edits and waits on its own commit round-trip. market-watch gets 20 because every web-fetch adds latency. The seven scan-and-report bots finish in single digits; 15 minutes is a comfortable ceiling.
 
 These numbers live in the workflow YAML, not in a shared config. Adjusting one is a one-line edit when a bot's runtime profile actually changes; pre-emptively centralizing them is premature optimization.
 
 ### Watchdog
 
-A separate scheduled workflow, `.github/workflows/02-agent-watchdog.yml`, polls the Actions API once a day and pings the maintainer if any of the nine workflows is stale or has failed. The watchdog itself uses no Claude API — it's a small shell script that runs on the built-in workflow token.
+A separate scheduled workflow, `.github/workflows/02-agent-watchdog.yml`, polls the Actions API once a day and pings the maintainer if any of the nine workflows is stale or has failed. The watchdog itself uses no Claude API. It's a small shell script that runs on the built-in workflow token.
 
-The watchdog runs in **heartbeat mode**: it pings the maintainer every day, even when all nine bots are healthy. Healthy fires a default-priority "9/9 healthy" message; one or more alerts fires a high-priority message with per-bot detail. Heartbeat mode means the absence of the daily ping is itself a signal — if the watchdog itself stops running, the maintainer notices via missed heartbeats rather than via silence.
+The watchdog runs in **heartbeat mode**: it pings the maintainer every day, even when all nine bots are healthy. Healthy fires a default-priority "9/9 healthy" message; one or more alerts fires a high-priority message with per-bot detail. Heartbeat mode means the absence of the daily ping is itself a signal, if the watchdog itself stops running, the maintainer notices via missed heartbeats rather than via silence.
 
 The watchdog is the bottom turtle: nothing watches the watchdog. Heartbeat mode is the answer to "what watches the watcher?"
 
@@ -124,7 +124,7 @@ The watchdog is the bottom turtle: nothing watches the watchdog. Heartbeat mode 
 GitHub Actions does not guarantee a `schedule:` trigger fires at the requested minute. Two skew sources are documented: high load on the Actions service can delay or skip a run, and a workflow can be auto-disabled after 60 days of repository inactivity. Concretely:
 
 - A daily run can land anywhere in a window of tens of minutes from the requested time. We treat this as "best effort, daily" rather than "fires at 12:00 UTC sharp."
-- A scheduled run can be skipped entirely under heavy Actions load. The bot loop tolerates this — every bot is idempotent (groomers use idempotency markers, audit scanners overwrite same-day reports), so a skipped run becomes a doubled batch on the next run. No data is lost.
+- A scheduled run can be skipped entirely under heavy Actions load. The bot loop tolerates this: every bot is idempotent (groomers use idempotency markers, audit scanners overwrite same-day reports), so a skipped run becomes a doubled batch on the next run. No data is lost.
 - After 60 days of no commits, GitHub auto-disables scheduled workflows. This repo commits multiple times daily, so this is not an active risk; if it ever becomes one, the maintainer re-enables the workflow from the Actions tab.
 
 The 3-hour gap between the audit scanners and the audit-groomer absorbs even worst-case skew (a 30-minute delay still leaves completed reports).

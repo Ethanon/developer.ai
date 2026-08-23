@@ -266,7 +266,7 @@ TDD cycle:
 
 ## pytest-mock vs unittest.mock
 
-Prefer `pytest-mock`'s `mocker` fixture over `unittest.mock.patch` as a context manager — it auto-cleans up after the test and composes naturally with fixtures:
+Prefer `pytest-mock`'s `mocker` fixture over `unittest.mock.patch` as a context manager. It auto-cleans up after the test and composes naturally with fixtures:
 
 ```python
 # PREFER (pytest-mock)
@@ -285,12 +285,12 @@ def test_calls_external_service() -> None:
 ## TDD Prevents These Anti-Patterns
 
 **Why TDD helps:**
-1. **Write test first** — Forces you to think about what you're actually testing
-2. **Watch it fail** — Confirms test tests real behavior, not mocks
-3. **Minimal implementation** — No test-only methods creep in
-4. **Real dependencies** — You see what the test actually needs before mocking
+1. **Write test first**: Forces you to think about what you're actually testing
+2. **Watch it fail**: Confirms test tests real behavior, not mocks
+3. **Minimal implementation**: No test-only methods creep in
+4. **Real dependencies**. You see what the test actually needs before mocking
 
-**If you're testing mock behavior, you violated TDD** — you added mocks without watching test fail against real code first.
+**If you're testing mock behavior, you violated TDD**. You added mocks without watching test fail against real code first.
 
 ## Quick Reference
 
@@ -300,7 +300,7 @@ def test_calls_external_service() -> None:
 | Test-only methods in production | Move to `conftest.py` or test utilities |
 | Mock without understanding | Understand dependencies first, mock minimally |
 | Incomplete mocks | Use `TypedDict`/dataclass, mirror real API |
-| Tests as afterthought | TDD — tests first |
+| Tests as afterthought | TDD: tests first |
 | Over-complex mocks | Consider integration tests with `tmp_path` or real SQLite |
 
 ## Red Flags
