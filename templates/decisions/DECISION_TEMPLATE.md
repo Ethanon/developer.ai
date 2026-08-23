@@ -85,7 +85,7 @@ linked images) belong here when they clarify shape. Code samples belong
 here when they show the interface we're committing to.
 
 If the decision has multiple parts, number them. Each part should be
-defensible on its own — if a reader disagrees with part 3, parts 1 and
+defensible on its own, if a reader disagrees with part 3, parts 1 and
 2 should still be useful.
 -->
 

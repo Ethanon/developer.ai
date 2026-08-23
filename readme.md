@@ -4,11 +4,11 @@
 
 # developer.ai
 
-**The end-to-end Claude Code loop for solo developers and small teams.** Scheduled audit bots scan your repo and file ready-state GitHub issues; a developer-agent picks them up and opens PRs that close them; a named seven-person review fleet (security, engineering, unit testing, UX, clean-code, plus a blackhat/whitehat critic pair) leaves advisory comments on every PR. None of the reviewers block merge — the author always decides. Claude-only by design; install with `/install` in Claude Code.
+**The end-to-end Claude Code loop for solo developers and small teams.** Scheduled audit bots scan your repo and file ready-state GitHub issues. A feature agent picks one up, drafts a design for you to approve, then builds it. A named seven-person review fleet (security, engineering, unit testing, UX, clean-code, plus a blackhat and whitehat critic pair) leaves advisory comments on every PR. None of the reviewers block merge: the author always decides. Claude-only by design; install with `/install` in Claude Code.
 
 ![The developer.ai agent crew](assets/agent-crew.png)
 
-This isn't another agent collection — it's the full workflow loop one developer needs to operate a repo. The kit ships opinionated defaults you tune via an install-time wizard, plus convention docs (`CLAUDE.md`, `ENGINEERING_PRINCIPLES.md`, PR/backlog workflows) tag-classified Generic / Architecture-Conditional / Personal-Preference / Domain-Specific so you know what to keep and what to strip.
+This isn't another agent collection. It's the full workflow loop one developer needs to operate a repo. The kit ships opinionated defaults you tune via an install-time wizard, plus convention docs (`CLAUDE.md`, `ENGINEERING_PRINCIPLES.md`, PR/backlog workflows) tag-classified Generic / Architecture-Conditional / Personal-Preference / Domain-Specific so you know what to keep and what to strip.
 
 You clone this repo, open Claude Code in it, and run `/install`. The installer asks you about your stack, your conventions, and your repo identity; it then writes the calibrated kit into your target repo on a new branch. Once you add the `CLAUDE_CODE_OAUTH_TOKEN` GitHub secret, the agents start firing on your next PR.
 
@@ -56,7 +56,7 @@ On a Max plan, working 8-10 hours a day in Claude Code, running **5-10 full PR r
 day for a week** fit inside the plan alongside normal development. That is the whole fleet
 on each PR, not a single reviewer.
 
-That is one repo, one working pattern, one week. Treat it as an order-of-magnitude anchor
+Those numbers cover one repo, one working pattern, one week. Treat it as an order-of-magnitude anchor
 rather than a guarantee: a repo with much larger diffs, or a team opening far more PRs, will
 land somewhere different.
 
@@ -104,7 +104,7 @@ the kit does.
 3. **Calibrate.** Read the templates the installer just created. Tighten anything where your reality differs from the defaults the installer picked. See `docs/CALIBRATE.md` in your target repo for the walkthrough.
 4. **Test PR.** Open a throwaway PR (even a one-line README edit). The agents should fire. Tune the templates if findings are noisy.
 5. **Normal use.** Open PRs as you normally would. The agents fire automatically. On the rare PR where you don't want them (a giant infra refactor, an emergency hotfix), add the `skip-ci` label.
-6. **Weekly bots.** Mondays by default: the audit bots scan the codebase for drift, dead code, naming violations, security drift, and ecosystem changes. They write reports to `.claude/reports/`. The `audit-groomer` bot reads those reports the next day and files pickup-ready issues. The `developer-agent` bot picks one issue per day and opens a PR for it.
+6. **Weekly bots.** Mondays by default: the audit bots scan the codebase for drift, dead code, naming violations, security drift, and ecosystem changes. They write reports to `.claude/reports/`. The `audit-groomer` bot reads those reports the next day and files pickup-ready issues. The `feature-agent` bot holds one unit of work at a time: it opens a design PR, waits for your `design-approved` label, then builds on the same branch.
 7. **Periodic re-read.** Re-read your templates whenever you notice their assumptions drifting from reality (your scale target grew, you added a new service, you changed your hosting model). The agents pick up the new calibration on the next run.
 
 ---
@@ -115,7 +115,7 @@ Every agent in this kit runs in one of two modes; both are first-class and they'
 
 **On-demand (conversational).** You ask in Claude Code and the agent runs. The frontmatter `description` on every agent file ends with a list of natural-language phrases that activate it, so "scan for dead code" triggers `hanging_refs`, "groom the backlog" triggers `scrum_master`, and "set this up on my project" triggers the installer. Use this when something's bugging you and you don't want to wait for the scheduled run, or when you want to invoke an agent ad-hoc on a one-off question.
 
-**Automatic (workflows).** The PR review pipeline and the weekly audit scanners run on a fixed schedule with no human in the loop. The PR review fires on every pull request (Alice, Bob, Phil, optional Gomez and Carl, then Jekyll and Hyde); the audit scanners fire Monday morning, the audit-groomer fires Monday noon, the developer-agent fires daily. Use this for everything that needs to happen on every PR or every Monday whether you remembered or not. Nobody's going to manually invoke seven agents on every commit; this has to be automatic.
+**Automatic (workflows).** The PR review pipeline and the weekly audit scanners run on a fixed schedule with no human in the loop. The PR review fires on every pull request (Alice, Bob, Phil, optional Gomez and Carl, then Jekyll and Hyde); the audit scanners fire Monday morning, the audit-groomer fires Monday noon, the feature-agent fires daily. Use this for everything that needs to happen on every PR or every Monday whether you remembered or not. Nobody's going to manually invoke seven agents on every commit; this has to be automatic.
 
 The two modes share the same agent files. The same Alice that fires automatically in the workflow is the one that fires when you say "security review this PR" in chat. The schedule is the difference, not the agent.
 
@@ -169,7 +169,7 @@ flowchart LR
         Scanners["audit scanners<br/>(weekly Mon 09:00)"]:::workflow
         AG["audit_groomer<br/>(weekly Mon 12:00)"]:::workflow
         SG["story_groomer<br/>(daily 08:00)"]:::workflow
-        DA["developer_agent<br/>(daily 08:00)"]:::workflow
+        DA["feature_agent<br/>(daily 08:00)"]:::workflow
         SM["scrum_master<br/>(weekly Mon)"]:::workflow
     end
 
@@ -234,6 +234,10 @@ sequenceDiagram
 
 ### `workflows/scheduled-agents.yml`
 
+Twelve jobs, each a ten-line call into the reusable `workflows/run-agent.yml`. What that file
+owns, why the `if:` conditions look the way they do, and what to change when you add an agent
+are all in [`workflows/README.md`](workflows/README.md).
+
 **When it fires:** the bots are layered across the week so the outputs of one feed the inputs of the next.
 
 ```mermaid
@@ -242,6 +246,7 @@ flowchart TD
     classDef groomer fill:#fde68a,stroke:#92400e,color:#78350f
     classDef worker  fill:#bbf7d0,stroke:#166534,color:#14532d
     classDef artifact fill:#f3f4f6,stroke:#6b7280,color:#111827
+    classDef human    fill:#fef3c7,stroke:#92400e,color:#78350f
 
     subgraph WeeklyMon09 ["Mondays 09:00 UTC — audit scanners (run in parallel)"]
         HR[hanging_refs]:::scanner
@@ -271,15 +276,21 @@ flowchart TD
 
     subgraph Daily08 ["Daily 08:00 UTC"]
         SGRM[story_groomer]:::groomer
-        DEV[developer_agent]:::worker
+        DEV[feature_agent]:::worker
     end
 
-    SGRM -->|adds 'ready' label| Issues
-    Issues -->|picks one ready issue| DEV
+    SGRM -->|adds 'ready' / 'build-ready'| Issues
+    Issues -->|picks one, WIP=1| DEV
 
-    PR[/GitHub PR opened<br/>by developer_agent/]
+    PR[/Draft PR: design doc only<br/>label: design-pending/]:::artifact
     DEV --> PR
-    PR -.->|triggers pr-review.yml| PRRev[[PR review pipeline<br/>see diagram above]]
+    Owner{{Owner adds<br/>design-approved}}:::human
+    PR --> Owner
+    Built[/Same PR, now built<br/>label: design-implementation/]:::artifact
+    Owner --> DEV
+    DEV --> Built
+    Built -.->|triggers pr-review.yml| PRRev[[PR review pipeline<br/>see diagram above]]
+    Built --> Merge{{Owner merges.<br/>No agent ever does.}}:::human
 ```
 
 ---
@@ -304,9 +315,9 @@ There are no PWA / non-PWA variants. Alice and Bob contain frontend-specific sec
 
 | Agent | What it does | What you used to do by hand |
 |---|---|---|
-| Developer (`developer_agent.md`) | Self-assigns a `ready` issue, opens a PR, shepherds it through review | Pick the next issue, branch, fix the small stuff, push, open the PR, respond to comments |
+| Feature (`feature_agent.md`) | Owns one unit of work at a time: drafts a design PR, waits for your `design-approved` label, then builds on the same branch and shepherds it through review | Pick the next issue, think through the shape, branch, write the tests, push, open the PR, respond to comments |
 | Scrum Master (`scrum_master.md`) | Closes shipped issues, auto-creates tracking issues, cleans up backlog | The Friday backlog-grooming session that nobody enjoys |
-| Story Groomer (`story_groomer.md`) | Decomposes decision docs into stories; evaluates the Definition of Ready | Read the latest decision doc and translate "we agreed to do X" into pickup-ready GitHub issues |
+| Story Groomer (`story_groomer.md`) | Decomposes decision docs into stories; grades each issue `ready` (design it) or `build-ready` (build it) | Read the latest decision doc and translate "we agreed to do X" into pickup-ready GitHub issues |
 | Audit Groomer (`audit_groomer.md`) | Turns weekly audit findings into pickup-ready issues | Read Monday's audit reports and file individual cleanup issues with enough context to pick up |
 
 ### Weekly audits (8 agents)
@@ -344,12 +355,13 @@ The installer copies the language set that matches your stack answer.
 | `templates/ARCHITECTURE.md` | System shape and layer responsibilities. Bob and the audits read this. |
 | `templates/SECURITY.md` | Trust boundaries, sign-in flow, cookies. Alice and security-audit read this. |
 | `templates/DEBUGGING.md` | Your project's runbook: symptom decision tree, request path, log commands, and the failure modes that already cost someone an hour. |
+| `templates/AGENT_CALIBRATION.md` | A living log of which findings were signal and which were noise, so a drifting reviewer gets caught before you start skimming it. |
 | `templates/decisions/DECISION_TEMPLATE.md` | Shape of a decision doc, with inline guidance comments. |
 
 ### Examples (read for shape, don't copy)
 
-- **`examples/reviews/findings-gallery.md`** — what each reviewer actually catches, as short before/after entries grouped by agent. A few lines of code, the comment that got posted against it, and the one-line reason it lands. Read this first if you want to know whether the output is worth the tokens.
-- **`examples/decisions/`** — four worked decision docs in different shapes (security / vendor, layering, philosophy, ops). See `examples/README.md` for the tour.
+- **`examples/reviews/findings-gallery.md`**: what each reviewer actually catches, as short before/after entries grouped by agent. A few lines of code, the comment that got posted against it, and the one-line reason it lands. Read this first if you want to know whether the output is worth the tokens.
+- **`examples/decisions/`**: four worked decision docs in different shapes (security / vendor, layering, philosophy, ops). See `examples/README.md` for the tour.
 
 ### Engineering docs (copy to `engineering/` in your project)
 
@@ -363,6 +375,7 @@ The installer copies the language set that matches your stack answer.
 
 ### Reference docs (read; don't copy unless relevant)
 
+- `AGENT_RELIABILITY.md`: the six rules that stop a reviewer job reporting success when it posted nothing, plus the checklist to run before shipping any change to an agent workflow.
 - `STYLE.md`: writing-style rules for templates and setup docs.
 - `DOMAIN_SPECIFIC.md`: worked examples of patterns that don't apply to every project (turn-based state machines, AI-narrative pipelines, memory strategies). Read the section that matches what you're building.
 

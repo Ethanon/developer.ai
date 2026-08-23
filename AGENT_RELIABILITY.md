@@ -56,11 +56,11 @@ Instead strip the YAML frontmatter from the agent's spec and make the body the p
 
 ### 4. Say that silence still means posting
 
-Newer models follow instructions more literally. A spec that says "stay silent when you have nothing to add" or "do not repeat findings that appear in existing reviews" gets read as *post nothing* — so the agent posts nothing, and is right to by its own instructions.
+Newer models follow instructions more literally. A spec that says "stay silent when you have nothing to add" or "do not repeat findings that appear in existing reviews" gets read as *post nothing*, so the agent posts nothing, and is right to by its own instructions.
 
 Every task prompt must say, in the workflow rather than only in the spec:
 
-> If you have nothing to flag, post an APPROVE whose body is your header banner — a "stay silent" rule still means a one-line APPROVE, never zero posts. "Do not repeat existing findings" means do not re-list them in your body; it never means do not post. Never end this run without posting a review.
+> If you have nothing to flag, post an APPROVE whose body is your header banner: a "stay silent" rule still means a one-line APPROVE, never zero posts. "Do not repeat existing findings" means do not re-list them in your body; it never means do not post. Never end this run without posting a review.
 
 ### 5. Verify the agent posted, and fail the job when it did not
 
@@ -68,9 +68,9 @@ Rules 2 through 4 are prompt and configuration, and both drift. This one does no
 
 `.github/scripts/finalize-agent-review.sh` asks the pull request whether a review carrying this agent's header exists on this head SHA, and exits non-zero when it does not. It also keeps the execution log for 14 days, because a silent run with no log leaves nothing to read but a green tick.
 
-Do not try to infer this from the execution log's tool-call count. A reviewer's real work runs inside a subagent, so the top-level log records the spawn and always looks busy — the count is above zero exactly when you most need it to be zero.
+Do not try to infer this from the execution log's tool-call count. A reviewer's real work runs inside a subagent, so the top-level log records the spawn and always looks busy: the count is above zero exactly when you most need it to be zero.
 
-A `null` result — the API was unreachable — is treated as "posted". A GitHub hiccup must never fail a reviewer that did its job.
+A `null` result (the API was unreachable) is treated as "posted". A GitHub hiccup must never fail a reviewer that did its job.
 
 ### 6. Cap `max-parallel`
 
@@ -80,7 +80,7 @@ Each agent pod runs a review alongside a dind sidecar. Five at once oversubscrib
 
 ## A report that is not committed does not exist
 
-Scheduled agents write to `.claude/reports/`. A runner is ephemeral, so a report written and not pushed is gone when the job ends — and any groomer that reads "the latest report from each source bot" then finds nothing, forever, while every job reports success.
+Scheduled agents write to `.claude/reports/`. A runner is ephemeral, so a report written and not pushed is gone when the job ends, and any groomer that reads "the latest report from each source bot" then finds nothing, forever, while every job reports success.
 
 Every report-writing prompt must end with the commit, not just the write:
 

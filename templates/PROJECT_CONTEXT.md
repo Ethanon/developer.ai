@@ -11,9 +11,9 @@ differs from the kit's assumptions.
 
 Sections carry a tag in HTML comments when they're conditional:
 
-  tag: Generic                                    — applies regardless
-  tag: Architecture-Conditional; applies-when: X — included only when X
-  tag: Personal Preference; default-on            — kit's opinion; overridable
+  tag: Generic                                   . Applies regardless
+  tag: Architecture-Conditional; applies-when: X. Included only when X
+  tag: Personal Preference; default-on           . Kit's opinion; overridable
 
 If you're reading the kit verbatim, all defaults are on.
 -->
@@ -95,7 +95,8 @@ The backlog agents key off labels. Defaults below; override only if your repo al
 
 | Purpose | Default label | Used by |
 |---|---|---|
-| Issue is ready for an agent to pick up | `ready` | story_groomer (adds), developer_agent (consumes) |
+| Issue is ready for an agent to design | `ready` | story_groomer (adds), feature_agent (consumes) |
+| Design is settled, ready to build | `build-ready` | story_groomer (adds), feature_agent (consumes) |
 | Issue tracks a shipped PR | `[shipped]` | scrum_master |
 | Issue tracks docs that drifted from code | `[doc-drift]` | scrum_master |
 | Issue came from a `[story]` heading in a decision doc | `[story]` in heading text, not a GitHub label | story_groomer |

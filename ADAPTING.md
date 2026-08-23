@@ -26,7 +26,7 @@ grep -r "REPO_OWNER/REPO_NAME" agents/ workflows/
 
 Files to update:
 - `agents/backlog/scrum_master.md`: repo identity section
-- `agents/backlog/developer_agent.md`: repo identity section
+- `agents/backlog/feature_agent.md`: repo identity section
 - `agents/backlog/story_groomer.md`: repo identity section
 - `agents/backlog/audit_groomer.md`: repo identity section
 - `workflows/pr-review.yml`: fork guard condition
@@ -34,7 +34,7 @@ Files to update:
 
 Also update the default branch name if yours is not `master` (e.g. change to `main`):
 - `agents/backlog/scrum_master.md`
-- `agents/backlog/developer_agent.md`
+- `agents/backlog/feature_agent.md`
 - `agents/backlog/story_groomer.md`
 - `agents/backlog/audit_groomer.md`
 - `workflows/pr-review.yml`
@@ -97,7 +97,7 @@ Create `docs/ARCHITECTURE.md` describing:
 - Layer responsibilities (which layer owns what logic)
 - Key decisions already made (auth pattern, persistence, etc.)
 
-This is the highest-ROI setup step. Agents that know your architecture post far fewer false positives.
+Filling this in is the highest-ROI setup step. Agents that know your architecture post far fewer false positives.
 
 ---
 
@@ -135,8 +135,7 @@ Several agents read allowlist files to skip known-good patterns:
 | `.claude/security-audit-allowlist.md` | `security_audit` | Findings the reviewer has accepted (by line key) |
 | `.claude/prompt-audit-allowlist.md` | `prompt_audit` | Prompt-rule carve-outs |
 | `.claude/scrum-master-allowlist.md` | `scrum_master` | Issues/PRs that should never be auto-closed or auto-tracked |
-| `.claude/developer-agent-allowlist.md` | `developer_agent` | Issues/paths the agent should never touch |
-| `.claude/story-groomer-allowlist.md` | `story_groomer` | Issues or doc sections that should never get the `ready` label |
+| `.claude/story-groomer-allowlist.md` | `story_groomer` | Issues or doc sections that should never get a readiness label |
 | `.claude/audit-groomer-allowlist.md` | `audit_groomer` | Audit findings that should not be converted into issues |
 
 These files are created by agents when needed. You can also create them manually before the first run. Format is described in each agent's spec.
@@ -145,7 +144,7 @@ These files are created by agents when needed. You can also create them manually
 
 ## Step 9: Calibrate the agents to your project
 
-This is the big payoff step, but it's its own document because it's the most substantive. See **[CALIBRATE.md](CALIBRATE.md)** for the walkthrough.
+Calibration is the big payoff step, and it has its own document because it is the most substantive. See **[CALIBRATE.md](CALIBRATE.md)** for the walkthrough.
 
 The short version: fill in `templates/PROJECT_CONTEXT.md`, `templates/SECURITY.md`, and `templates/ARCHITECTURE.md`, then fill the per-agent calibration slots inside each `agents/*.md` file. Without this, the agents fall back to generic advice; with it, you get findings that name your actual code.
 
@@ -163,7 +162,7 @@ Keep it focused: only rules that would catch real bugs in your codebase, not sty
 
 ## Step 11: Wire up scheduled agents (optional)
 
-The weekly agents (`scrum_master`, `market_watch`, `hanging_refs`, `naming_audit`, `class_size_audit`, `security_audit`, optionally `prompt_audit`, plus `audit_groomer` which depends on the others) and the daily agents (`developer_agent`, `story_groomer`) can be triggered by GitHub Actions cron jobs or by Claude Code remote routines.
+The weekly agents (`scrum_master`, `market_watch`, `hanging_refs`, `naming_audit`, `class_size_audit`, `security_audit`, optionally `prompt_audit`, plus `audit_groomer` which depends on the others) and the daily agents (`feature_agent`, `story_groomer`) can be triggered by GitHub Actions cron jobs or by Claude Code remote routines.
 
 Example cron workflow for weekly agents:
 

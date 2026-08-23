@@ -1,7 +1,7 @@
 # Debugging This Project
 
 <!--
-This is a runbook, not a principles doc. The rules live in
+Treat this as a runbook, not a principles doc. The rules live in
 engineering/OBSERVABILITY_PRINCIPLES.md; this file holds the commands that
 work on YOUR stack.
 

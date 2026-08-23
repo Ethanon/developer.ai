@@ -38,7 +38,7 @@ Seven rules follow from that:
 6. **Write out an abbreviation the first time it appears** on a page.
 7. **Name the thing you mean.** "It", "this" and "that" at the start of a sentence make the reader look backwards to find out what is being discussed.
 
-**This is not a rule against precision.** It is a rule against decoration. Removing a word that carries meaning makes the writing worse. Removing a word that only carries style makes it better.
+**Rule 1 is not a rule against precision.** It is a rule against decoration. Removing a word that carries meaning makes the writing worse. Removing a word that only carries style makes it better.
 
 **In code, the same rule is about names.** A name is the sentence most people read. `solvedPerTier` says what it returns; `handle` and `process` say nothing. A comment explains why the code is surprising. If it explains what the code does, the code needed a better name instead.
 
@@ -52,7 +52,7 @@ This rule governs every document in this kit. `STYLE.md` adds presentation conve
 
 > **The preferred number of lines of code is zero.**
 
-Every line of code is a liability — it must be written, read, tested, debugged, and maintained. The best implementation of a feature is the simplest one that correctly solves the problem and no more. When in doubt, delete.
+Every line of code is a liability. It must be written, read, tested, debugged, and maintained. The best implementation of a feature is the simplest one that correctly solves the problem and no more. When in doubt, delete.
 <!-- tag: Generic -->
 
 ---
@@ -81,10 +81,10 @@ Every code change runs the same five steps in order. The failure mode this secti
 
 ## AI Does Fuzzy Logic. Code Does Deterministic Logic.
 
-The single most important architectural rule when an AI model is in the stack: pure functions resolve anything that has a right answer, the model handles anything that doesn't. The two responsibilities never cross. A function decides "is this purchase over the daily limit?" — a model does not. A model decides "what's a friendly way to phrase this rejection?" — a function does not.
+The single most important architectural rule when an AI model is in the stack: pure functions resolve anything that has a right answer, the model handles anything that doesn't. The two responsibilities never cross. A function decides "is this purchase over the daily limit?" A model does not. A model decides "what's a friendly way to phrase this rejection?" A function does not.
 <!-- tag: Architecture-Conditional; applies-when: ships-llm-prompts -->
 
-The line is sharper than it sounds in practice. Anything with a single correct outcome — a rules check, a price calculation, a permission test, a state transition — is code. Anything where the goal is style, fit, tone, or interpretation — phrasing, summarization, classification at the margin, content generation — is the model. When a feature seems to need both, the code computes the structural answer and hands the model the context to phrase it; the model never reverse-engineers the structural answer from prose.
+The line is sharper than it sounds in practice. Anything with a single correct outcome (a rules check, a price calculation, a permission test, a state transition) is code. Anything where the goal is style, fit, tone, or interpretation (phrasing, summarization, classification at the margin, content generation) is the model. When a feature seems to need both, the code computes the structural answer and hands the model the context to phrase it; the model never reverse-engineers the structural answer from prose.
 
 A model that's asked to do deterministic work will get it right most of the time and silently wrong some of the time. A function that's asked to do creative work will be flat and repetitive. Each tool is wrong for the other job.
 
@@ -148,12 +148,12 @@ Worked answers, in the shape to write for your own codebase:
 
 **The question:** _if I add a new variant tomorrow (a new template, plan tier, item type, or backend), do I need to touch existing code?_
 
-If yes, the rule lives in logic instead of data; move it. A class is open for extension and closed for modification. When you find yourself reaching back into the same class for the *third* time to add another variant of the same behavior, the variants belong outside the class — typically as data, a strategy object, or a composed collaborator.
+If yes, the rule lives in logic instead of data; move it. A class is open for extension and closed for modification. When you find yourself reaching back into the same class for the *third* time to add another variant of the same behavior, the variants belong outside the class: typically as data, a strategy object, or a composed collaborator.
 <!-- tag: Generic -->
 
 Two common shapes this takes:
 
-- **Data-driven extension.** Domain-defining data lives in data files (templates, lookup tables, config), not scattered through logic. Adding a new template should not require touching existing code — you add a new template file and the system picks it up.
+- **Data-driven extension.** Domain-defining data lives in data files (templates, lookup tables, config), not scattered through logic. Adding a new template should not require touching existing code. You add a new template file and the system picks it up.
 - **Strategy-shaped extension.** When the variation is behavioral, not data-shaped, the variants implement a common interface and get composed in. Adding a new variant means writing a new class that implements the interface; the consumer never changes.
 
 **YAGNI rules over OCP for new code.** Don't build extension points speculatively. The first and second variant live inline; the third variant is when you extract. Premature extension points are anticipatory engineering (see "Default to Less").
@@ -162,7 +162,7 @@ Two common shapes this takes:
 
 **The question:** _can I swap one implementation for another without changing the callers?_
 
-If callers know which concrete backend they are talking to, they are coupled to the wrong layer. Implementations of an interface are substitutable. All model backends implement a `TextAdapter` / `EmbeddingAdapter` / `ImageAdapter` interface behind role-typed clients (`StoryClient`, `UtilityClient`, etc.) aggregated in a `Clients` container. Swapping a backend (one provider for another) is done by adding an adapter class and changing the role config — no caller changes. See `examples/decisions/028-client-layer.md`.
+If callers know which concrete backend they are talking to, they are coupled to the wrong layer. Implementations of an interface are substitutable. All model backends implement a `TextAdapter` / `EmbeddingAdapter` / `ImageAdapter` interface behind role-typed clients (`StoryClient`, `UtilityClient`, etc.) aggregated in a `Clients` container. Swapping a backend (one provider for another) is done by adding an adapter class and changing the role config: no caller changes. See `examples/decisions/028-client-layer.md`.
 <!-- tag: Generic -->
 
 ### Interface Segregation
@@ -176,14 +176,14 @@ Pass that, and only that. Consumers receive only the context they need. A `Billi
 
 **The question:** _does this class know about a specific backend, or about a contract?_
 
-If it knows about a named vendor or SDK directly, the layering is inverted. Business logic depends on role-typed interfaces (`EmailClient`, `SearchClient`, `PaymentClient`) — not on Resend, OpenSearch, Stripe, or any SDK directly. Concrete adapters are injected at startup by a registry. Business code never imports vendor SDK packages.
+If it knows about a named vendor or SDK directly, the layering is inverted. Business logic depends on role-typed interfaces (`EmailClient`, `SearchClient`, `PaymentClient`), not on Resend, OpenSearch, Stripe, or any SDK directly. Concrete adapters are injected at startup by a registry. Business code never imports vendor SDK packages.
 <!-- tag: Generic -->
 
 ---
 
 ## Beyond SOLID — Additional Design Principles
 
-Four design principles from Freeman & Bates's *Head First Design Patterns* that SOLID doesn't cover directly. These are the patterns to reach for when a class genuinely needs structure — not licenses to add structure for its own sake. The Prime Directive still applies: prefer zero lines of new abstraction; these principles describe the *shape* of the abstraction when you're already adding one.
+Four design principles from Freeman & Bates's *Head First Design Patterns* that SOLID doesn't cover directly. These are the patterns to reach for when a class genuinely needs structure, not licenses to add structure for its own sake. The Prime Directive still applies: prefer zero lines of new abstraction; these principles describe the *shape* of the abstraction when you're already adding one.
 <!-- tag: Generic -->
 
 ### Encapsulate What Varies
@@ -191,7 +191,7 @@ Four design principles from Freeman & Bates's *Head First Design Patterns* that 
 Identify the parts of the system that change for different reasons or at different rates, and isolate them from the parts that stay the same. The stable parts depend on an interface; the varying parts implement it. New variation becomes a new implementation, not edits to the stable core.
 <!-- tag: Generic -->
 
-This is the affirmative pair to "Default to Less." Default to Less defends against unjustified abstraction; *Encapsulate What Varies* names the case where abstraction IS justified — when the variation is real, present, and currently expressed as nested `if` / `switch` branches scattered across the codebase.
+Encapsulating what varies is the affirmative pair to "Default to Less." Default to Less defends against unjustified abstraction. *Encapsulate What Varies* names the case where abstraction IS justified: the variation is real, it is present today, and it currently lives as nested `if` and `switch` branches scattered across the codebase.
 
 Signals you have real variation worth encapsulating:
 
@@ -199,7 +199,7 @@ Signals you have real variation worth encapsulating:
 - A new variant requires editing five different files to add a fourth `case`.
 - Different team members have edited the same method to add their own variants in series.
 
-When you see those signals, extract the variants behind a common interface. When you don't see them, leave the code alone — anticipating variation that may never arrive is anticipatory engineering.
+When you see those signals, extract the variants behind a common interface. When you don't see them, leave the code alone: anticipating variation that may never arrive is anticipatory engineering.
 
 ### Composition Over Inheritance
 
@@ -214,7 +214,7 @@ Use inheritance only when:
 - The shared base is small, stable, and unlikely to grow new responsibilities (`Result<T, E>` discriminated union; an `Error` hierarchy used only for `instanceof` checks).
 - Composition would force callers to repeatedly do the same delegation by hand for no expressive gain.
 
-Default to composition. The instinct to reach for `extends` to share helper methods is almost always wrong — extract the helpers into a class that gets injected, not inherited.
+Default to composition. The instinct to reach for `extends` to share helper methods is almost always wrong: extract the helpers into a class that gets injected, not inherited.
 
 ### Law of Demeter — Only Talk to Friends
 <!-- tag: Generic -->
@@ -233,7 +233,7 @@ Two common false-positive shapes that look like Demeter violations but are not:
 - **Fluent interfaces.** `query.where(...).orderBy(...).limit(...)` returns `query` each call; the chain stays on one object. Same with method-chained builders.
 - **Collection pipelines.** `items.filter(...).map(...).reduce(...)` is the standard collection idiom; flagging it as a Demeter violation misreads the principle.
 
-A real Demeter finding looks like `user.getAccount().getBilling().getDefaultMethod().getStripeId()` — a chain through four distinct object types where the caller is silently coupled to all four.
+A real Demeter finding looks like `user.getAccount().getBilling().getDefaultMethod().getStripeId()`: a chain through four distinct object types where the caller is silently coupled to all four.
 
 The fix is usually not "add a helper method to each intermediate object so the chain becomes one call." The fix is to ask whether the caller really needs the inner thing, or whether the outer object should take on the operation itself (`user.getDefaultPaymentStripeId()`).
 
@@ -242,9 +242,9 @@ The fix is usually not "add a helper method to each intermediate object so the c
 High-level components define the flow; low-level components hook into it. Low-level components do not reach up and call high-level components directly.
 <!-- tag: Generic -->
 
-This is the principle behind frameworks, event loops, observer registrations, and React's component lifecycle. You register a callback; the framework calls it at the right time; you never invoke the framework's internals from inside your handler.
+The Hollywood Principle is what sits behind frameworks, event loops, observer registrations, and React's component lifecycle. You register a callback; the framework calls it at the right time; you never invoke the framework's internals from inside your handler.
 
-The smell to watch for: a low-level component (an adapter, a helper, a leaf service) that imports and calls a high-level orchestrator. The dependency arrow points the wrong way. The fix is usually to invert it — the high-level component should pass the low-level component a callback, observe its events, or check its state, rather than the low-level component reaching up.
+The smell to watch for: a low-level component (an adapter, a helper, a leaf service) that imports and calls a high-level orchestrator. The dependency arrow points the wrong way. The fix is usually to invert it: the high-level component should pass the low-level component a callback, observe its events, or check its state, rather than the low-level component reaching up.
 
 In practice: a `DatabaseClient` should never import `BillingService` to "notify it" of something. The notification flow is `BillingService` registers a listener with `DatabaseClient`, or `BillingService` polls / queries `DatabaseClient` for the state it needs. The arrow runs from higher-level (more abstract) to lower-level (more concrete), never the other way.
 
@@ -257,10 +257,10 @@ Every piece of knowledge has one authoritative source:
 
 | Knowledge | Authoritative source (example) |
 |---|---|
-| Domain rules (validation, business invariants) | A `domain/` or shared package — one place |
-| Randomness | `Random` — `Math.random` is forbidden in business logic; UI may use it for pure presentation (animation jitter) that never affects state |
+| Domain rules (validation, business invariants) | A `domain/` or shared package. One place |
+| Randomness | `Random`: `Math.random` is forbidden in business logic; UI may use it for pure presentation (animation jitter) that never affects state |
 | Persistent state | One repository / data service per record type, scoped by tenant or owner |
-| Configuration | One config module — never `process.env.*` scattered through business code |
+| Configuration | One config module: never `process.env.*` scattered through business code |
 | Computed values | Derived at read time from the source of truth, never stored redundantly |
 
 If the same logic appears in two places, one of them is wrong.
@@ -280,18 +280,18 @@ Do not build for hypothetical future requirements. Build exactly what the curren
 
 When a new requirement arrives, add what it needs then. Until then, the code does not contain it.
 
-**If the concern is concrete enough that it could corner a *current* design** — e.g. "we'll eventually have multi-tenant support; does this query layer assume single-tenant forever?" — record it in a `FUTURE_CONSIDERATIONS.md` file instead of pre-building. That doc's job is to keep the future in view without writing speculative code: "stay alert" is not the same as "build scaffolding."
+**If the concern is concrete enough that it could corner a *current* design**: e.g. "we'll eventually have multi-tenant support; does this query layer assume single-tenant forever?" Record it in a `FUTURE_CONSIDERATIONS.md` file instead of pre-building. That doc's job is to keep the future in view without writing speculative code: "stay alert" is not the same as "build scaffolding."
 
 ---
 
 ## Default to Less
 
-The Prime Directive ("the preferred number of lines of code is zero") is the headline rule. The traps below are the patterns that cause violations of it in practice — re-read this list before starting work on any decision doc or feature.
+The Prime Directive ("the preferred number of lines of code is zero") is the headline rule. The traps below are the patterns that cause violations of it in practice: re-read this list before starting work on any decision doc or feature.
 <!-- tag: Generic -->
 
 **Reflexive class creation.** When the actual work is "build an object literal and call one method," don't wrap it in a class with an interface and a factory. The default for new code is *inline at the call site*. Add structure only when a concrete second consumer or a real abstraction boundary justifies it. A new file that exports one class with one method that does one HTTP call needs to justify why it isn't a private method on the existing caller.
 
-**Anticipatory engineering.** Don't build for consumers that don't exist yet. A replay CLI for a workflow nobody runs, a `LogContext` parameter for filterability nobody uses, a date subfolder for a reader nobody wrote, a config knob with one valid value, a factory branching on a single boolean — every one of these is rework in disguise. Build for today's concrete consumer; if "today" has no consumer, ship the smallest writer and let the reader's needs shape the path *when the reader actually arrives*.
+**Anticipatory engineering.** Don't build for consumers that don't exist yet. A replay CLI for a workflow nobody runs, a `LogContext` parameter for filterability nobody uses, a date subfolder for a reader nobody wrote, a config knob with one valid value, a factory branching on a single boolean: every one of these is rework in disguise. Build for today's concrete consumer; if "today" has no consumer, ship the smallest writer and let the reader's needs shape the path *when the reader actually arrives*.
 
 **Implementing a design doc verbatim instead of questioning it.** A design doc with `**Status:** Proposed` is a draft, not a contract. If you find yourself building a section that strikes you as speculative, *stop and push back on the doc before coding it*. The conversation costs ten minutes; coding the speculation and re-litigating it in PR review costs a week. Doc says "secret-pattern scanning"? Ask whether tokens can actually reach this surface. Doc says "FIFO queue with drain task"? Ask whether HTTP isn't already that. Doc says "thread `LogContext` through every chat call site"? Ask whether the data isn't already in `RequestContext`.
 
@@ -303,22 +303,22 @@ The Prime Directive ("the preferred number of lines of code is zero") is the hea
 
 **The "minimum viable shape" check.** Before writing the first line of code from a design doc, post a one-paragraph summary of "what's the minimum that satisfies the design?" and check in with the owner. If the doc has features you'd cut, name them now, not after the PR is open. The cost of a five-minute alignment conversation is always lower than the cost of a 40-file revert.
 
-**"Why is X needed?" — default-answer is "it isn't."** When the human or another reviewer asks why some piece of code or structure exists, the first answer to consider is "it doesn't need to exist." Defend only with a *concrete consumer that exists today*, not a hypothetical one. "We might want to filter by template later" is not a defence; "the eval CLI does this filter" is. If the eval CLI doesn't exist, the field doesn't exist.
+**"Why is X needed?" Default-answer is "it isn't."** When someone asks why a piece of code or structure exists, the first answer to consider is "it doesn't need to exist." Defend only with a *concrete consumer that exists today*, not a hypothetical one. "We might want to filter by template later" is not a defence; "the eval CLI does this filter" is. If the eval CLI doesn't exist, the field doesn't exist.
 
-**Human consumers count.** A "concrete consumer" doesn't have to be code. Tags on issues, structured labels in error messages, comment markers like `[#NN]` or `[story]`, sortable timestamp fields, audit-log columns, HTML-comment metadata — these often have no code consumer but a real human consumer who searches and filters with them. "I grep for this tag" is a concrete consumer. "I sort the report by this column" is a concrete consumer. Reviewers should not flag human-consumer-only fields as YAGNI just because no function reads them.
+**Human consumers count.** A "concrete consumer" doesn't have to be code. Tags on issues, structured labels in error messages, comment markers like `[#NN]` or `[story]`, sortable timestamp fields, audit-log columns, HTML-comment metadata. These often have no code consumer but a real human consumer who searches and filters with them. "I grep for this tag" is a concrete consumer. "I sort the report by this column" is a concrete consumer. Reviewers should not flag human-consumer-only fields as YAGNI just because no function reads them.
 
 ---
 
 ## No Interim Implementations
 
-When a design document has picked a shape, build to that shape. Do not ship a simpler "v1" with a TODO to revisit. Do not split into "phase 1 easy thing, phase 2 real thing" as a way of deferring the hard part. Framing like "big lift," "separate PR later," "minimum viable interim," or "pragmatic v1" is a smell — if the design is decided, the interim is just rework in disguise.
+When a design document has picked a shape, build to that shape. Do not ship a simpler "v1" with a TODO to revisit. Do not split into "phase 1 easy thing, phase 2 real thing" as a way of deferring the hard part. Framing like "big lift," "separate PR later," "minimum viable interim," or "pragmatic v1" is a smell, if the design is decided, the interim is just rework in disguise.
 <!-- tag: Personal Preference; default-on -->
 <!-- override: a team that genuinely ships in user-visible phases (alpha → beta → GA) may legitimately want a staged build. The rule still applies inside a phase: don't ship throwaway code that the next phase has to rewrite. -->
 
 **The two valid reasons to ship a smaller cut:**
 
-1. The design itself is genuinely incomplete — in which case stop coding and finish the design doc first.
-2. A true bisection where the interface is a coherent unit and the implementation is a coherent follow-up with matching tests — not a dodge on the hard part.
+1. The design itself is genuinely incomplete: in which case stop coding and finish the design doc first.
+2. A true bisection where the interface is a coherent unit and the implementation is a coherent follow-up with matching tests, not a dodge on the hard part.
 
 Before writing any implementation, re-read the relevant decision docs and verify the plan matches the design; if it doesn't, the plan is wrong, not the design.
 
@@ -328,16 +328,16 @@ The reflex "ship something simpler now, refine later" is rework with extra steps
 
 ## Design Review Checklist — Six Questions
 
-These are the questions to ask before any new code lands. They are question-shaped because that is how review actually works.
+Ask the six questions below before any new code lands. They are question-shaped because that is how review actually works.
 <!-- tag: Generic -->
 
 1. **Single responsibility.** _Is each class / function doing exactly one job?_ If a caller has to know implementation details (like checking sequence IDs, or knowing whether to sync to a server), the abstraction is leaking.
 2. **Right owner.** _Does this logic belong in the class that owns the data?_ Persistence logic belongs in the data layer. Domain rules belong in the domain package. UI components should only call high-level methods, never orchestrate low-level operations.
 3. **Simplify the caller.** _Can the call site be reduced to one line?_ If the caller needs multiple steps (save locally, then sync, then check version), those steps should be inside the method it's calling.
-4. **Already handled.** _Is there an existing system that already manages this concern?_ Don't duplicate responsibility — extend the existing owner instead.
+4. **Already handled.** _Is there an existing system that already manages this concern?_ Don't duplicate responsibility: extend the existing owner instead.
 5. **Shared code, shared package.** _Do both client and server need this logic?_ If yes, it belongs in a shared package. Never duplicate domain rules between apps.
    <!-- tag: Architecture-Conditional; applies-when: client-server-split -->
-6. **No god classes.** _When this class crosses the size threshold, is it cohesive or is it accreting unrelated capabilities?_ A god class is one that breaks single responsibility: blending unrelated capabilities into one place, tightly coupling things that should be independent, hard to test, a nightmare to debug. Those are the smells to chase. Size alone is not a god class. A large class with one cohesive concern, all methods sharing the same dependencies and consumers, and a clean test strategy is fine; it is earning its size. When a class crosses ~300 lines or ~8-10 methods, pause and ask: is this becoming a god class, or is it still cohesive? Evaluate against the smells (distinct *axes of change*, *independent client contracts*, *unrelated test strategies*, non-overlapping consumers). Split when the smells are real; otherwise keep it whole and consider extracting branches into named *private* helpers within the same file. The `class_size_audit` agent runs this evaluation periodically and writes a report to `.claude/reports/` for review. Entry-point methods (orchestrators) stay pure orchestration: a numbered list of single method calls on focused services, no inline logic.
+6. **No god classes.** _When this class crosses the size threshold, is it cohesive or is it accreting unrelated capabilities?_ A god class is one that breaks single responsibility: unrelated capabilities blended into one place, things that should be independent tightly coupled, hard to test, a nightmare to debug. Those are the smells to chase. Size alone is not a god class. A large class earns its size when it holds one cohesive concern, its methods share the same dependencies and consumers, and it has a clean test strategy. When a class crosses ~300 lines or ~8-10 methods, pause and ask: is this becoming a god class, or is it still cohesive? Evaluate against the smells (distinct *axes of change*, *independent client contracts*, *unrelated test strategies*, non-overlapping consumers). Split when the smells are real; otherwise keep it whole and consider extracting branches into named *private* helpers within the same file. The `class_size_audit` agent runs this evaluation periodically and writes a report to `.claude/reports/` for review. Entry-point methods (orchestrators) stay pure orchestration: a numbered list of single method calls on focused services, no inline logic.
 
 ---
 
@@ -351,7 +351,7 @@ Default to zero comments. Well-named identifiers and small focused functions are
 - **Never explain WHAT the code does.** Method names, type names, and function shape are the explanation. If the reader needs a comment to understand the happy path, rename the method.
 - **Do not narrate the current task.** No "added for PR #X", "see ticket Y", "used by the streaming path"; that rots the moment the surrounding code changes.
 - **Do not write prose tuning notes.** A multi-line block listing each config option and why it was picked belongs in the design doc. The config literal is self-explanatory; a one-line tag is enough in code.
-- **No file-header comment blocks.** A 5-15 line preamble at the top of a source file repeating what the class does, when it was created, who owns it, what it integrates with — all of that belongs in the class name, the decision doc, or git blame. Don't write it.
+- **No file-header comment blocks.** A 5-15 line preamble at the top of a source file repeating what the class does, when it was created, who owns it, what it integrates with: all of that belongs in the class name, the decision doc, or git blame. Don't write it.
 - **Headers / ASCII-art dividers (`// ── section ──`) are fine sparingly.** They delimit long files. They are not comments about behavior.
 
 When reviewing a diff and you see a block of prose comments, assume the code wants to be rewritten with clearer names instead. The comment is a symptom.
@@ -365,7 +365,7 @@ When reviewing a diff and you see a block of prose comments, assume the code wan
 
 - **Read at the call site, defined once.** `config.timeouts.sseHeartbeatMs`, `config.timeouts.persistOpsMaxRetries`, etc. Never `15_000` or `3` sitting in a function body.
 - **One knob, one name.** If two call sites use the same 10-second timeout for conceptually-different reasons, they get two different config entries. The config file is the catalog of tunables.
-- **Adapter options come from the config block.** Database client, model client, HTTP client — they take their timeouts via their constructor from `config.timeouts`, not inlined.
+- **Adapter options come from the config block.** Database client, model client, HTTP client. They take their timeouts via their constructor from `config.timeouts`, not inlined.
 - **Frontend timers.** `Settings.ts` is the home for user-visible timeouts (idle timers, debounce windows, animation durations that matter for UX); shared design tokens like transition speeds stay in CSS.
   <!-- tag: Architecture-Conditional; applies-when: has-frontend -->
 
@@ -397,7 +397,7 @@ This rule explicitly overrides any reflex to "add an optional for safety." Safet
 "No Backwards Compatibility" says to delete the old-shape reader once the migration runs. This is the same rule stated as a scope boundary. What decides scope is the file you are already editing, not whether your change created the dead code:
 
 - **Code this change supersedes: in scope, same PR, required.** When your change replaces a path, the now-dead code, the now-unused exports, the now-orphaned tests, and the decision doc that path implemented all get removed or updated in the same PR. Leaving them is not tight scope: it ships a half-finished change that the `hanging_refs` audit files back as a defect. If you keep decision docs, a superseded decision moves to your historical folder in the same PR (see [`PR_WORKFLOW.md`](PR_WORKFLOW.md)).
-- **Dead code in files you are already touching: remove it while you are there.** A now-unused export, an orphaned branch, or a function with no remaining callers in a file your change already edits comes out in the same PR, whether your change killed it or it was already dead. Deleting dead code from a file you have open does not widen the blast radius, and cleaning up dead paths while you are testing the use cases is the point.
+- **Dead code in files you are already touching: remove it while you are there.** A now-unused export, an orphaned branch, or a function with no remaining callers comes out in the same PR, as long as your change already edits that file. It does not matter whether your change killed it or it was already dead. Deleting dead code from a file you have open does not widen the blast radius, and cleaning up dead paths while you are testing the use cases is the point.
 - **Dead code in files your change does not otherwise touch: file a follow-up.** Opening unrelated files purely to delete things expands the diff and the reviewer's surface. That work goes to a follow-up issue per [`BACKLOG_WORKFLOW.md`](BACKLOG_WORKFLOW.md), or the `hanging_refs` audit catches it.
 
 The test that separates them: _am I already editing this file for this change?_ If yes, remove the dead code in it. If reaching it means opening a file the change otherwise leaves alone, file it for later.
@@ -406,9 +406,9 @@ The test that separates them: _am I already editing this file for this change?_ 
 
 ## Testing
 
-**Every test must be deterministic, offline, and fast.** Flakiness is a P1 bug — higher priority than most features. A test that only passes "sometimes" is not a test; fix it or delete it.
+**Every test must be deterministic, offline, and fast.** Flakiness is a P1 bug: higher priority than most features. A test that only passes "sometimes" is not a test; fix it or delete it.
 
-Full testing rules — the philosophy, intent-first naming for tests and parameters, mocking discipline, failure-mode coverage, AAA structure, behavior bundling, flaky-test smell patterns, and test-utility shape — live in [`engineering/TESTING_PRINCIPLES.md`](TESTING_PRINCIPLES.md). The `phil_testing` PR-review agent and the `flaky_test_finder` weekly audit both read that file as their source of truth.
+Full testing rules: the philosophy, intent-first naming for tests and parameters, mocking discipline, failure-mode coverage, AAA structure, behavior bundling, flaky-test smell patterns, and test-utility shape. Live in [`engineering/TESTING_PRINCIPLES.md`](TESTING_PRINCIPLES.md). The `phil_testing` PR-review agent and the `flaky_test_finder` weekly audit both read that file as their source of truth.
 <!-- tag: Generic -->
 
 ### Delta operations: server-authoritative, client eventually consistent
@@ -435,7 +435,7 @@ Everything lives in a class. There are no free-standing exported functions.
 | **Static utility** | No | `Random`, `Formatter`, `WeightedPicker`, `PathCodec` |
 | **Service / Agent** | Injected deps only | `BillingService`, `EmailService`, `SearchAgent` |
 
-Static utility classes group related pure operations under one import. You pull in `Formatter` once and call `Formatter.toCurrency()`, `Formatter.toDuration()` — rather than importing each function individually. All methods are `static`, no instantiation required.
+Static utility classes group related pure operations under one import. You pull in `Formatter` once and call `Formatter.toCurrency()`, `Formatter.toDuration()`: rather than importing each function individually. All methods are `static`, no instantiation required.
 
 ```typescript
 // Good — one import, all formatting operations available
@@ -448,7 +448,7 @@ Formatter.toRelativeDate(timestamp)
 import { toCurrency, toDuration, toRelativeDate } from '@kit/utils/format'
 ```
 
-**Static utility methods are still pure** — same inputs always produce the same outputs (modulo intentional randomness in `Random`), no side effects, no shared mutable state. The class is purely an organizational container.
+**Static utility methods are still pure**: same inputs always produce the same outputs (modulo intentional randomness in `Random`), no side effects, no shared mutable state. The class is purely an organizational container.
 
 **Stateful components expose typed methods, not raw properties.** Internal state is private; mutation goes through methods that keep the object consistent.
 
@@ -473,7 +473,7 @@ The test is whether replacing the vendor tomorrow would leave the name lying. `D
 
 ## Naming Conventions — Suffixes Are Contracts
 
-Every class suffix in this codebase carries a specific meaning. When you read `FooService` or `FooClient` or `FooHandler`, you should already know roughly what the class does and how it's wired. Suffixes are not decoration — they're contracts with the reader.
+Every class suffix in this codebase carries a specific meaning. When you read `FooService` or `FooClient` or `FooHandler`, you should already know roughly what the class does and how it's wired. Suffixes are not decoration. They're contracts with the reader.
 <!-- tag: Personal Preference; default-on -->
 <!-- override: if your team uses different suffixes (Manager / Controller / Worker), replace the table below with your house contracts. The rule that "suffixes carry meaning" still applies. -->
 
@@ -486,7 +486,7 @@ Every class suffix in this codebase carries a specific meaning. When you read `F
 | **Client** | Access layer that **crosses a process / container boundary** (HTTP, IPC); thin forwarding wrapper | I pushed the work somewhere else |
 | **Agent** | Wraps an AI model call with prompt + memory + response parsing | I call an LLM in a specific role |
 | **Handler** | Processes one specific job or event type dispatched by a Scheduler or Bus | I run when X happens |
-| **Adapter** | Backend-specific implementation of a generic interface; **private to its folder** — consumers use Clients, not Adapters | Swap me to change backends |
+| **Adapter** | Backend-specific implementation of a generic interface; **private to its folder**: consumers use Clients, not Adapters | Swap me to change backends |
 | **Registry** | Maps keys to instances; lookup / discovery facade | Ask me to find X |
 | **Scheduler** | Queues work for later execution | Submit and forget |
 | **Generator** | Static-method namespace for deterministic production; **no state, no instantiation** | Call my static methods |
@@ -508,7 +508,7 @@ Every class suffix in this codebase carries a specific meaning. When you read `F
 
 The Client / Service line is the one most worth internalising:
 
-- **Client** = crosses a network boundary. The work happens **elsewhere**. The class is thin — validate inputs, serialise a request, dispatch, parse a response. Examples: `StoryClient` → a model container, `DataStoreClient` → the database container, `EmailClient` → an external email provider.
+- **Client** = crosses a network boundary. The work happens **elsewhere**. The class is thin: validate inputs, serialise a request, dispatch, parse a response. Examples: `StoryClient` → a model container, `DataStoreClient` → the database container, `EmailClient` → an external email provider.
 
 - **Service** = does significant work **here**. Orchestrates, transforms, applies domain logic, holds request state. Examples: `BillingService` (applies pricing rules), `SummaryService` (calls a model client then writes to memory), `MechanicsService` (runs a multi-pass pipeline locally).
 
@@ -516,11 +516,11 @@ A class that calls a remote system **and** applies meaningful local logic around
 
 ### Plain nouns (no suffix)
 
-Stateless domain data and their static operation namespaces use the domain noun directly — no suffix needed. Examples: `User`, `Item`, `Workspace`, `Campaign`. These are either type-only `interface`s (records) or `class`es that own only static methods over the record shape (`User.createNew`, `User.applyDefaults`). This is an established pattern; don't retrofit a suffix onto an existing domain component.
+Stateless domain data and their static operation namespaces use the domain noun directly: no suffix needed. Examples: `User`, `Item`, `Workspace`, `Campaign`. These are either type-only `interface`s (records) or `class`es that own only static methods over the record shape (`User.createNew`, `User.applyDefaults`). This is an established pattern; don't retrofit a suffix onto an existing domain component.
 
 ### Python services follow the same rules
 
-For polyglot codebases, Python code uses the same naming conventions as TypeScript — **camelCase for identifiers we own** (functions, variables, parameters, dict keys we emit), **PascalCase for classes**, **UPPER_CASE for module-level constants**. `snake_case` appears only where we interop with stdlib / framework APIs that dictate parameter names (`torch_dtype`, `num_inference_steps`, etc.).
+For polyglot codebases, Python code uses the same naming conventions as TypeScript: **camelCase for identifiers we own** (functions, variables, parameters, dict keys we emit), **PascalCase for classes**, **UPPER_CASE for module-level constants**. `snake_case` appears only where we interop with stdlib / framework APIs that dictate parameter names (`torch_dtype`, `num_inference_steps`, etc.).
 <!-- tag: Architecture-Conditional; applies-when: has-python -->
 <!-- override: most Python projects follow PEP 8 (snake_case throughout); pick PEP 8 if your team prefers Python convention over cross-language consistency. -->
 
@@ -545,12 +545,12 @@ pipe = FluxPipeline.from_pretrained(MODEL_ID, torch_dtype=torch.bfloat16)
 The no-`Controller` rule applies to **classes**. React hooks (`use*`) that bundle a screen's state, effects, and action handlers into one return object are idiomatically called controller hooks in the React ecosystem, and we use that name here too. Example: `useGameplayController` owns all gameplay-screen state plus data-layer effects plus action handlers; the screen consumes the returned object as pure composition.
 <!-- tag: Architecture-Conditional; applies-when: has-react -->
 
-The rule of thumb: if it's a `function use*` that returns `{ state, actions }` for a specific screen or component, `Controller` is an acceptable suffix. The rule against `Controller` *classes* still stands — pick `Service` or `Orchestrator` there.
+The rule of thumb: if it's a `function use*` that returns `{ state, actions }` for a specific screen or component, `Controller` is an acceptable suffix. The rule against `Controller` *classes* still stands: pick `Service` or `Orchestrator` there.
 
 ### When introducing a new class
 
 1. Decide what the class **does**, then pick the suffix that matches.
-2. If nothing fits, don't invent a new suffix — the class probably belongs in an existing suffix or should be split.
+2. If nothing fits, don't invent a new suffix: the class probably belongs in an existing suffix or should be split.
 3. If you're tempted to call it `FooManager`, `FooHelper`, `FooUtil`, or `FooController` (class, not hook): stop. None of those are on this list. Pick one that is.
 
 See `examples/decisions/028-client-layer.md` for the Adapter / Client layering that motivated the Client vs. Service split.
@@ -559,10 +559,10 @@ See `examples/decisions/028-client-layer.md` for the Adapter / Client layering t
 
 ## Failure Policy — Fail Loud, Never Fabricate
 
-When a server-side operation hits an unrecoverable error — model call, JSON parse, persistence, anything on a user-critical path — it surfaces a structured error and lets the client decide what to do next. It does **not** quietly substitute placeholder data, empty arrays, default records, random-error one-liners, or other "graceful degradation" data and keep going.
+When a server-side operation hits an unrecoverable error: model call, JSON parse, persistence, anything on a user-critical path. It surfaces a structured error and lets the client decide what to do next. It does **not** quietly substitute placeholder data, empty arrays, default records, random-error one-liners, or other "graceful degradation" data and keep going.
 <!-- tag: Generic -->
 
-**Rule:** on the critical path there are no silent fallbacks. Catch at the outermost layer only. Route handlers return `{ error, reason }` with an error status. Clients show the reason and offer the user a real recovery choice — retry is the default.
+**Rule:** on the critical path there are no silent fallbacks. Catch at the outermost layer only. Route handlers return `{ error, reason }` with an error status. Clients show the reason and offer the user a real recovery choice: retry is the default.
 
 **Why:** fabricated data is worse than a visible failure. A response that approximately looks right during the current session ships a silent correctness bug that compounds every subsequent operation. A loud failure produces one retry click; a silent fallback produces hours of weird downstream behavior before anyone notices the root cause.
 
@@ -599,7 +599,7 @@ If you're uncertain which side of the line you're on, ask: "does the next operat
 
 ### Rollback — open design question
 
-Multi-step server operations that mutate persistent state need a rollback / compensation mechanism so "retry" is safe. Operations that today are already transactional (one final write at the end — a mid-flight failure leaves nothing on disk) are fine. Future multi-step server operations must be designed reversibly. The full rollback pattern is its own design doc; flag any new multi-step write path when designing it.
+Multi-step server operations that mutate persistent state need a rollback / compensation mechanism so "retry" is safe. Operations that today are already transactional (one final write at the end, a mid-flight failure leaves nothing on disk) are fine. Future multi-step server operations must be designed reversibly. The full rollback pattern is its own design doc; flag any new multi-step write path when designing it.
 
 ---
 
@@ -615,7 +615,7 @@ Every handler, service method, route body, job payload, and wire type that needs
 
 Any subset, any order, parsed by a `Path` utility at the top of the function for a typed destructure.
 
-**Rule:** do not add scattered `tenantId` / `workspaceId` / `projectId` parameters to new signatures. One `path: string` parameter; parse it at the top of the function. Adding a new addressable kind (say `attachment`) means adding one line to the `PathKind` enum — signatures don't change.
+**Rule:** do not add scattered `tenantId` / `workspaceId` / `projectId` parameters to new signatures. One `path: string` parameter; parse it at the top of the function. Adding a new addressable kind (say `attachment`) means adding one line to the `PathKind` enum: signatures don't change.
 
 **Why:** signatures stay stable as the hierarchy grows. New segment types become parser-only changes, not a codebase sweep.
 
@@ -635,15 +635,15 @@ function resolvePurchase(buyer: User, item: Item): Result<Purchase> {
 }
 ```
 
-Exceptions are for genuinely unexpected failures (network down, corrupted data). Business logic never throws — it returns a result and the caller handles it. This keeps the call stack clean and makes error handling explicit.
+Exceptions are for genuinely unexpected failures (network down, corrupted data). Business logic never throws. It returns a result and the caller handles it. This keeps the call stack clean and makes error handling explicit.
 
 ---
 
 ## Component Design Rules
 
 - **One exported class or function set per file**, named to match the filename
-- **No circular dependencies** — if A imports B and B imports A, the design is wrong
-- **No god objects** — if a class has more than ~7 public methods, it is doing too much (see Design Review Checklist #6 for the longer discussion of when size is a smell)
+- **No circular dependencies**: if A imports B and B imports A, the design is wrong
+- **No god objects**: if a class has more than ~7 public methods, it is doing too much (see Design Review Checklist #6 for the longer discussion of when size is a smell)
 - **Computed properties are derived at read time**, not stored redundantly:
 <!-- tag: Generic -->
 
@@ -684,35 +684,39 @@ Three homes, by what the behavior is about:
 
 **The forward test**, applied before you write the code: _if I add this capability for a second variant, does my change touch a coordinator?_ If yes, you are about to hardcode a variant into a coordinator. Define a feature row, a subclass hook, or a condition with its own end-rule instead. Adding a variant should be data plus an effect or feature, never an `if` in a coordinator.
 
-This is the sharpened form of Refactoring Heuristic 2 below ("Logic lives with the data it owns"). The heuristic tells you how to read an existing diff; the forward test tells you what to write before there is a diff to read.
+The forward test is the sharpened form of Refactoring Heuristic 2 below ("Logic lives with the data it owns"). The heuristic tells you how to read an existing diff; the forward test tells you what to write before there is a diff to read.
 
 ---
 
 ## Refactoring Heuristics — How to Read a Diff
 
-These are the patterns we apply when reviewing a diff and deciding whether the shape is right. Each is a question the reader should ask before approving any orchestrator-side or service-side change.
+Apply the heuristics below when reviewing a diff and deciding whether the shape is right. Each is a question the reader should ask before approving any orchestrator-side or service-side change.
 <!-- tag: Generic -->
 
-**1. Orchestrators read like a chain of method names.** An entry-point method (e.g. `processAction`) should be a numbered list of single calls — `validate(input)`, `apply(rules)`, `persist(result)`. Five-line inline blocks that build state, persist, and return belong in a private helper named for what it does (`persistAndReturnResponse`). When in doubt: would a reader who knows nothing about the implementation understand the operation shape from method names alone? If no, extract.
+**1. Orchestrators read like a chain of method names.** An entry-point method (e.g. `processAction`) should be a numbered list of single calls: `validate(input)`, `apply(rules)`, `persist(result)`. Five-line inline blocks that build state, persist, and return belong in a private helper named for what it does (`persistAndReturnResponse`). When in doubt: would a reader who knows nothing about the implementation understand the operation shape from method names alone? If no, extract.
 
-**2. Logic lives with the data it owns.** If the orchestrator looks up a user, workspace, project, and project members, that's `ContextBuilder` territory — same data walk it already does, different projection. If the orchestrator decides "is this a results-only operation?", that's the relevant service's territory — same service that owns the resolution. Push helpers down to whichever class owns the underlying domain. The orchestrator is a coordinator; it does not duplicate logic that lives elsewhere.
+**2. Logic lives with the data it owns.** If the orchestrator looks up a user, workspace, project, and project members, that's `ContextBuilder` territory: same data walk it already does, different projection. If the orchestrator decides "is this a results-only operation?", that's the relevant service's territory: same service that owns the resolution. Push helpers down to whichever class owns the underlying domain. The orchestrator is a coordinator; it does not duplicate logic that lives elsewhere.
 
 **3. Predicates over inline conditions.** `if (MechanicsService.requiresUserAction(directive))` reads better than `if (directive?.type === 'check')`. Named predicates carry intent and survive future-type-additions without rewriting the call site. Static methods on the owning class are the natural home.
 
-**4. Side-effect packaging belongs with the producer.** When a service decides one signal and that signal then has to be merged into a context alongside other signals before a downstream call runs, that whole packaging step belongs on the producing service — not in the orchestrator. The orchestrator hands the service everything it needs and gets back a ready-to-use context. This collapses three orchestrator lines into one and keeps the merge logic next to the thing that produces the primary signal.
+**4. Side-effect packaging belongs with the producer.** When a service decides one signal and that signal then has to be merged into a context alongside other signals before a downstream call runs, that whole packaging step belongs on the producing service, not in the orchestrator. The orchestrator hands the service everything it needs and gets back a ready-to-use context. This collapses three orchestrator lines into one and keeps the merge logic next to the thing that produces the primary signal.
 
-**5. Verify before designing.** When deciding whether to build a cache, a job, or a denormalised field, first check whether the data is already on the durable record and just isn't being projected. Greps before grand designs. A semantic store is often a denormalised cache of state already present on the canonical record — projecting deterministically beats caching strategies most of the time.
+**5. Verify before designing.** When deciding whether to build a cache, a job, or a denormalised field, first check whether the data is already on the durable record and just isn't being projected. Greps before grand designs. A semantic store is often a denormalised cache of state already present on the canonical record: projecting deterministically beats caching strategies most of the time.
 
 **6. Deterministic over LLM / memory when the data exists.** If the data is on the durable record, project it. If it requires semantic recall (e.g. "what is relevant to *this* user input?"), that's the model-calling agent's job after the orchestrator hands it the structural context. The action loop never makes a vector query for data that is already on the record in structural form.
 <!-- tag: Architecture-Conditional; applies-when: ships-llm-prompts -->
 
-**7. Trade context size for completeness when the budget allows.** A small structural projection that ships every relevant event in the parent chain is worth the tokens — durable, consistent, no surprises. Slicing or truncating to "save context" introduces decisions the next reader has to reverse-engineer. Don't `slice(-N)` projections; cap at write-time if growth becomes a real problem.
+**7. Trade context size for completeness when the budget allows.** A small structural projection that ships every relevant event in the parent chain is worth the tokens: durable, consistent, no surprises. Slicing or truncating to "save context" introduces decisions the next reader has to reverse-engineer. Don't `slice(-N)` projections; cap at write-time if growth becomes a real problem.
 <!-- tag: Architecture-Conditional; applies-when: ships-llm-prompts -->
 
 **8. Skip work that won't be observed.** When an operation short-circuits before the model call (fast-path, guard block), the per-call work the model would have consumed (catch-up generation, mid-context compaction, suggestions) is wasted. Background jobs handle the catch-up work; the synchronous path short-circuits before paying for it. Symmetrically: when a fresh action carries no `mechanicsResult` and the directive needs a user action, do not invoke the model. Run only the work whose output the user will see.
 <!-- tag: Architecture-Conditional; applies-when: ships-llm-prompts -->
 
-These show up as PR review questions. If a diff adds a five-line block to the orchestrator, the question is "where does this belong?" If a diff adds an inline `?.type === '...'` check, the question is "what's the named predicate?" If a diff calls a memory query before the model, the question is "is the underlying data on the record?"
+These show up as PR review questions.
+
+- A diff adds a five-line block to the orchestrator: where does this belong?
+- A diff adds an inline `?.type === '...'` check: what is the named predicate?
+- A diff calls a memory query before the model: is the underlying data already on the record?
 
 ---
 
@@ -792,7 +796,7 @@ A decision doc is the design contract for a feature. Agents and humans read it t
 The "question answered" column enforces single responsibility: if an agent's row cannot be reduced to one question, it is doing too much.
 <!-- tag: Architecture-Conditional; applies-when: ships-llm-prompts -->
 
-**2. ASCII pipeline flow diagram.** For any feature that chains three or more agents or jobs, include a numbered flow showing inputs, decision points, and branch paths: numbered steps, `|` connectors, `├─` / `└─` for branches, bracketed stage labels, and a `↑` pointer for the input that closes the loop.
+**2. ASCII pipeline flow diagram.** For any feature that chains three or more agents or jobs, include a numbered flow showing inputs, decision points, and branch paths. Use numbered steps, `|` connectors, `├─` and `└─` for branches, bracketed stage labels, and a `↑` pointer for the input that closes the loop.
 
 A diagram is not optional: it is how an agent reads the feature without executing the code. Prose that describes a pipeline in sentences produces ambiguous reading order and conflates stages.
 
@@ -846,10 +850,10 @@ The preferred number of CSS lines in a component module is zero.
 
 | Layer | File | Purpose |
 |---|---|---|
-| Design tokens | `src/styles/global.css` `:root` | All colours, fonts, spacing — one source of truth |
+| Design tokens | `src/styles/global.css` `:root` | All colours, fonts, spacing. One source of truth |
 | Shared styles | `src/styles/global.css` | Button variants, text utilities, any class used by 2+ components |
 | Component layout | `ComponentName.module.css` | Flex / grid structure, padding, component-specific overrides only |
-| Inline styles | — | Never |
+| Inline styles |: | Never |
 
 **Before writing a new rule in a `.module.css` file, ask:** could this be a global utility class? If so, put it in `global.css` and `composes` it in:
 
@@ -861,7 +865,7 @@ The preferred number of CSS lines in a component module is zero.
 }
 ```
 
-**Design tokens never live in component files.** All `--color-*`, `--font-*`, `--radius`, `--spacing` are declared once in `global.css :root`. Components reference them via `var(--token)` — they never define their own values.
+**Design tokens never live in component files.** All `--color-*`, `--font-*`, `--radius`, `--spacing` are declared once in `global.css :root`. Components reference them via `var(--token)`. They never define their own values.
 
 **Duplication in CSS is a bug.** If the same colour value, font size, or transition appears in two component modules, one of them is wrong.
 

@@ -63,16 +63,34 @@ def check_readme_counts(failures):
             )
 
 
-def check_engineering_docs_linked(failures):
-    """Every engineering doc is discoverable from the readme and CLAUDE.md."""
+# Root docs that are entry points in their own right, not content to link.
+ENTRY_POINTS = {"readme.md", "CLAUDE.md", "LICENSE.md"}
+
+
+def check_docs_linked(failures):
+    """Every doc a reader is meant to find is reachable from readme or CLAUDE.md.
+
+    Covers engineering/ and the root-level guidance docs. A doc nothing links to
+    is a doc nobody reads, which is how AGENT_RELIABILITY.md shipped invisible.
+    """
     readme = read("readme.md")
     claude = read("CLAUDE.md")
+
     for path in sorted(glob.glob(os.path.join(ROOT, "engineering", "*.md"))):
         name = os.path.basename(path)
         if name not in readme:
             failures.append("readme.md: engineering/%s is not mentioned" % name)
         if name not in claude:
             failures.append("CLAUDE.md: engineering/%s is not mentioned" % name)
+
+    for path in sorted(glob.glob(os.path.join(ROOT, "*.md"))):
+        name = os.path.basename(path)
+        if name in ENTRY_POINTS:
+            continue
+        if name not in readme and name not in claude:
+            failures.append(
+                "%s is a root doc that neither readme.md nor CLAUDE.md links to" % name
+            )
 
 
 def check_flags_defined(failures):
@@ -142,7 +160,7 @@ def main():
     for check in (
         check_agents_listed_in_readme,
         check_readme_counts,
-        check_engineering_docs_linked,
+        check_docs_linked,
         check_flags_defined,
         check_agents_wired,
         check_preference_sections_match_installer,

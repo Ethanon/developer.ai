@@ -1,12 +1,20 @@
 name: Scheduled Agents
 
+# Every job here is a thin call into ./.github/workflows/run-agent.yml, which
+# owns the checkout, the token pre-flight, and the claude-code-action call.
+# What lives in this file is only what genuinely differs per agent: when it
+# fires, which model it runs on, and what it is asked to produce.
+#
+# Adding an agent means adding one job below and one entry in the dispatch
+# choice list above it. Nothing else.
+
 on:
   schedule:
-    # Weekly audit scanners — Mondays at 9am UTC
+    # Weekly audit scanners: Mondays at 9am UTC
     - cron: '0 9 * * 1'
-    # Audit-groomer — Mondays at noon UTC (3 hours after scanners; absorbs schedule skew)
+    # Audit-groomer: Mondays at noon UTC (3 hours after scanners, absorbs schedule skew)
     - cron: '0 12 * * 1'
-    # Daily agents — every day at 8am UTC
+    # Daily agents: every day at 8am UTC
     - cron: '0 8 * * *'
   workflow_dispatch:
     inputs:
@@ -26,7 +34,7 @@ on:
           - flaky_test_finder
           - release_audit
           - audit_groomer
-          - developer_agent
+          - feature_agent
           - story_groomer
 
 permissions:
@@ -42,395 +50,168 @@ jobs:
     if: >
       (github.event_name == 'schedule' && github.event.schedule == '0 9 * * 1') ||
       (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'scrum_master'))
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
-        env:
-          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
-        run: |
-          if [ "$HAS_TOKEN" != "true" ]; then
-            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
-            exit 1
-          fi
-      - name: Run scrum_master
-        uses: anthropics/claude-code-action@v1
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: |
-            --model claude-sonnet-5
-            --effort medium
-            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
-          prompt: |
-            Invoke the scrum_master subagent.
-            The agent's full spec lives at .claude/agents/scrum_master.md — follow it exactly.
-            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
-            Return only the report file path.
+    uses: ./.github/workflows/run-agent.yml
+    secrets: inherit
+    with:
+      agent: scrum_master
+      instructions: |
+        Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
+        Return only the report file path.
 
   weekly-market-watch:
     if: >
       (github.event_name == 'schedule' && github.event.schedule == '0 9 * * 1') ||
       (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'market_watch'))
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
-        env:
-          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
-        run: |
-          if [ "$HAS_TOKEN" != "true" ]; then
-            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
-            exit 1
-          fi
-      - name: Run market_watch
-        uses: anthropics/claude-code-action@v1
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: |
-            --model claude-sonnet-5
-            --effort medium
-            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
-          prompt: |
-            Invoke the market_watch subagent.
-            The agent's full spec lives at .claude/agents/market_watch.md — follow it exactly.
-            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
-            Return only the report file path.
+    uses: ./.github/workflows/run-agent.yml
+    secrets: inherit
+    with:
+      agent: market_watch
+      instructions: |
+        Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
+        Return only the report file path.
 
   weekly-hanging-refs:
     if: >
       (github.event_name == 'schedule' && github.event.schedule == '0 9 * * 1') ||
       (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'hanging_refs'))
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
-        env:
-          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
-        run: |
-          if [ "$HAS_TOKEN" != "true" ]; then
-            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
-            exit 1
-          fi
-      - name: Run hanging_refs
-        uses: anthropics/claude-code-action@v1
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: |
-            --model claude-sonnet-5
-            --effort medium
-            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
-          prompt: |
-            Invoke the hanging_refs subagent.
-            The agent's full spec lives at .claude/agents/hanging_refs.md — follow it exactly.
-            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
-            Return only the report file path.
+    uses: ./.github/workflows/run-agent.yml
+    secrets: inherit
+    with:
+      agent: hanging_refs
+      instructions: |
+        Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
+        Return only the report file path.
 
   weekly-naming-audit:
     if: >
       (github.event_name == 'schedule' && github.event.schedule == '0 9 * * 1') ||
       (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'naming_audit'))
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
-        env:
-          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
-        run: |
-          if [ "$HAS_TOKEN" != "true" ]; then
-            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
-            exit 1
-          fi
-      - name: Run naming_audit
-        uses: anthropics/claude-code-action@v1
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: |
-            --model claude-sonnet-5
-            --effort medium
-            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
-          prompt: |
-            Invoke the naming_audit subagent.
-            The agent's full spec lives at .claude/agents/naming_audit.md — follow it exactly.
-            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
-            Return only the report file path.
+    uses: ./.github/workflows/run-agent.yml
+    secrets: inherit
+    with:
+      agent: naming_audit
+      instructions: |
+        Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
+        Return only the report file path.
 
   weekly-class-size-audit:
     if: >
       (github.event_name == 'schedule' && github.event.schedule == '0 9 * * 1') ||
       (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'class_size_audit'))
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
-        env:
-          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
-        run: |
-          if [ "$HAS_TOKEN" != "true" ]; then
-            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
-            exit 1
-          fi
-      - name: Run class_size_audit
-        uses: anthropics/claude-code-action@v1
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: |
-            --model claude-sonnet-5
-            --effort medium
-            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
-          prompt: |
-            Invoke the class_size_audit subagent.
-            The agent's full spec lives at .claude/agents/class_size_audit.md — follow it exactly.
-            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
-            Return only the report file path.
+    uses: ./.github/workflows/run-agent.yml
+    secrets: inherit
+    with:
+      agent: class_size_audit
+      instructions: |
+        Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
+        Return only the report file path.
 
   weekly-security-audit:
     if: >
       (github.event_name == 'schedule' && github.event.schedule == '0 9 * * 1') ||
       (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'security_audit'))
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
-        env:
-          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
-        run: |
-          if [ "$HAS_TOKEN" != "true" ]; then
-            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
-            exit 1
-          fi
-      - name: Run security_audit
-        uses: anthropics/claude-code-action@v1
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: |
-            --model claude-sonnet-5
-            --effort medium
-            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
-          prompt: |
-            Invoke the security_audit subagent.
-            The agent's full spec lives at .claude/agents/security_audit.md — follow it exactly.
-            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
-            Return only the report file path.
+    uses: ./.github/workflows/run-agent.yml
+    secrets: inherit
+    with:
+      agent: security_audit
+      instructions: |
+        Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
+        Return only the report file path.
 
+  # Optional: only runs if your project ships LLM prompts. Skip otherwise.
   weekly-prompt-audit:
-    # Optional: only runs if your project ships LLM prompts. Skip otherwise.
     if: >
       (github.event_name == 'schedule' && github.event.schedule == '0 9 * * 1') ||
       (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'prompt_audit'))
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
-        env:
-          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
-        run: |
-          if [ "$HAS_TOKEN" != "true" ]; then
-            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
-            exit 1
-          fi
-      - name: Run prompt_audit
-        uses: anthropics/claude-code-action@v1
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: |
-            --model claude-sonnet-5
-            --effort medium
-            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
-          prompt: |
-            Invoke the prompt_audit subagent.
-            The agent's full spec lives at .claude/agents/prompt_audit.md — follow it exactly.
-            If the project does not ship LLM prompts, the agent exits early; that's expected.
-            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
-            Return only the report file path.
+    uses: ./.github/workflows/run-agent.yml
+    secrets: inherit
+    with:
+      agent: prompt_audit
+      instructions: |
+        Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
+        Return only the report file path.
 
+  # Optional: only runs if your CI emits JUnit XML and uploads it as a
+  # test-results-* artifact. The agent gracefully bootstraps (Phase 1
+  # skipped, static analysis only) if no artifacts exist yet.
+  #
+  # This is the one job that narrows its own permissions rather than
+  # inheriting the workflow defaults: it reads the Actions API and writes a
+  # report, and needs nothing else.
   weekly-flaky-test-finder:
-    # Optional: only runs if your CI emits JUnit XML and uploads it as a
-    # test-results-* artifact. The agent gracefully bootstraps (Phase 1
-    # skipped, static analysis only) if no artifacts exist yet.
     if: >
       (github.event_name == 'schedule' && github.event.schedule == '0 9 * * 1') ||
       (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'flaky_test_finder'))
-    runs-on: ubuntu-latest
     permissions:
-      # Read workflow runs and download artifacts from the Actions API.
       actions: read
-      # Write the report file (the agent's only write).
       contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
-        env:
-          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
-        run: |
-          if [ "$HAS_TOKEN" != "true" ]; then
-            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
-            exit 1
-          fi
-      - name: Run flaky_test_finder
-        uses: anthropics/claude-code-action@v1
-        env:
-          # The agent calls the GitHub Actions REST API for run history
-          # and artifact downloads. GITHUB_TOKEN inherits the actions: read
-          # permission granted on this job above.
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPO: ${{ github.repository }}
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: |
-            --model claude-sonnet-5
-            --effort medium
-            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
-          prompt: |
-            Invoke the flaky_test_finder subagent.
-            The agent's full spec lives at .claude/agents/flaky_test_finder.md — follow it exactly.
-            Pull CI run history via the GitHub Actions API (GITHUB_TOKEN and GITHUB_REPO are set in the environment), download JUnit XML artifacts, classify tests as REAL_FAILURE / FLAKY / STATIC_SMELL, and write the timestamped report under .claude/reports/.
-            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
-            Return only the report file path.
+    uses: ./.github/workflows/run-agent.yml
+    secrets: inherit
+    with:
+      agent: flaky_test_finder
+      needs_actions_api: true
+      instructions: |
+        Pull CI run history via the GitHub Actions API (GITHUB_TOKEN and GITHUB_REPO are set in the environment), download JUnit XML artifacts, classify tests as REAL_FAILURE / FLAKY / STATIC_SMELL, and write the timestamped report under .claude/reports/.
+        Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
+        Return only the report file path.
 
+  # Optional but recommended: scans for "is this safe to ship?" signals, such as
+  # migrations without rollback, env-var drift, stale feature flags, and missing
+  # health checks. Use the report before any production deploy.
   weekly-release-audit:
-    # Optional but recommended: scans for "is this safe to ship?" signals —
-    # migrations without rollback, env-var drift, stale feature flags, missing
-    # health checks. Use the report before any production deploy.
     if: >
       (github.event_name == 'schedule' && github.event.schedule == '0 9 * * 1') ||
       (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'release_audit'))
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
-        env:
-          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
-        run: |
-          if [ "$HAS_TOKEN" != "true" ]; then
-            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
-            exit 1
-          fi
-      - name: Run release_audit
-        uses: anthropics/claude-code-action@v1
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: |
-            --model claude-sonnet-5
-            --effort medium
-            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
-          prompt: |
-            Invoke the release_audit subagent.
-            The agent's full spec lives at .claude/agents/release_audit.md — follow it exactly.
-            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
-            Return only the report file path.
+    uses: ./.github/workflows/run-agent.yml
+    secrets: inherit
+    with:
+      agent: release_audit
+      instructions: |
+        Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
+        Return only the report file path.
 
-  # ─── Audit-groomer (turns audit reports into ready issues) ──────────────────
-  # Runs Mondays at noon UTC — three hours after the audit scanners, so all
+  # ─── Audit-groomer (turns audit reports into labeled issues) ────────────────
+  # Runs Mondays at noon UTC, three hours after the audit scanners, so all
   # reports are in place before the groomer reads them.
 
   weekly-audit-groomer:
     if: >
       (github.event_name == 'schedule' && github.event.schedule == '0 12 * * 1') ||
       (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'audit_groomer'))
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
-        env:
-          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
-        run: |
-          if [ "$HAS_TOKEN" != "true" ]; then
-            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
-            exit 1
-          fi
-      - name: Run audit_groomer
-        uses: anthropics/claude-code-action@v1
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: |
-            --model claude-sonnet-5
-            --effort medium
-            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
-          prompt: |
-            Invoke the audit_groomer subagent.
-            The agent's full spec lives at .claude/agents/audit_groomer.md — follow it exactly.
-            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
-            Return only the report file path.
+    uses: ./.github/workflows/run-agent.yml
+    secrets: inherit
+    with:
+      agent: audit_groomer
+      instructions: |
+        Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
+        Return only the report file path.
 
   # ─── Daily agents (run every day) ───────────────────────────────────────────
 
-  daily-developer-agent:
+  # The only agent on the larger model. It writes design documents and makes
+  # scope calls the audit scanners never have to make.
+  daily-feature-agent:
     if: >
       (github.event_name == 'schedule' && github.event.schedule == '0 8 * * *') ||
-      (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'developer_agent'))
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
-        env:
-          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
-        run: |
-          if [ "$HAS_TOKEN" != "true" ]; then
-            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
-            exit 1
-          fi
-      - name: Run developer_agent
-        uses: anthropics/claude-code-action@v1
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: |
-            --model claude-sonnet-5
-            --effort medium
-            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
-          prompt: |
-            Invoke the developer_agent subagent.
-            The agent's full spec lives at .claude/agents/developer_agent.md — follow it exactly.
-            Return only the PR URL, "no eligible issue found today", or "existing claude branch already in flight: <PR URL>".
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'feature_agent'))
+    uses: ./.github/workflows/run-agent.yml
+    secrets: inherit
+    with:
+      agent: feature_agent
+      model: claude-opus-5
+      effort: high
+      instructions: |
+        Run with mode = work.
+        Return only the PR URL or one of the status lines the spec defines.
 
   daily-story-groomer:
     if: >
       (github.event_name == 'schedule' && github.event.schedule == '0 8 * * *') ||
       (github.event_name == 'workflow_dispatch' && (github.event.inputs.agent == '' || github.event.inputs.agent == 'story_groomer'))
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
-        env:
-          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
-        run: |
-          if [ "$HAS_TOKEN" != "true" ]; then
-            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
-            exit 1
-          fi
-      - name: Run story_groomer
-        uses: anthropics/claude-code-action@v1
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: |
-            --model claude-sonnet-5
-            --effort medium
-            --allowedTools "Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github"
-          prompt: |
-            Invoke the story_groomer subagent.
-            The agent's full spec lives at .claude/agents/story_groomer.md — follow it exactly.
-            Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
-            Return only the report file path.
+    uses: ./.github/workflows/run-agent.yml
+    secrets: inherit
+    with:
+      agent: story_groomer
+      instructions: |
+        Write the report under .claude/reports/, then commit and push it. A report left only in the runner is gone when the job ends.
+        Return only the report file path.

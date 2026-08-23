@@ -8,7 +8,7 @@ project does not build model-calling agents, the installer skips it entirely.
 
 Individual sections carry their own tags where they narrow further.
 
-This is the agent-layer application of "AI Does Fuzzy Logic. Code Does
+Every rule here is the agent-layer application of "AI Does Fuzzy Logic. Code Does
 Deterministic Logic." in ENGINEERING_PRINCIPLES.md. That section draws the line;
 this one says what to build on each side of it.
 -->
@@ -17,7 +17,7 @@ this one says what to build on each side of it.
 
 `ENGINEERING_PRINCIPLES.md` tells you how to build a class. This tells you how to build an agent: a component whose job is to call a model, and which therefore has failure modes a normal class does not have. An agent can be confidently wrong, can quietly forget, and can drift as its context fills. The rules below exist to make those three failures structurally hard rather than a matter of prompt quality.
 
-The single most important rule lives in the other document and is repeated here because everything else depends on it: **anything with a right answer is code, not a model call.** An agent that computes a total, checks a permission, or resolves a rule inline has already failed, and no amount of prompt engineering fixes it.
+The single most important rule lives in the other document. It is repeated here because everything else depends on it: **anything with a right answer is code, not a model call.** An agent that computes a total, checks a permission, or resolves a rule inline has already failed, and no prompt fixes it.
 
 ---
 
@@ -77,7 +77,7 @@ Editing prunes, compaction summarizes, memory persists. Long-running agents comm
 **The question:** _what can my harness do with this tool call once the model emits it?_
 <!-- tag: Generic -->
 
-This is the part of agent design that gets least attention and causes most of the operational pain. The model emits tool calls; **your harness** decides what happens next. The *shape* of the call determines what the harness is able to do.
+The tool surface is the part of agent design that gets least attention and causes most of the operational pain. The model emits tool calls; **your harness** decides what happens next. The *shape* of the call determines what the harness is able to do.
 
 A general-purpose tool (a shell, a query executor, an HTTP client) gives the model enormous reach and gives your harness almost nothing: every action arrives as an opaque string, identical in shape whether it is listing a directory or deleting a database. A dedicated tool gives the harness typed arguments it can inspect, gate, render, and schedule.
 
@@ -177,7 +177,7 @@ Prompts are the least-tested part of most model-calling systems and the part mos
 **The question:** _does every turn of this loop resend a prefix that could have been cached?_
 <!-- tag: Generic -->
 
-This is the cost lever most agent codebases leave on the floor, and it constrains architecture in ways that are invisible until you measure. Providers cache by **prefix match**: the request is cached from the start up to a marked point, and any byte that changes before that point invalidates everything after it. An agent that loops fifty times resends its whole prefix fifty times, so whether that prefix is stable is close to the whole cost story.
+Prompt caching is the cost lever most agent codebases leave unused, and it constrains architecture in ways that are invisible until you measure. Providers cache by **prefix match**: the request is cached from the start up to a marked point, and any byte that changes before that point invalidates everything after it. An agent that loops fifty times resends its whole prefix fifty times, so whether that prefix is stable is close to the whole cost story.
 
 The consequences are architectural, not incidental:
 
@@ -223,7 +223,7 @@ Each of those is a different failure and they do not share a remedy.
 
 **Non-determinism is a testing problem, and the answer is injection.** The model client is an interface; tests supply a fake that returns fixed responses. Tests never call a real model: they would be slow, flaky, costly, and would silently change behavior when the provider updates. See [`TESTING_PRINCIPLES.md`](TESTING_PRINCIPLES.md).
 
-**Agents that take hard-to-reverse actions need a suspend point, not just a confirmation prompt.** The mature pattern is an interruptible loop with durable state: the agent reaches a gated action, the run checkpoints and suspends, a human approves or rejects, and the run resumes from the checkpoint rather than restarting. This costs real design effort and is worth it exactly when the "cost of error" gate above was the reason you hesitated.
+**Agents that take hard-to-reverse actions need a suspend point, not just a confirmation prompt.** The mature pattern is an interruptible loop with durable state. The agent reaches a gated action, the run checkpoints and suspends, a human approves or rejects, and the run resumes from the checkpoint rather than restarting. That costs real design effort. It is worth it exactly when the "cost of error" gate above was the reason you hesitated.
 
 ---
 
@@ -240,7 +240,7 @@ If not, do not make it. The common waste patterns:
 
 The opposite mistake is also real: **do not slice or truncate a projection to save context.** Truncation introduces a decision the next reader has to reverse-engineer, and it usually removes the one field that mattered. If growth is a genuine problem, cap at write time where the decision is visible, not at read time where it is not.
 
-**None of this is manageable without instrumentation.** Emit traces for agent runs, model calls, and tool executions, and follow the OpenTelemetry GenAI semantic conventions rather than inventing span names: an `invoke_agent` span with child `chat` spans per model call and `execute_tool` spans per tool invocation, carrying model, token counts, and finish reason as attributes. The conventions are what the major frameworks and observability vendors already emit and consume, so following them means your traces are portable and your tooling choice stays reversible. Per-call token accounting is also the prerequisite for every optimization above: without it, "this agent is expensive" is a feeling rather than a finding.
+**None of this is manageable without instrumentation.** Emit traces for agent runs, model calls, and tool executions. Follow the OpenTelemetry GenAI semantic conventions rather than inventing span names: an `invoke_agent` span with child `chat` spans per model call, and `execute_tool` spans per tool invocation, carrying model, token counts, and finish reason as attributes. The major frameworks and observability vendors already emit and consume those conventions, so following them keeps your traces portable and your tooling choice reversible. Per-call token accounting is also the prerequisite for every optimization above: without it, "this agent is expensive" is a feeling rather than a finding.
 
 ---
 

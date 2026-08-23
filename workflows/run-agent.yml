@@ -1,0 +1,90 @@
+name: Run Agent
+
+# Reusable workflow. Every scheduled agent runs through this one job, so the
+# checkout, the token pre-flight, and the claude-code-action call exist once
+# instead of once per agent. Callers supply what actually differs: which agent,
+# which model, and the instructions appended to the standard preamble.
+#
+# Called as:
+#
+#   jobs:
+#     weekly-security-audit:
+#       if: <schedule or dispatch condition>
+#       uses: ./.github/workflows/run-agent.yml
+#       secrets: inherit
+#       with:
+#         agent: security_audit
+#         instructions: |
+#           Write the report under .claude/reports/, then commit and push it.
+#           Return only the report file path.
+#
+# The `if:` condition stays in the caller. A reusable workflow cannot decide
+# whether it should have been called.
+
+on:
+  workflow_call:
+    inputs:
+      agent:
+        description: 'Agent name. Must match the spec filename under .claude/agents/.'
+        required: true
+        type: string
+      model:
+        description: 'Model to run the agent on.'
+        required: false
+        type: string
+        default: claude-sonnet-5
+      effort:
+        description: 'Reasoning effort. Raise it for agents that design rather than scan.'
+        required: false
+        type: string
+        default: medium
+      instructions:
+        description: 'Appended after the standard preamble. Say what to produce and what to return.'
+        required: true
+        type: string
+      allowed_tools:
+        description: 'Tool allowlist passed to claude_args.'
+        required: false
+        type: string
+        default: 'Bash,Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,mcp__github'
+      needs_actions_api:
+        description: 'Set true when the agent calls the GitHub Actions REST API directly. Grant actions: read on the calling job as well.'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify CLAUDE_CODE_OAUTH_TOKEN is configured
+        env:
+          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+        run: |
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::CLAUDE_CODE_OAUTH_TOKEN repository secret is not set."
+            exit 1
+          fi
+
+      - name: Run ${{ inputs.agent }}
+        uses: anthropics/claude-code-action@v1
+        env:
+          # Only populated for agents that read the Actions API themselves.
+          # GITHUB_TOKEN carries whatever the calling job granted, so the caller
+          # must also grant actions: read for these to work.
+          GITHUB_TOKEN: ${{ inputs.needs_actions_api && secrets.GITHUB_TOKEN || '' }}
+          GITHUB_REPO: ${{ inputs.needs_actions_api && github.repository || '' }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --model ${{ inputs.model }}
+            --effort ${{ inputs.effort }}
+            --allowedTools "${{ inputs.allowed_tools }}"
+          prompt: |
+            Invoke the ${{ inputs.agent }} subagent.
+            The agent's full spec lives at .claude/agents/${{ inputs.agent }}.md - follow it exactly.
+            ${{ inputs.instructions }}

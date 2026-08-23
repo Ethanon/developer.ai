@@ -94,6 +94,6 @@ A "wait it'll pass next time" rerun is not a fix. Every smoke failure has a real
 
 ## Why this is a CI gate, not an agent decision
 
-An earlier approach had the developer-agent invoke visual smoke before opening the PR. That made the agent the gate, which means a human PR could ship UI changes without smoke. CI is the better gate: every UI PR runs the smoke regardless of who opened it.
+An earlier approach had the feature-agent invoke visual smoke before opening the PR. That made the agent the gate, which means a human PR could ship UI changes without smoke. CI is the better gate: every UI PR runs the smoke regardless of who opened it.
 
 The skill remains as **documentation for the not-runnable case**. When the auto-smoke cannot reach the route the change affects, the PR description's `## Manual smoke` section is the substitute. That is the only thing this skill asks of you today.

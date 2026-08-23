@@ -1,8 +1,8 @@
 # Extending developer.ai
 
-So you've installed the kit, run it for a few weeks, and you want to add a new agent of your own. A repo-specific reviewer ("Karen — accessibility specialist for our public-facing storefront"), a new audit scanner ("license_audit — flags GPL-dependent packages"), or a new backlog automation that fits your team's workflow.
+So you've installed the kit, run it for a few weeks, and you want to add a new agent of your own. A repo-specific reviewer ("Karen, accessibility specialist for our public-facing storefront"), a new audit scanner ("license_audit — flags GPL-dependent packages"), or a new backlog automation that fits your team's workflow.
 
-This is the right instinct. The fleet shape — narrow, specialized, named — is meant to grow with the project, not stay frozen at the agents this kit ships with.
+Wanting your own agent is the right instinct. The fleet shape (narrow, specialized, named) is meant to grow with the project, not stay frozen at the agents this kit ships with.
 
 ## The upstream pattern
 
@@ -33,7 +33,7 @@ Don't draft from a blank file. Pick the agent in this kit whose **shape** is clo
 | New weekly audit scanner | `agents/audits/security_audit.md` (writes a Markdown report to `.claude/reports/`) |
 | New backlog automation | `agents/backlog/scrum_master.md` (lifecycle automation, idempotent operations) |
 
-The structural patterns — frontmatter shape, "what you review", "when to stay silent", "source of truth", "how to post", round-2 taper rules, report templates — are all worth copying directly. Don't reinvent.
+The structural patterns: frontmatter shape, "what you review", "when to stay silent", "source of truth", "how to post", round-2 taper rules, report templates. Are all worth copying directly. Don't reinvent.
 
 ### Tag the agent's universality
 
@@ -47,20 +47,21 @@ tag: Generic
 
 Tag options:
 
-- `Generic` — applies to any codebase. Universal value. Default; safe choice.
-- `Architecture-Conditional; applies-when: <condition>` — only useful for projects that have `<condition>` (e.g. `has-frontend`, `ships-llm-prompts`, `has-python`). The full set the installer recognizes is the flag table in `agents/installer.md`; use a flag from that table or add one there first. The installer asks the relevant question and strips the agent if the answer is no.
-- `Personal-Preference; default-on` or `Personal-Preference; default-off` — agent is real, but reasonable people disagree on whether to run it. The installer asks.
-- `Domain-Specific` — agent only makes sense for one kind of project (e.g. tabletop-RPG mechanics review, ML model evaluation). Adopters in other domains strip it.
+- `Generic`: applies to any codebase. Universal value. Default; safe choice.
+- `Architecture-Conditional; applies-when: <condition>`. Only useful for projects that have `<condition>` (e.g. `has-frontend`, `ships-llm-prompts`, `has-python`). The full set the installer recognizes is the flag table in `agents/installer.md`; use a flag from that table or add one there first. The installer asks the relevant question and strips the agent if the answer is no.
+- `Personal-Preference; default-on` or `Personal-Preference; default-off`: agent is real, but reasonable people disagree on whether to run it. The installer asks.
+- `Domain-Specific`: agent only makes sense for one kind of project (e.g. tabletop-RPG mechanics review, ML model evaluation). Adopters in other domains strip it.
 
-If you skip the tag, the installer treats the agent as `Generic` by default. Most agents you build for yourself first will be `Domain-Specific` — that's fine. Tag them honestly so other adopters know to strip them.
+If you skip the tag, the installer treats the agent as `Generic` by default. Most agents you build for yourself first will be `Domain-Specific`. That's fine. Tag them honestly so other adopters know to strip them.
 
 ### Wire-up checklist
 
 After the agent file lands:
 
-- **PR-review reviewer:** add to the `matrix.agent` list in `workflows/pr-review.yml`. Decide whether it runs in the first wave (alongside Alice/Bob) or the critique wave (alongside Jekyll/Hyde — only if it depends on other agents' findings).
-- **Weekly audit:** add a `weekly-<name>` job to `workflows/scheduled-agents.yml` (copy the pattern from any existing weekly job). Add the agent name to the `workflow_dispatch` options. Add the agent as a source in `agents/backlog/audit_groomer.md` if its findings should auto-file as GitHub issues.
-- **Daily agent:** add a `daily-<name>` job to `workflows/scheduled-agents.yml`. Same pattern as `daily-developer-agent`.
+- **PR-review reviewer:** add to the `matrix.agent` list in `workflows/pr-review.yml`. Decide whether it runs in the first wave (alongside Alice/Bob) or the critique wave (alongside Jekyll/Hyde, only if it depends on other agents' findings).
+- **Weekly audit:** add a `weekly-<name>` job to `workflows/scheduled-agents.yml`. Every job there is a ten-line call into the reusable `workflows/run-agent.yml`, so copy any existing weekly job and change the `agent:` input and the dispatch condition. Add the agent name to the `workflow_dispatch` options too, or manual runs cannot reach it. Add the agent as a source in `agents/backlog/audit_groomer.md` if its findings should auto-file as GitHub issues.
+- **Daily agent:** add a `daily-<name>` job to `workflows/scheduled-agents.yml`, keyed on the `0 8 * * *` cron. Same pattern as `daily-feature-agent`, which also shows how to override the model and effort when an agent needs more than the default.
+- **Something the reusable job cannot express** (a build step before the agent, a matrix, a different action): add an input to `workflows/run-agent.yml` rather than writing a bespoke job beside it. The reasoning is in [`workflows/README.md`](workflows/README.md).
 - **Update `readme.md` fleet list and the Mermaid diagram** so adopters can see the new agent at a glance.
 - **Update `CLAUDE.md` headline rules** if the agent enforces something worth a one-line rule.
 
@@ -76,10 +77,10 @@ Three smells that you should extend an existing agent instead of creating a new 
 2. **The new agent fires on the same PRs as an existing one and produces similar-shape findings.** Duplicate noise; the author has to mentally deduplicate.
 3. **The new agent's checks could be a lint rule, a typecheck, or a test.** Those have zero per-PR cost; an agent's review burns Claude tokens. Lint rules beat agents whenever the rule is deterministic.
 
-A good rule: **add an agent when the check requires judgment**. A linter can flag `any`; only a reviewer can decide whether the `any` is justified. Phil (unit testing) reviews whether the test name describes intent — a linter can't do that.
+A good rule: **add an agent when the check requires judgment**. A linter can flag `any`; only a reviewer can decide whether the `any` is justified. Phil (unit testing) reviews whether the test name describes intent: a linter can't do that.
 
 ## Contributing back
 
-If you build an agent that's genuinely generic and you think other adopters would benefit, open a PR against this repo. Tag it `Generic` and we'll review it through the same fleet that reviews every other PR here — Alice, Bob, Gomez, Carl if it's user-facing, plus Jekyll and Hyde on the critique pass. Advisory review only; you decide what to act on.
+If you build an agent that's genuinely generic and you think other adopters would benefit, open a PR against this repo. Tag it `Generic` and we'll review it through the same fleet that reviews every other PR here: Alice, Bob, Gomez, Carl if it's user-facing, plus Jekyll and Hyde on the critique pass. Advisory review only; you decide what to act on.
 
 See `engineering/PR_WORKFLOW.md` for the full PR lifecycle this kit uses.

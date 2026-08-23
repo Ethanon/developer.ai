@@ -8,11 +8,11 @@ Rules for opening, greening, and shepherding a PR through review. Applies to hum
 
 Every change to this repository lands via a pull request. Even one-line renames, em-dash cleanups, link fixes, and other "mechanical" changes go through a PR so the owner has a review window before code lands on the default branch.
 
-**No direct pushes to the default branch.** The temptation is "this is too trivial to warrant a PR" — that's the wrong call. The cost of opening a PR is seconds; the cost of bypassing the owner's review is a change landing without anyone looking at it. If the change is genuinely too trivial to review, it's also too trivial to need rushing past a PR.
+**No direct pushes to the default branch.** The temptation is "this is too trivial to warrant a PR". That's the wrong call. The cost of opening a PR is seconds; the cost of bypassing the owner's review is a change landing without anyone looking at it. If the change is genuinely too trivial to review, it's also too trivial to need rushing past a PR.
 
 The one exception is agents that explicitly have direct-push authorization documented in their own spec (the `story_groomer` and `audit_groomer` bots push `[story]` and `[#NN]` heading suffixes directly to the default branch as part of their idempotency contract). If an agent's spec does not name direct-push, the agent opens a PR.
 
-Branch naming, commit messages, and any other PR mechanics live in the agent that opens the PR (see `agents/backlog/developer_agent.md` for the canonical pattern).
+Branch naming, commit messages, and any other PR mechanics live in the agent that opens the PR (see `agents/backlog/feature_agent.md` for the canonical pattern).
 
 ---
 
@@ -105,21 +105,21 @@ The `receiving-code-review` skill covers the conversational half of this: how to
 
 ## Update the design docs in the same PR
 
-If the PR implements, changes, or supersedes a design decision, the doc updates land in the same PR — not as follow-up work. Out-of-sync decision status is the most common doc-drift bug; the cheapest moment to fix it is the same PR that ships the code.
+If the PR implements, changes, or supersedes a design decision, the doc updates land in the same PR, not as follow-up work. Out-of-sync decision status is the most common doc-drift bug; the cheapest moment to fix it is the same PR that ships the code.
 
 Three cases the author owns before opening the PR:
 
 1. **PR implements a `Proposed` or `Approved` decision.** Update the decision's `**Status:**` field to `Implemented` (when the PR lands the code) or `Landed` (when the PR also includes the integration / migration / rollout work). Add an `**Implemented by:**` line citing the PR number. A PR that adds the code without flipping the status leaves the decision permanently lying about its own state.
 
 2. **PR contradicts an existing `Implemented` / `Landed` decision.** Two valid responses, both in the same PR:
-   - **Edit in place** — when only details drifted (a renamed module, an updated threshold, a clarified rule). Update the decision so it matches the code.
-   - **Supersede** — when the underlying architecture changed. Write a new numbered decision that names the predecessor, move the old one to `docs/decisions/historical/`, and update any other docs that point at the old one.
+   - **Edit in place**: when only details drifted (a renamed module, an updated threshold, a clarified rule). Update the decision so it matches the code.
+   - **Supersede**: when the underlying architecture changed. Write a new numbered decision that names the predecessor, move the old one to `docs/decisions/historical/`, and update any other docs that point at the old one.
 
    Don't merge code that disagrees with an Implemented decision without also resolving the inconsistency. Future readers will trip over it; future agents will write more code based on the stale decision.
 
-3. **PR introduces new architectural shape with no backing decision.** If the PR adds a new service, a new data flow, a new external dependency, a new cross-cutting pattern, or a new abstraction the rest of the codebase doesn't have yet — write the one-paragraph decision doc in the same PR. It doesn't have to be long. It has to exist. A short decision with status `Implemented` and a one-paragraph rationale beats a 20-page decision written six months later from memory.
+3. **PR introduces new architectural shape with no backing decision.** Write the one-paragraph decision doc in the same PR whenever it adds a new service, a new data flow, a new external dependency, a new cross-cutting pattern, or an abstraction the rest of the codebase does not have yet. It doesn't have to be long. It has to exist. A short decision with status `Implemented` and a one-paragraph rationale beats a 20-page decision written six months later from memory.
 
-Bob's structural review catches most of these at PR time as a safety net. Don't rely on him — the author owns the doc updates.
+Bob's structural review catches most of these at PR time as a safety net. Don't rely on him: the author owns the doc updates.
 
 ---
 

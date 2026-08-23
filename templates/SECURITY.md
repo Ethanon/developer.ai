@@ -26,7 +26,7 @@ Sections marked TO FILL are the ones the defaults cannot guess for you.
 
 <!-- TO FILL -->
 
-Where this runs, who can reach it, and what the blast radius of a compromise is. Answer in a paragraph: hosting platform, network exposure (public internet, VPN, internal only), how many tenants share an instance, what data classes you hold (credentials, payment, health, personal, none of the above), and what stage you are at (pre-alpha, private beta, production with paying users). Every risk decision below is only defensible relative to this paragraph, and it changes as you grow.
+Where this runs, who can reach it, and what the blast radius of a compromise is. Answer in a paragraph covering five things: hosting platform; network exposure (public internet, VPN, internal only); how many tenants share an instance; what data classes you hold (credentials, payment, health, personal, none of the above); and what stage you are at (pre-alpha, private beta, production with paying users). Every risk decision below is only defensible relative to this paragraph, and it changes as you grow.
 <!-- tag: Generic -->
 
 ## Threat model
@@ -73,7 +73,7 @@ Our backend runs an `auth` service that holds our identity provider (Keycloak to
 6. The API sets two cookies on the browser: an `HttpOnly` access-token cookie (15-minute lifetime) and an `HttpOnly` refresh-token cookie (30-day lifetime, scoped to `/auth/refresh`).
 7. Subsequent requests carry the cookies. The API verifies the access token on every request and, when it expires, the frontend hits `/auth/refresh` to get a new pair.
 
-This is sometimes called the "backend-for-frontend" pattern in the literature. The reason to bother: the browser never holds a real token in JavaScript, which closes off a whole class of browser-side attacks.
+The literature sometimes calls this shape the "backend-for-frontend" pattern. The reason to bother: the browser never holds a real token in JavaScript, which closes off a whole class of browser-side attacks.
 <!-- tag: Architecture-Conditional; applies-when: has-frontend + has-auth -->
 
 ## How requests are authorized

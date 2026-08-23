@@ -68,8 +68,8 @@ Return ONLY the report file path to the caller. No summary, no narrative.
 
 The agent runs in a GitHub Actions environment. The following env vars are always set:
 
-- `GITHUB_TOKEN` — Actions token with `actions: read` and `contents: write` scope. Use this for all GitHub API calls.
-- `GITHUB_REPO` — `owner/repo` string, e.g. `your-org/your-app`.
+- `GITHUB_TOKEN`: Actions token with `actions: read` and `contents: write` scope. Use this for all GitHub API calls.
+- `GITHUB_REPO`: `owner/repo` string, e.g. `your-org/your-app`.
 
 All GitHub REST API calls use base URL `https://api.github.com`. Always pass `-H "Accept: application/vnd.github+json"` and `-H "X-GitHub-Api-Version: 2022-11-28"`.
 
@@ -118,7 +118,7 @@ curl -sL \
 unzip -q /tmp/test-results-{RUN_ID}.zip -d /tmp/test-results-{RUN_ID}/
 ```
 
-**Efficiency:** batch these downloads. Process up to 100 runs but stop early if you have 60 runs with parseable artifacts — that is enough data for reliable flakiness detection. Skip runs where the artifact is expired or absent.
+**Efficiency:** batch these downloads. Process up to 100 runs but stop early if you have 60 runs with parseable artifacts. That is enough data for reliable flakiness detection. Skip runs where the artifact is expired or absent.
 
 **Budget:** the workflow's `timeout-minutes` is the wall-clock budget. If the artifact-download phase has consumed more than ~60% of that budget, stop downloading and proceed with what you have. Note how many runs you processed in the report.
 
@@ -322,7 +322,7 @@ Rules:
 This agent's report is consumed by `audit_groomer`. To ensure findings are groomer-compatible:
 
 - **REAL_FAILURE and FLAKY findings** have severity tags the groomer will pick up: treat as CERTAIN confidence (you have CI evidence). Include a "Suggested fix:" line per finding.
-- **STATIC_SMELL findings** are LOW severity and LOW confidence; the groomer will suffix `[skip]` with "low confidence" per its confidence floor rule. That is correct behavior — they are here for human review.
+- **STATIC_SMELL findings** are LOW severity and LOW confidence; the groomer will suffix `[skip]` with "low confidence" per its confidence floor rule. That is correct behavior. They are here for human review.
 - **RECENTLY_FIXED_FLAKE** has NOTE severity; groomer skips. Correct.
 - Numbered findings within each H3 section follow the groomer's pattern `1. <path>:<line> — description`. Use the test file path as the path and the test name as the description.
 
@@ -330,7 +330,7 @@ This agent's report is consumed by `audit_groomer`. To ensure findings are groom
 
 - **Read-only against source.** The only file you write is the report under `.claude/reports/`.
 - **GitHub API calls via Bash with curl.** Use `$GITHUB_TOKEN` and `$GITHUB_REPO` from the environment. Never hardcode the token.
-- **No `WebFetch` for GitHub API calls** — use Bash with curl so the token stays out of any HTTP request log the harness might capture.
+- **No `WebFetch` for GitHub API calls**: use Bash with curl so the token stays out of any HTTP request log the harness might capture.
 - **Idempotent.** Two same-day runs produce the same report (overwrite).
 - **Never include raw test failure output in the report** beyond the test name and run IDs. The report is committed to the repo; do not include large stack traces or assertion diffs (security: a stack trace could leak file paths, env-derived values, or other internals).
 - **Bootstrap gracefully.** If no `test-results-*` artifacts exist yet (first weeks after enabling this agent), skip Phase 1, write "no CI history available yet — JUnit artifact upload not yet shipped" in the Notes section, and run Phase 2 (static analysis) only.

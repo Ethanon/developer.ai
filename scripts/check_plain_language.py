@@ -56,10 +56,18 @@ def scan(path):
         if not stripped:
             continue
 
-        if "—" in line:
+        # Headings are out of scope, and so is anything a reader will see
+        # verbatim: code spans, and text inside double quotes. A quoted
+        # section title has to keep whatever punctuation the heading uses.
+        if stripped.startswith("#"):
+            continue
+        prose_only = re.sub(r"`+[^`]*`+", "", line)
+        prose_only = re.sub(r'"[^"]*"', "", prose_only)
+
+        if "—" in prose_only:
             hits.append(("em-dash", number, stripped[:90]))
 
-        lowered = line.lower()
+        lowered = prose_only.lower()
         for idiom in IDIOMS:
             if idiom in lowered:
                 hits.append(("idiom", number, idiom))

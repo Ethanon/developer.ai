@@ -209,7 +209,7 @@ if user.age >= MINIMUM_AGE and order.total >= DISCOUNT_THRESHOLD:
 
 ## Python-Specific Notes
 
-- Use `mypy` or `pyright` for type checking after refactoring — rename regressions show up immediately.
+- Use `mypy` or `pyright` for type checking after refactoring: rename regressions show up immediately.
 - `ruff` can automate many simple refactors (unused imports, simplifiable conditionals).
 - Prefer `@dataclass(frozen=True)` for value objects over mutable classes.
 - Use `Protocol` instead of `ABC` when the interface is structural (duck typing): callers don't need to import or inherit from the protocol.

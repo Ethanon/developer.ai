@@ -187,10 +187,10 @@ const mockResponse = {
 ```
 
 **Why this is wrong:**
-- Partial mocks hide structural assumptions — you only mocked fields you know about
-- Downstream code may depend on fields you didn't include — silent failures
-- Tests pass but integration fails — mock incomplete, real API complete
-- False confidence — test proves nothing about real behavior
+- Partial mocks hide structural assumptions. You only mocked fields you know about
+- Downstream code may depend on fields you didn't include: silent failures
+- Tests pass but integration fails: mock incomplete, real API complete
+- False confidence: test proves nothing about real behavior
 
 **The Iron Rule:** Mock the COMPLETE data structure as it exists in reality, not just fields your immediate test uses.
 
@@ -259,12 +259,12 @@ TDD cycle:
 ## TDD Prevents These Anti-Patterns
 
 **Why TDD helps:**
-1. **Write test first** — Forces you to think about what you're actually testing
-2. **Watch it fail** — Confirms test tests real behavior, not mocks
-3. **Minimal implementation** — No test-only methods creep in
-4. **Real dependencies** — You see what the test actually needs before mocking
+1. **Write test first**: Forces you to think about what you're actually testing
+2. **Watch it fail**: Confirms test tests real behavior, not mocks
+3. **Minimal implementation**: No test-only methods creep in
+4. **Real dependencies**. You see what the test actually needs before mocking
 
-**If you're testing mock behavior, you violated TDD** — you added mocks without watching test fail against real code first.
+**If you're testing mock behavior, you violated TDD**. You added mocks without watching test fail against real code first.
 
 ## Quick Reference
 
@@ -274,7 +274,7 @@ TDD cycle:
 | Test-only methods in production | Move to test utilities |
 | Mock without understanding | Understand dependencies first, mock minimally |
 | Incomplete mocks | Mirror real API completely |
-| Tests as afterthought | TDD — tests first |
+| Tests as afterthought | TDD: tests first |
 | Over-complex mocks | Consider integration tests |
 
 ## Red Flags
