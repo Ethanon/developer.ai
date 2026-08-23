@@ -84,3 +84,30 @@ A good rule: **add an agent when the check requires judgment**. A linter can fla
 If you build an agent that's genuinely generic and you think other adopters would benefit, open a PR against this repo. Tag it `Generic` and we'll review it through the same fleet that reviews every other PR here: Alice, Bob, Gomez, Carl if it's user-facing, plus Jekyll and Hyde on the critique pass. Advisory review only; you decide what to act on.
 
 See `engineering/PR_WORKFLOW.md` for the full PR lifecycle this kit uses.
+
+---
+
+## The tag convention
+
+Every rule in this kit carries a classification tag in an HTML comment. Tags are invisible in the rendered markdown but tell the installer what to keep, what to strip, and what to customize.
+
+```markdown
+- **Default to zero comments.** Comments are a symptom of unclear names.
+  <!-- tag: Generic -->
+
+- **Backend holds the user's session; the browser only has a cookie.**
+  <!-- tag: Architecture-Conditional; applies-when: has-frontend + has-auth -->
+
+- **No em-dashes, no emoji in prose.** Use colons or new sentences.
+  <!-- tag: Personal Preference; default-on -->
+```
+
+Four tags:
+- **`Generic`**: applies to any project. Kept verbatim.
+- **`Architecture-Conditional`**: applies under certain conditions (`has-frontend`, `has-auth`, `ships-llm-prompts`, etc.). Kept or stripped based on your wizard answers.
+- **`Personal Preference`**: strong opinion, reasonable to disagree. Kit's opinion by default; overridable.
+- **`Domain-Specific`**: content that didn't get a useful generalization. Lives in `DOMAIN_SPECIFIC.md` as a worked example; cross-referenced from generic files.
+
+The full set of `applies-when` flags the installer recognizes is documented in `agents/installer.md`. You don't have to know them to install; the wizard collects everything you need to answer.
+
+---

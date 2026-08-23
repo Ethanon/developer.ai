@@ -8,15 +8,18 @@ If you are an agent: read this in full once, then read the linked doc(s) for the
 
 ## What this is
 
-**developer.ai** is a public collection of Claude Code agents, engineering principles, automation workflows, and CI pipelines for TypeScript projects. Fork it, configure it for your repo, and get a production-quality AI-assisted development pipeline out of the box.
+**developer.ai gives one developer an entire engineering organization, as agents.** It is a public collection of agent specs, engineering principles, automation workflows, and CI pipelines for four platforms. Fork it, configure it for your repo, and the functions a real org performs start running on a schedule.
 
-The agents cover:
-- Automated PR review (security, engineering principles, whitehat/blackhat critique)
-- Backlog automation (story grooming, issue lifecycle, a feature agent that designs, waits for your approval, then builds)
-- Weekly audits (dead code, naming violations, class size, security drift, market signals)
-- Workflow utilities (receiving code review, metered conflict resolution)
+The developer stays the architect. Every other seat is filled:
 
-All agents are single-file. Frontend-specific rules live inline in each file, tagged Architecture-Conditional; the installer keeps or strips those sections based on whether your project has a frontend. There are no generic-vs-PWA variants to choose between.
+- **Development.** `feature_agent` designs before it builds, waits for your approval, then writes tests first and implements to green. Skills give it test-driven development, refactoring discipline, a dev harness, and visual smoke that drives a real browser.
+- **Review.** Seven reviewers in two waves, each in a lane, with a whitehat and blackhat pair that critique the first wave rather than repeat it.
+- **Platform and ops.** Eight weekly scanners for the drift nobody schedules time to look for.
+- **PM and scrum.** Four backlog agents that turn decisions into stories ready to pick up, by you or by an agent.
+
+An organization is not a set of good intentions. It is work that happens whether or not anyone remembered to ask, which is why every one of these runs on a schedule or a trigger rather than on your attention.
+
+Each agent is one file. Frontend-specific rules live inline, tagged Architecture-Conditional, and the installer keeps or strips them based on whether your project has a frontend.
 
 See [ADAPTING.md](ADAPTING.md) for the one-time setup steps to point everything at your repo.
 
@@ -31,6 +34,7 @@ See [ADAPTING.md](ADAPTING.md) for the one-time setup steps to point everything 
 | Anything touching auth, input, secrets, logging, or prompts | [`engineering/SECURITY_PRINCIPLES.md`](engineering/SECURITY_PRINCIPLES.md) |
 | Architecture / data flow | `docs/ARCHITECTURE.md` (add your own) |
 | Changing an agent or a review workflow | [`AGENT_RELIABILITY.md`](AGENT_RELIABILITY.md) |
+| Measuring whether the fleet is accurate | [`BENCHMARKING.md`](BENCHMARKING.md) |
 | Logging, tracing, or debugging | [`engineering/OBSERVABILITY_PRINCIPLES.md`](engineering/OBSERVABILITY_PRINCIPLES.md) |
 | Building an agent that calls a model | [`engineering/AI_AGENT_PRINCIPLES.md`](engineering/AI_AGENT_PRINCIPLES.md) |
 | AI agents (all roles, variants) | [`agents/`](agents/) |
@@ -145,7 +149,7 @@ Both are bot-managed. Read these before opening an issue or PR:
 - [`engineering/BACKLOG_WORKFLOW.md`](engineering/BACKLOG_WORKFLOW.md): how issues come into existence, the Definition of Ready, the `[story]` heading convention.
 - [`engineering/PR_WORKFLOW.md`](engineering/PR_WORKFLOW.md): opening, greening CI, responding to review.
 
-The agent fleet is documented in [`agents/`](agents/). The reference workflows are in [`workflows/`](workflows/), and [`workflows/README.md`](workflows/README.md) explains why they are shaped the way they are.
+The agent fleet is documented in [`agents/`](agents/). The reference workflows are in [`workflows/`](workflows/), and [`workflows/README.md`](workflows/README.md) explains why they are shaped the way they are. Config for the AI coding tools an adopter's team uses lives in [`toolconfigs/`](toolconfigs/), and the GitLab, Bitbucket, and Azure DevOps pipelines live in [`ci/`](ci/) with [`ci/README.md`](ci/README.md) covering what ports and what does not.
 
 ---
 

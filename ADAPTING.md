@@ -57,7 +57,7 @@ The workflow checks for this secret and prints an error if missing.
 
 ## Step 4: Choose which review agents to include
 
-Seven PR-review agents ship in this kit. There are no generic-vs-PWA variants any more. Frontend-specific rules live inline in each file, tagged Architecture-Conditional, and either survive or get stripped at install time based on whether your project has a frontend.
+Seven PR-review agents ship in this kit. Frontend-specific rules live inline in each file, tagged Architecture-Conditional, and either survive or get stripped at install time based on whether your project has a frontend.
 
 ### Core review agents (always on)
 
@@ -152,7 +152,7 @@ You can skip CALIBRATE for the first PR review and the agents will still post so
 
 ---
 
-## Step 10: Extend `_pwa` variants for your stack (optional)
+## Step 10: Extend the reviewers for your stack (optional)
 
 If your project has conventions beyond what Alice and Bob already cover (a specific state-management library, a particular API pattern, internal naming conventions), add a `## Project-specific extensions` section at the bottom of `alice_security.md` and `bob_engineering.md`.
 
@@ -176,13 +176,46 @@ Or invoke manually via the Agent tool: `Agent({ subagent_type: 'scrum-master' })
 
 ---
 
-## Minimal viable setup (if you want just the PR review)
+## Take only the parts you want
+
+The steps above cover a full install. The kit is four capabilities that ship together and
+install separately, and most adopters should start with one. `/install` asks which ones you
+want as its first question; by hand, these are the four paths.
+
+### Principles only, nothing runs
+
+1. Copy `engineering/*.md` into `docs/engineering/`.
+2. Copy `templates/PROJECT_CONTEXT.md`, `ARCHITECTURE.md`, and `SECURITY.md` into `docs/` and fill them in.
+3. Point your AI tool's config file at them.
+
+No secret, no workflow, no agent. Better rules in front of whatever agent you already use is
+most of the value here, and it costs nothing per run. Steps 3, 7, and 11 above do not apply
+to you.
+
+### PR review
 
 1. Copy `agents/pr-review/` into `.claude/agents/` in your target repo.
-2. Copy `workflows/pr-review.yml` into `.github/workflows/pr-review.yml`.
-3. Replace `REPO_OWNER/REPO_NAME` in `workflows/pr-review.yml`.
-4. Add the `CLAUDE_CODE_OAUTH_TOKEN` secret.
-5. Confirm the `[bob_engineering, alice_security]` matrix is what you want (add `gomez_cleancode` and `carl_ux` if your project needs them).
-6. Push to your default branch.
+2. Copy `workflows/pr-review.yml` into `.github/workflows/pr-review.yml`, and `workflows/run-agent.yml` alongside it.
+3. Copy `workflows/scripts/` into `.github/scripts/` and mark the `.sh` executable. Skipping it leaves every reviewer job failing on a missing file, and it is what turns a silent agent into a red build.
+4. Replace `REPO_OWNER/REPO_NAME` in the workflow files.
+5. Add the `CLAUDE_CODE_OAUTH_TOKEN` secret.
+6. Confirm the `matrix.agent` list is what you want. Start with `[bob_engineering, alice_security]`.
+7. Push to your default branch.
 
-That's it. Alice and Bob will post on every PR automatically. Jekyll and Hyde follow once alice and bob have run.
+Alice and Bob post on every PR. Jekyll and Hyde follow once those two have run.
+
+### Weekly audits
+
+1. Copy `agents/audits/` into `.claude/agents/`.
+2. Copy `workflows/scheduled-agents.yml` and `workflows/run-agent.yml` into `.github/workflows/`, then delete the two `daily-*` jobs.
+3. Add the `CLAUDE_CODE_OAUTH_TOKEN` secret.
+
+Reports land in `.claude/reports/` on Monday mornings. Nothing files an issue and nothing
+comments on a PR.
+
+### Backlog automation
+
+Take the PR review path first, then add `agents/backlog/`, keep the `daily-*` jobs, and
+create the labels listed in `engineering/BACKLOG_WORKFLOW.md`. This is the only capability
+that needs GitHub specifically, and the only one where an agent opens pull requests and
+edits your issues.

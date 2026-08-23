@@ -22,12 +22,11 @@ adapting the files to your repo is in [`../ADAPTING.md`](../ADAPTING.md).
 `run-agent.yml` owns the checkout, the token pre-flight, and the call into
 `anthropics/claude-code-action`. Every other job is a ten-line call into it.
 
-Before this existed, `scheduled-agents.yml` held twelve near-identical thirty-line blocks.
-That shape has one specific failure mode, and it is not the obvious one. The obvious cost is
-typing. The real cost is that a fix applied to one block silently fails to apply to the other
-eleven, and nothing tells you: the workflow stays green, because eleven jobs doing the old
-thing correctly is indistinguishable from eleven jobs doing the right thing. Copy-paste
-configuration does not drift loudly. It drifts by staying still.
+The alternative is twelve near-identical thirty-line blocks, and its failure mode is not the
+obvious one. The obvious cost is typing. The real cost is that a fix applied to one block
+silently fails to apply to the other eleven, and nothing tells you: the workflow stays green,
+because eleven jobs doing the old thing correctly is indistinguishable from eleven jobs doing
+the right thing. Copy-paste configuration does not drift loudly. It drifts by staying still.
 
 Adding an agent is now: one job below, one entry in the `workflow_dispatch` choice list.
 
@@ -111,19 +110,173 @@ If you tune one thing here, tune this. See "What it costs" in [`../readme.md`](.
 
 ---
 
-## Adapting to another CI platform
+## Other platforms
 
-Only GitHub Actions ships. The reusable-job structure is the part that ports: every agent
-run is the same four steps, so the equivalent on another platform is one job template plus a
-per-agent parameter file.
+GitLab, Bitbucket, and Azure DevOps live in [`../ci/`](../ci/), which carries its own README.
+The split is worth knowing when you edit either side:
 
-- **The eight audit agents port cleanly.** They read the repo and write a markdown file. Any
-  runner with a checkout, a Claude Code CLI, and push access can run them.
-- **The seven reviewers need a posting adapter.** Their output is inline PR comments, which
-  is GitHub-shaped. The review logic is transport-independent; the posting is not.
-- **The four backlog agents do not port** without real work. They are built on GitHub Issues
-  and labels, and the lifecycle state machine in
-  [`../engineering/BACKLOG_WORKFLOW.md`](../engineering/BACKLOG_WORKFLOW.md) assumes them.
+- **This directory is the reference implementation.** GitHub is the only platform proven on
+  live runs, and the only one where all seven reviewers and the backlog agents work.
+- **`../ci/` mirrors it** with a shared posting adapter, because those three platforms have
+  no equivalent of `claude-code-action` and no GitHub MCP tools.
 
-Installer question 11 says the same thing, so an adopter finds it before installing rather
-than after.
+**A change to how a reviewer is invoked belongs in both.** The two halves already agree on
+the thing that matters most: feed the spec body as the prompt, and fail the job when nothing
+posted. Let those drift and one platform starts reporting reviews that never happened.
+
+Installer question 11 sets the platform, and question 0 lets an adopter take the principles,
+the audits, or the reviewers without taking the parts their platform cannot run.
+
+---
+
+## The whole system, in two diagrams
+
+Two workflow files in `workflows/`. The installer copies both into your target repo's `.github/workflows/` folder, editing the `REPO_OWNER/REPO_NAME` and default-branch placeholders to match your wizard answers.
+
+### The whole system, end to end
+
+```mermaid
+flowchart LR
+    classDef human    fill:#fef3c7,stroke:#92400e,color:#78350f
+    classDef workflow fill:#dbeafe,stroke:#1e40af,color:#1e3a8a
+    classDef artifact fill:#f3f4f6,stroke:#6b7280,color:#111827
+
+    Codebase[(your codebase)]:::artifact
+    Decisions[(decision docs)]:::artifact
+    Issues[(GitHub Issues)]:::artifact
+    PRs[(Pull Requests)]:::artifact
+
+    Human(["you<br/>(write decisions,<br/>merge PRs)"]):::human
+
+    Human -->|writes / approves| Decisions
+    Human -->|merges| PRs
+
+    subgraph Scheduled ["workflows/scheduled-agents.yml<br/>(cron + dispatch)"]
+        Scanners["audit scanners<br/>(weekly Mon 09:00)"]:::workflow
+        AG["audit_groomer<br/>(weekly Mon 12:00)"]:::workflow
+        SG["story_groomer<br/>(daily 08:00)"]:::workflow
+        DA["feature_agent<br/>(daily 08:00)"]:::workflow
+        SM["scrum_master<br/>(weekly Mon)"]:::workflow
+    end
+
+    subgraph PRReview ["workflows/pr-review.yml<br/>(on every PR)"]
+        L1["Layer 1<br/>Alice / Bob / Phil / Gomez / Carl"]:::workflow
+        L2["Layer 2<br/>Jekyll / Hyde"]:::workflow
+    end
+
+    Codebase -.->|scanned by| Scanners
+    Scanners -->|write reports| AG
+    AG -->|files| Issues
+    Decisions -.->|scanned by| SG
+    SG -->|files story-tagged issues<br/>+ adds 'ready' label| Issues
+    Issues -->|picks one| DA
+    DA -->|opens| PRs
+    PRs --> L1
+    L1 --> L2
+    L2 -->|reviews ready to read| Human
+
+    Human -.->|opens own PRs| PRs
+    SM -.->|closes shipped issues<br/>tracks drift| Issues
+```
+
+### `pr-review.yml`
+
+**When it fires:** every `opened` / `synchronize` / `reopened` event on a pull request targeting the default branch.
+
+**What it does:** two layers, in sequence.
+
+```mermaid
+sequenceDiagram
+    actor Author
+    participant GH as GitHub PR
+    participant L1 as Layer 1<br/>reviewers
+    participant L2 as Layer 2<br/>critics
+
+    Author->>GH: open PR / push commit
+
+    Note over L1: review job fires (parallel)
+    par
+        L1->>GH: Alice — security
+    and
+        L1->>GH: Bob — engineering
+    and
+        L1->>GH: Gomez — clean code<br/>(optional)
+    and
+        L1->>GH: Carl — UX<br/>(optional, only if has-frontend)
+    end
+
+    Note over L2: critique job waits for review job<br/>(needs: review)
+    GH-->>L2: posted reviews + diff
+    par
+        L2->>GH: Jekyll — whitehat critic
+    and
+        L2->>GH: Hyde — blackhat critic
+    end
+
+    GH-->>Author: 4-6 reviews ready to read
+```
+
+**Skip conditions:** fork PRs, Renovate PRs, and PRs with the `skip-ci` label.
+
+### `scheduled-agents.yml`
+
+Twelve jobs, each a ten-line call into the reusable `run-agent.yml`. What that file
+owns, why the `if:` conditions look the way they do, and what to change when you add an agent
+are all in [`workflows/README.md`](README.md).
+
+**When it fires:** the bots are layered across the week so the outputs of one feed the inputs of the next.
+
+```mermaid
+flowchart TD
+    classDef scanner fill:#dbeafe,stroke:#1e40af,color:#1e3a8a
+    classDef groomer fill:#fde68a,stroke:#92400e,color:#78350f
+    classDef worker  fill:#bbf7d0,stroke:#166534,color:#14532d
+    classDef artifact fill:#f3f4f6,stroke:#6b7280,color:#111827
+    classDef human    fill:#fef3c7,stroke:#92400e,color:#78350f
+
+    subgraph WeeklyMon09 ["Mondays 09:00 UTC — audit scanners (run in parallel)"]
+        HR[hanging_refs]:::scanner
+        NA[naming_audit]:::scanner
+        CS[class_size_audit]:::scanner
+        SA[security_audit]:::scanner
+        PA[prompt_audit<br/>optional]:::scanner
+        SM[scrum_master]:::scanner
+        MW[market_watch<br/>Fridays only]:::scanner
+    end
+
+    Reports[(.claude/reports/<br/>timestamped audit reports)]:::artifact
+
+    HR --> Reports
+    NA --> Reports
+    CS --> Reports
+    SA --> Reports
+    PA --> Reports
+
+    subgraph WeeklyMon12 ["Mondays 12:00 UTC — 3h gap absorbs schedule skew"]
+        AG[audit_groomer]:::groomer
+    end
+    Reports --> AG
+
+    Issues[(GitHub Issues<br/>labeled audit-finding)]:::artifact
+    AG --> Issues
+
+    subgraph Daily08 ["Daily 08:00 UTC"]
+        SGRM[story_groomer]:::groomer
+        DEV[feature_agent]:::worker
+    end
+
+    SGRM -->|adds 'ready' / 'build-ready'| Issues
+    Issues -->|picks one, WIP=1| DEV
+
+    PR[/Draft PR: design doc only<br/>label: design-pending/]:::artifact
+    DEV --> PR
+    Owner{{Owner adds<br/>design-approved}}:::human
+    PR --> Owner
+    Built[/Same PR, now built<br/>label: design-implementation/]:::artifact
+    Owner --> DEV
+    DEV --> Built
+    Built -.->|triggers pr-review.yml| PRRev[[PR review pipeline<br/>see diagram above]]
+    Built --> Merge{{Owner merges.<br/>No agent ever does.}}:::human
+```
+
+---
