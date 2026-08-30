@@ -79,7 +79,7 @@ agent writes JSON and `post-review.mjs` posts it:
 }
 ```
 
-Splitting write from post is better than the GitHub arrangement, not a concession to it. The
+Splitting write from post buys three things. The
 agent needs no network credential. An inline comment the API rejects falls back to an
 unanchored one instead of vanishing. The file is still on disk when a run needs diagnosing,
 and every pipeline here keeps it as an artifact whether the job passed or failed.
@@ -177,7 +177,7 @@ In order, because each one makes the next diagnosable:
 ## Adding a platform
 
 1. Add a case to `platforms` in `scripts/post-review.mjs`. It returns a function from
-   `(body, path, line)` to a request. That is the whole platform-specific surface.
+   `(body, path, line)` to a request, and nothing else in the harness is platform-specific.
 2. Write `scripts/<platform>-review.sh` and `scripts/<platform>-audit.sh`. Look at the
    Bitbucket pair: they work out the merge base and map platform variables onto the names the
    poster reads, and nothing else.

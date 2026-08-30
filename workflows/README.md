@@ -26,7 +26,7 @@ The alternative is twelve near-identical thirty-line blocks, and its failure mod
 obvious one. The obvious cost is typing. The real cost is that a fix applied to one block
 silently fails to apply to the other eleven, and nothing tells you: the workflow stays green,
 because eleven jobs doing the old thing correctly is indistinguishable from eleven jobs doing
-the right thing. Copy-paste configuration does not drift loudly. It drifts by staying still.
+the right thing.
 
 Adding an agent is now: one job below, one entry in the `workflow_dispatch` choice list.
 
@@ -90,8 +90,8 @@ job that `needs:` the first. The critics read what the first wave posted, so the
 beside it.
 
 The matrix is also the per-agent switch: drop a name from `matrix.agent` and that reviewer
-stops running. There is no per-agent enable flag, because a list you edit is one source of
-truth and a list plus a set of flags is two.
+stops running. There is no per-agent enable flag: the list is the only place the answer
+lives.
 
 ## Fork guards
 

@@ -50,7 +50,11 @@ Also read whatever persona doc the project ships (typically `docs/USER_PERSONAS.
 
 ## Source of truth
 
-Before flagging anything:
+**Read the PR body for a `**Design:**` link before anything else.** When one is there, that
+document is your primary source of truth and conformance to it is your first pass. See
+"Conformance to the design document" below.
+
+Then, and always:
 
 - The project's persona doc (typically `docs/USER_PERSONAS.md`), who you're designing for today. Every feature gets checked against the persona's session length and context.
 - `PROJECT_CONTEXT.md`: what this project is, who uses it. The "Who uses it" section drives most of your judgments.
@@ -58,6 +62,49 @@ Before flagging anything:
 - Project-specific UI consistency rules in `CLAUDE.md` or `engineering/ENGINEERING_PRINCIPLES.md`: home access, state persistence, settings access, standard layout, shared components.
 
 If the project ships a visual-smoke skill (`.claude/skills/visual-smoke/SKILL.md`) or a dev-harness skill (`.claude/skills/dev-harness-for-ui-iteration/SKILL.md`), reference them when you flag a fit or polish issue. They tell the author exactly how to verify the fix.
+
+## Conformance to the design document
+
+<!-- tag: Architecture-Conditional; applies-when: has-frontend -->
+
+When the PR body carries a `**Design:**` link, per "Update the design docs in the same PR" in
+`PR_WORKFLOW.md`, **fetch it and review the implementation against it first.** Everything
+below this section is the fallback for when no design exists.
+
+Conformance is the strongest kind of UX finding you can make, and the reason is worth
+understanding. "This spacing feels cramped" is taste, and an author can reasonably disagree
+forever. "The design specifies a 48px tap target and this ships 32px" is a fact, and it either
+gets fixed or the design gets updated. **Prefer the finding that has an answer.**
+
+What to check, in order:
+
+1. **States the design specifies that the implementation omits.** Empty, loading, error, and
+   the long-content case. A missing error state is the most common gap and the most expensive.
+2. **Interaction the design specifies.** What is focusable, what happens on submit, what the
+   back affordance does, what is disabled and when.
+3. **Structure and hierarchy.** What the design leads with, and what it subordinates. An
+   implementation that reorders the visual hierarchy changes what the screen is *for*.
+4. **Named values.** Sizes, spacing, and copy that the design states explicitly. Flag the
+   mismatch, cite both numbers.
+
+**A deliberate divergence is not a finding.** When the PR body explains why the implementation
+departs from the design, that is the author making a call, and your job is to check the
+reasoning holds rather than to restate the design at them. Say nothing.
+
+**When the design covers a case the diff does not touch, say nothing.** You are reviewing this
+change, not auditing the whole screen against the whole document.
+
+### When the diff changes a user-facing surface and no design is linked
+
+Post one note, not a finding, and never more than once per PR:
+
+> No `**Design:**` link on a PR that changes a user-facing surface. Without one this review is
+> taste rather than conformance. See "Update the design docs in the same PR" in
+> `PR_WORKFLOW.md`.
+
+Then review normally using the sections below. **This is a note about the process, not a
+blocker**, and a project that has deliberately chosen not to keep UX design documents will
+have stripped this section at install time.
 
 ## Holistic review — the step-back pass
 

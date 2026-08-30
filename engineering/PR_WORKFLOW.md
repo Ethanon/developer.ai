@@ -107,7 +107,7 @@ The `receiving-code-review` skill covers the conversational half of this: how to
 
 If the PR implements, changes, or supersedes a design decision, the doc updates land in the same PR, not as follow-up work. Out-of-sync decision status is the most common doc-drift bug; the cheapest moment to fix it is the same PR that ships the code.
 
-Three cases the author owns before opening the PR:
+Four cases the author owns before opening the PR:
 
 1. **PR implements a `Proposed` or `Approved` decision.** Update the decision's `**Status:**` field to `Implemented` (when the PR lands the code) or `Landed` (when the PR also includes the integration / migration / rollout work). Add an `**Implemented by:**` line citing the PR number. A PR that adds the code without flipping the status leaves the decision permanently lying about its own state.
 
@@ -117,7 +117,15 @@ Three cases the author owns before opening the PR:
 
    Don't merge code that disagrees with an Implemented decision without also resolving the inconsistency. Future readers will trip over it; future agents will write more code based on the stale decision.
 
-3. **PR introduces new architectural shape with no backing decision.** Write the one-paragraph decision doc in the same PR whenever it adds a new service, a new data flow, a new external dependency, a new cross-cutting pattern, or an abstraction the rest of the codebase does not have yet. It doesn't have to be long. It has to exist. A short decision with status `Implemented` and a one-paragraph rationale beats a 20-page decision written six months later from memory.
+3. **PR changes a user-facing surface.** Link the UX design document in the PR body under `**Design:**`. A published design artifact, a Figma frame, or a written spec: what matters is that it is a stable link to the thing the implementation is supposed to match.
+
+   <!-- tag: Architecture-Conditional; applies-when: has-frontend -->
+
+   This link is what makes a UX review checkable. Without it, "is this good UX" is a matter of taste and a reviewer is guessing at intent; with it, the question becomes "does the implementation match what was agreed", which has an answer. `carl_ux` reads the link first and reviews conformance before anything else.
+
+   Design first still applies. The document exists before the code, the same as a decision doc, and the PR links it rather than inventing it afterwards to justify what got built.
+
+4. **PR introduces new architectural shape with no backing decision.** Write the one-paragraph decision doc in the same PR whenever it adds a new service, a new data flow, a new external dependency, a new cross-cutting pattern, or an abstraction the rest of the codebase does not have yet. It doesn't have to be long. It has to exist. A short decision with status `Implemented` and a one-paragraph rationale beats a 20-page decision written six months later from memory.
 
 Bob's structural review catches most of these at PR time as a safety net. Don't rely on him: the author owns the doc updates.
 

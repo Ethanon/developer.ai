@@ -1,7 +1,18 @@
 # Benchmarking plan
 
-**Status: planned, not built.** This is the design for measuring whether the reviewer fleet is
-actually right, written down so the plan survives a lost session. Nothing here has run yet.
+**The harness runs locally and is not in this repo.** Only the numbers are published, and they
+land in "Results" at the bottom of this file.
+
+Keeping it out is a deliberate trade. A benchmark harness is a corpus fetcher and a model-call loop; it
+measures the kit rather than being part of it, and shipping it would put a thousand-call script
+in front of every adopter who cloned the repo for engineering principles.
+
+**What it costs: the numbers are not independently reproducible.** Anyone can rebuild the
+harness from this document, and the corpus and method below are public and exact, but nobody
+can rerun ours by cloning this repo. Any published figure has to say so.
+
+This document holds the method, the settled decisions, and the traps, so the thinking survives
+a lost machine even though the code does not.
 
 ---
 
@@ -37,7 +48,7 @@ an adopter already pays for. If it is fifteen points, that is the headline claim
 rule kit in the category has one. **If it is zero, that is the most valuable thing we could
 learn before publishing**, and we should learn it privately first.
 
-C settles the context-size question with data rather than argument.
+C measures how much of the result comes from the principles.
 
 ---
 
@@ -90,11 +101,57 @@ weight than it earns.
 Catch rate and precision, per arm, per agent. Not catch rate alone: a reviewer that flags
 everything scores 100% and is useless, which is the whole reason the peers report F1.
 
-Publish the harness in-repo so anyone can rerun it. **A number nobody can reproduce is
-marketing**, and this kit does not get to make that trade after telling adopters to fail a
-build on an unverifiable review.
+Publish enough that someone else could rebuild it: corpus commit, model, effort, sample seed
+and size, the exact prompt each arm assembled, and the count of cases skipped with reasons.
+Without those, a reader cannot tell whether the number applies to them.
 
 ---
+
+## Settled method
+
+Written down here because the harness that implements it lives outside the repo.
+
+**Three arms per case**, same corpus, same model, same effort. `bare` is the task in one
+sentence with no spec. `full` is the agent's spec plus its required reading, as shipped.
+`nospec` is the spec with the required reading omitted. **`full` minus `bare` is the headline**,
+because it is the only number that says what the kit contributes over the model an adopter
+already pays for. `nospec` measures how much of the result comes from the required reading.
+
+**Two directions per CVE.** `introduce` is the inverse diff, a synthetic change that adds the
+vulnerability back, and a miss there is a false negative. `fix` is the real patch, where any
+finding on the patched lines is a false positive. Scoring both is what catches a model that
+learned to flag whatever a diff removes.
+
+**Detection is a file match plus a line proximity**, reported at N of 0, 5, and 20 rather than
+at one threshold, so the number stops being an argument about where the line sits. File
+matching is by suffix, since an agent may cite `src/a.js` where the corpus says
+`packages/x/src/a.js`.
+
+**Sample 30 while developing, the full corpus for anything published.** Thirty cases carries
+roughly plus or minus 9 points at 95% confidence, wide enough that a ten-point difference
+between arms is not clearly real.
+
+**Cache on the prompt hash**, so rerunning after an unrelated edit costs nothing and editing
+one agent's spec invalidates only that agent's arms.
+
+## Traps, found by running it
+
+Both cost a real debugging session and neither is visible in any documentation.
+
+**The GitHub compare API only fills `files[]` when head is ahead of base.** Asking for
+`postPatch...prePatch`, which is the `introduce` direction stated directly, returns status
+`behind` and an empty file list. That reads as a missing patch rather than a wrong query, so it
+looks like corpus rot and silently shrinks the denominator. Always fetch `prePatch...postPatch`
+and reverse the hunks to get `introduce`.
+
+**Changelogs hand the agent the answer.** A real diff carried a `HISTORY.md` entry reading
+`perf: skip unnecessary parsing of entire header`, and on the `introduce` direction that line
+being *removed* is a loud signal the change is a revert. Strip narrative files: changelogs,
+readmes, licences, lockfiles.
+
+**Match those names on the whole basename, never as a substring.** A pattern loose enough to
+catch `README` also catches `readme-parser.js`, which is a source file, and dropping it shrinks
+the corpus without saying so.
 
 ## What we do not claim
 
@@ -104,3 +161,10 @@ build on an unverifiable review.
   finding. Publishing "we beat CodeRabbit" off a corpus they never ran would be dishonest.
 - **Not stable across models.** Every number is bound to the model and effort level it ran at.
   Record both alongside the result, or the number rots the first time a default moves.
+
+---
+
+## Results
+
+Nothing published yet. Each entry records the corpus commit, model, effort, sample seed and
+size, cases skipped and why, and states that the harness is not public.

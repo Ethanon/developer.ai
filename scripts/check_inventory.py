@@ -14,6 +14,7 @@ import glob
 import io
 import os
 import re
+import subprocess
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -22,6 +23,17 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 def read(rel):
     with io.open(os.path.join(ROOT, rel), encoding="utf-8") as handle:
         return handle.read()
+
+
+def tracked(pattern):
+    """Files git tracks, matching a glob. Never anything gitignored.
+
+    `glob("**/*.md")` also finds cloned corpora and caches, and reporting on
+    another project's files is noise that trains people to ignore the check.
+    """
+    out = subprocess.run(["git", "ls-files", pattern], cwd=ROOT,
+                         capture_output=True, text=True).stdout.split("\n")
+    return [os.path.join(ROOT, line) for line in out if line.strip()]
 
 
 def agent_files(subdir):
@@ -137,10 +149,8 @@ def check_links(failures):
     the target will exist and here it will not. This caught a template shipping
     a link to a file that only lives in the kit.
     """
-    for path in sorted(glob.glob(os.path.join(ROOT, "**", "*.md"), recursive=True)):
+    for path in sorted(tracked("*.md")):
         rel = os.path.relpath(path, ROOT).replace(os.sep, "/")
-        if ".git" in rel:
-            continue
         base = os.path.dirname(path)
         fenced = False
         for number, line in enumerate(io.open(path, encoding="utf-8"), 1):

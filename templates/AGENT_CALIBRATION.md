@@ -9,7 +9,7 @@
     2. Delete this file and you are back to default behaviour. Undoing spec edits
        is git archaeology.
     3. The file only ever holds calibration, so `git log` on this path is the
-       calibration history. No database, no dashboard, no service.
+       calibration history, with no service to run.
 
   Write it by hand today. When `calibration_agent` ships, it maintains this file
   and you review its commits instead of typing rows.

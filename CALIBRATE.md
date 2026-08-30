@@ -157,7 +157,7 @@ The failure it catches is specific. A reviewer agent that starts producing plaus
 non-findings does not announce itself: its comments still read like review, and the PR still
 merges. What changes is that you begin skimming. Once skimming is the habit, the real finding
 in the middle of the batch gets skimmed too, and the fleet is costing you money to be
-ignored. Nobody notices the day that starts.
+ignored.
 
 Grade each finding signal, noise, or judgment as you close the pull request, while the diff
 is still in front of you. When the same finding is graded noise three times, it earns an entry

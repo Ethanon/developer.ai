@@ -17,7 +17,7 @@ The developer stays the architect. Every other seat is filled:
 - **Platform and ops.** Eight weekly scanners for the drift nobody schedules time to look for.
 - **PM and scrum.** Four backlog agents that turn decisions into stories ready to pick up, by you or by an agent.
 
-An organization is not a set of good intentions. It is work that happens whether or not anyone remembered to ask, which is why every one of these runs on a schedule or a trigger rather than on your attention.
+Every one of these runs on a schedule or a trigger rather than on your attention, so the work happens whether or not you remembered to ask for it.
 
 Each agent is one file. Frontend-specific rules live inline, tagged Architecture-Conditional, and the installer keeps or strips them based on whether your project has a frontend.
 
