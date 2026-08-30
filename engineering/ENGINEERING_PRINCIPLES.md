@@ -28,7 +28,7 @@ Most design failures are communication failures. This rule covers three kinds of
 - **Actionable.** The reader knows what to do next.
 - **Consistent.** The same idea uses the same word every time.
 
-Seven rules follow from that:
+Eight rules follow from that:
 
 1. **Use the plain word.** Write "belongs to" instead of "hangs off". Write "structure" instead of "shape of the thing". If a shorter and more common word means the same, use it.
 2. **One idea per sentence.** A sentence holding two clauses and a dash is usually two sentences.
