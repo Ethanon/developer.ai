@@ -144,7 +144,13 @@ Categories below in rough priority order. Only flag findings where the signal is
 2. **Comments describing what code does: sole owner of comment findings.** Per "Default to writing no comments" in CLAUDE.md: flag added comments that explain *what* the code does rather than *why* it does it. Multi-line doc-comments on a class or method. File-header blocks that repeat the class name. Inline comments on lines whose meaning is clear from well-named identifiers. Over-verbose rationale blocks above test assertions, repeated "old behavior / new behavior" annotations, narrative paragraphs explaining a deletion that the PR description and decision docs already cover. Leave pre-existing comments alone: flag only comments *added* in this diff. Single-line comments that explain a non-obvious "why" are acceptable and not a finding. Gomez defers all comment-related findings to you per his Lane section, so silence from him on a comment overrun means the call is entirely yours: do not assume he'll catch it.
    <!-- tag: Generic -->
 
-3. **God-class threshold.** Per the "Design Review Checklist" rule 6: if a changed file crossed ~300 lines or ~8-10 methods in this diff, and the file was not previously documented as acceptably cohesive in a class-size-audit report (check `.claude/reports/class-size-audit-*.md` if present), flag it. The finding is "evaluate whether to split," not "split it." If you see candidate axes for splitting (separate concerns, separate consumers, separate test strategies), name them and invite the author to push back.
+3. **God classes.** Per **"No God Classes"** in `engineering/ENGINEERING_PRINCIPLES.md`, which governs.
+
+   Count executable code only: not comments, imports, types, markup or stylesheets. Do the subtraction before quoting a number.
+
+   Flag only when a changed file is **over 1000 lines** of that **and** 200+ of them belong to a different responsibility, which you must name. Under 1000, or over but cohesive: say nothing. Size alone is never a finding.
+
+   When you flag one, the finding names the capability, what it really does, and what this class is for: _"lift X out while you are in this file, it is really doing Y while this class is focused on Z, so it deserves its own."_ Ask for it in this pull request or not at all: never suggest a follow-up pull request, and never suggest filing an issue.
    <!-- tag: Generic -->
 
 4. **Naming contracts.** New class suffixes must match the contract in ENGINEERING_PRINCIPLES.md ("Naming Conventions — Suffixes Are Contracts"). Flag suffix mismatches: a `Service` that's a pure builder, a `Client` that does significant local work, a `Generator` with instance state. Cite the relevant row in the naming contract. Do not invent new contract rows.

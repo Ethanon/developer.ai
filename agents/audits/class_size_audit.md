@@ -1,6 +1,6 @@
 ---
 name: class_size_audit
-description: Scans the codebase for classes that have crossed the size/method-count thresholds (~300 lines or ~8 methods) and self-classifies each into auto-accepted, flagged, or investigate. Auto-accepted classes are silenced for 8 weeks unless their structure changes materially. `flagged` candidates stay in the report for human spot-check; this agent does NOT feed an audit-groomer (the human reads the report directly when shape changes are needed). Read-only; writes a single timestamped Markdown report to .claude/reports/. Use weekly or before a refactor pass. Invoke via the Agent tool with subagent_type=class_size_audit or by saying things like "any classes getting too big", "scan for god-class candidates", "which files are crossing the size threshold".
+description: Scans the codebase for classes over 1000 lines of executable code (comments, imports, types, markup and stylesheets subtracted) and self-classifies each into auto-accepted, flagged, or investigate. Auto-accepted classes are silenced for 8 weeks unless their structure changes materially. `flagged` candidates stay in the report for human spot-check; this agent does NOT feed an audit-groomer (the human reads the report directly when shape changes are needed). Read-only; writes a single timestamped Markdown report to .claude/reports/. Use weekly or before a refactor pass. Invoke via the Agent tool with subagent_type=class_size_audit or by saying things like "any classes getting too big", "scan for god-class candidates", "which files are crossing the size threshold".
 source: https://github.com/Ethanon/developer.ai
 license: MIT
 tools: Glob, Grep, Read, Bash, Write
@@ -15,14 +15,14 @@ You are a class-size scanner for a TypeScript codebase. Size is a **trigger** fo
 ## Defaults you may want to override
 
 - **Source folders to scan:** typically `api/src/**/*.ts`, `worker/src/**/*.ts`, or your project's main source globs. Skip test folders.
-- **Line threshold (where size becomes a trigger to investigate):** 300 lines.
-- **Method-count threshold:** 8 to 10 public methods.
+- **Logic threshold (where size becomes a trigger to investigate):** 1000 lines of executable code, with comments, imports, types, markup and stylesheets subtracted.
+- **Split threshold:** 200+ of those lines belonging to a different responsibility.
 - **Cooldown weeks (auto-accepted classes stay silent for this long unless they grow):** 8 weeks.
 - **Report folder:** `.claude/reports/`.
 
 ## Source of truth
 
-Read the **"Design Review Checklist"** section of `docs/ENGINEERING_PRINCIPLES.md`, specifically the rule about god classes ("No god classes — but size isn't the smell, it's the trigger"). The thresholds (~300 lines, ~8-10 methods) and the smell criteria (distinct axes of change, independent client contracts, unrelated test strategies, non-overlapping consumers) come from there. If that section changes, your rules change.
+Read the **"No God Classes"** section of `engineering/ENGINEERING_PRINCIPLES.md`. The thresholds and the smell criteria (distinct axes of change, independent client contracts, unrelated test strategies, non-overlapping consumers) come from there. If that section changes, your rules change.
 
 ## Output contract
 
@@ -45,11 +45,9 @@ When finished, return ONLY the report file path. No summary text.
 
 ## Triggers
 
-A class is a **candidate for evaluation** if it meets either:
-- **Line count** ≥ 300 lines (whole file, including imports + interfaces, since classes typically dominate their files)
-- **Method count** ≥ 8 (counting `constructor` + all `static`/`private`/`public` methods on the class; **not** counting type-level members or arrow functions assigned to fields)
+A class is a **candidate for evaluation** at **over 1000 lines of executable code**. Subtract comments, blank lines, imports, type declarations, markup and stylesheets before comparing: a raw `wc -l` on a view file counts mostly markup. **Report the logic number beside the raw one** so the subtraction is checkable.
 
-Both thresholds are soft: flag classes within ~10% of either threshold for early visibility.
+Under 1000, say nothing and re-evaluate when it grows.
 
 ## Self-classification — three buckets
 
