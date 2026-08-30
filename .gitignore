@@ -2,3 +2,7 @@
 .claude/settings.json
 .env
 .env.secrets
+
+# The benchmark harness runs locally and is not part of the kit. Only the
+# numbers it produces get published, in BENCHMARKING.md.
+benchmark/

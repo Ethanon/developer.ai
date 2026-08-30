@@ -38,6 +38,18 @@ IDIOMS = [
 
 SENTENCE_WORD_LIMIT = 40
 
+# STYLE.md rule 6. Only the two shapes that can be matched without guessing:
+# a sentence announcing that it is the point, and "X is not Y, it is Z".
+# The other two shapes need a reader.
+APHORISM = re.compile(
+    # Sentence-final only. "That is the point to reach for X" means "the moment
+    # to", not "the point I am making", and flagging it would train people to
+    # ignore the checker.
+    r"\b(?:that|this)\s+is\s+(?:the|what)\s+(?:whole\s+)?"
+    r"(?:point|thing|trade|reason|answer|difference|failure|shape)\s*[.:!]"
+    r"|\bis\s+not\s+(?:a|an|the)\s+[\w\s-]{2,40},\s*it\s+is\b",
+    re.I)
+
 
 def scan(path):
     """Return (rule, line_number, evidence) for each hit in one file."""
@@ -66,6 +78,10 @@ def scan(path):
 
         if "—" in prose_only:
             hits.append(("em-dash", number, stripped[:90]))
+
+        aphorism = APHORISM.search(prose_only)
+        if aphorism:
+            hits.append(("aphorism", number, aphorism.group(0)[:70]))
 
         lowered = prose_only.lower()
         for idiom in IDIOMS:

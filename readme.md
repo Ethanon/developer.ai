@@ -19,7 +19,7 @@ This kit is that organization, as agents.
 - **Eight weekly agents** scan for the drift nobody has time to look for, and report on the system itself.
 - **Four backlog agents** turn decisions into stories that are ready to pick up, by you or by an agent.
 
-The functions run whether or not you remembered to ask. That is the whole point: an organization is not a set of good intentions, it is work that happens on a schedule.
+The functions run whether or not you remembered to ask.
 
 Install with `/install`. The principles install for whichever AI tools your team uses; the agents run on Claude Code.
 
@@ -75,12 +75,10 @@ If it is small and well-shaped, the crew picks it up on its own: designs it, bui
 hands you a code review. Meanwhile the scrum master walks the backlog once a week and closes
 out everything you already fixed, so **you never manage a backlog again.**
 
-### That is the whole thing
+### What you end up with
 
 A shorter loop, and every colleague you would have in a real organization: reviewers, QA,
 ops, and a PM who keeps the queue honest.
-
-One person, one team.
 
 ---
 

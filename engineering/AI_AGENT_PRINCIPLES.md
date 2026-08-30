@@ -100,7 +100,7 @@ A general-purpose tool (a shell, a query executor, an HTTP client) gives the mod
 - **The description is a contract.** If it does not precisely match actual behavior, the model builds a wrong model of your system and follows it consistently.
 - **Keep examples out of it.** Worked examples and dialogue snippets in a description cost tokens on every single request and narrow the model's exploration. Make the parameters expressive instead: a well-named enum carries intent for free.
 
-**Tool count is a design constraint.** Past a few dozen tools, loading every schema on every request wastes context and degrades selection. That is the point to reach for dynamic tool discovery rather than adding a forty-first tool to the always-loaded set.
+**Tool count is a design constraint.** Past a few dozen tools, loading every schema on every request wastes context and degrades selection. Reach for dynamic tool discovery there rather than adding a forty-first tool to the always-loaded set.
 
 ---
 

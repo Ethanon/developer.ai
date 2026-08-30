@@ -89,7 +89,26 @@ Em-dashes are a stylistic tic that compounds in AI-written prose, and they are u
 
 The em-dash ban is a house rule with no exception carved out for it, because every exception anyone has proposed turned out to be a sentence that read better split.
 
-No emoji or icons in templates or setup docs. No aphorism-shaped closers ("at the end of the day...", "the rest is just plumbing"). Those read as filler when a reader is trying to extract meaning.
+No emoji or icons in templates or setup docs.
+
+**No aphorism-shaped closers.** A closer restates the paragraph you just read in a more
+quotable rhythm. It carries no new information, and it is the single most recognisable tic in
+AI-written prose. Four shapes account for nearly all of them:
+
+| Shape | Example |
+|---|---|
+| The inverted definition | "An organization is not a set of good intentions, it is work that happens on a schedule." |
+| The named stakes | "A number without its method is marketing." |
+| The point-declaration | "That is the whole point." "That is the trade this makes." |
+| The rhythmic triple | "No database, no dashboard, no service." |
+
+**The test: delete the sentence.** If the paragraph still says everything it said, the
+sentence was decoration. Most closers fail this, because restating the point is the only work
+they were doing.
+
+Two things this rule does not ban. A short sentence carrying **new** information is fine, and
+so is a blunt instruction ("Delete it. Start over."). The tic is the *restatement*, not the
+brevity.
 
 ## 7. No time estimates in documentation
 

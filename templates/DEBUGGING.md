@@ -97,4 +97,4 @@ and stays silent about the seventh reads as though all seven are known.
 > _example:_ I have never debugged the message queue under load. The commands below
 > are from its documentation, not from an incident, and have not been verified here.
 
-This section is what makes the rest of the file trustworthy.
+Without it, a reader assumes the file covers more than it does.
