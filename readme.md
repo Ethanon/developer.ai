@@ -155,7 +155,7 @@ automatically. For a per-agent skip, edit the matrix in `workflows/pr-review.yml
 **Or just ask.** Every agent runs conversationally as well as on a schedule, and it is the
 same file either way. "Security review this PR" runs the same Alice the workflow runs. Leave
 the schedule on and ask whenever the impulse strikes: if you wonder on a Wednesday whether
-anything has bloated past 300 lines, ask, rather than waiting for Monday.
+anything has bloated past a thousand lines of executable code, ask, rather than waiting for Monday.
 
 ---
 

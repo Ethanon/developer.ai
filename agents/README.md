@@ -70,7 +70,7 @@ Alice and Bob carry their frontend-specific sections inline, tagged Architecture
 |---|---|---|
 | Hanging Refs (`hanging_refs.md`) | Dead imports, unused exports, orphan routes, stale env vars | Periodically grep for imports that point at deleted files |
 | Naming Audit (`naming_audit.md`) | Suffix / contract mismatches against your naming rules | Spot the class named `FooManager` that should be `FooService` (and the other twelve like it) |
-| Class Size Audit (`class_size_audit.md`) | Flags oversized classes (over ~300 lines or 8 methods) | Scan for the class that grew past the threshold while everyone was focused on features |
+| Class Size Audit (`class_size_audit.md`) | Flags classes over 1000 lines of executable code | Scan for the class that grew past the threshold while everyone was focused on features |
 | Security Audit (`security_audit.md`) | Auth routes, schema validation, secrets, log-leak, cookie hygiene | A full sweep of the codebase for security drift, the kind that builds up between releases |
 | Prompt Audit (`prompt_audit.md`) | (Optional, only if your project ships LLM prompts.) Prompt templates against your prompt-rules doc | Check every prompt template for fragment-loading drift, negative directives in narrative prompts, schema mismatches |
 | Flaky Test Finder (`flaky_test_finder.md`) | (Optional, only if your CI emits JUnit XML.) Pulls the last ~100 CI runs, builds a per-test pass/fail histogram, separates flaky from real failures, plus a static-smell scan | Read 100 CI runs by hand to figure out whether that test fails sometimes or all the time |

@@ -37,6 +37,7 @@ Seven rules follow from that:
 5. **No idioms, and no metaphors that need a culture to decode.** "Belt and braces", "out of the gate" and "punching above its weight" do not survive translation, and they do not survive a reader who learned English from documentation.
 6. **Write out an abbreviation the first time it appears** on a page.
 7. **Name the thing you mean.** "It", "this" and "that" at the start of a sentence make the reader look backwards to find out what is being discussed.
+8. **Carry the context, do not assume it.** The reader was not in the conversation that produced the sentence. An instruction has to say what to do, where it applies, and what happens if it is skipped. If the reader would have to ask "which one", "where", "why that number", or "what if I don't", it is not finished. This is not a licence to write more: the words to spend are the ones carrying the instruction, and the ones to cut are usually the ones justifying a conclusion you have already stated.
 
 **Rule 1 is not a rule against precision.** It is a rule against decoration. Removing a word that carries meaning makes the writing worse. Removing a word that only carries style makes it better.
 
@@ -337,7 +338,24 @@ Ask the six questions below before any new code lands. They are question-shaped 
 4. **Already handled.** _Is there an existing system that already manages this concern?_ Don't duplicate responsibility: extend the existing owner instead.
 5. **Shared code, shared package.** _Do both client and server need this logic?_ If yes, it belongs in a shared package. Never duplicate domain rules between apps.
    <!-- tag: Architecture-Conditional; applies-when: client-server-split -->
-6. **No god classes.** _When this class crosses the size threshold, is it cohesive or is it accreting unrelated capabilities?_ A god class is one that breaks single responsibility: unrelated capabilities blended into one place, things that should be independent tightly coupled, hard to test, a nightmare to debug. Those are the smells to chase. Size alone is not a god class. A large class earns its size when it holds one cohesive concern, its methods share the same dependencies and consumers, and it has a clean test strategy. When a class crosses ~300 lines or ~8-10 methods, pause and ask: is this becoming a god class, or is it still cohesive? Evaluate against the smells (distinct *axes of change*, *independent client contracts*, *unrelated test strategies*, non-overlapping consumers). Split when the smells are real; otherwise keep it whole and consider extracting branches into named *private* helpers within the same file. The `class_size_audit` agent runs this evaluation periodically and writes a report to `.claude/reports/` for review. Entry-point methods (orchestrators) stay pure orchestration: a numbered list of single method calls on focused services, no inline logic.
+6. **No god classes.** _Does everything in this class answer to one responsibility?_ Thresholds and what to do about them are in [No God Classes](#no-god-classes) below.
+
+---
+
+## No God Classes
+
+**Size is the trigger. A second responsibility is the smell.**
+<!-- tag: Generic -->
+
+Count executable code only: not comments, imports, types, markup or stylesheets. A raw line count on a view file measures mostly markup, which is never a reason to split anything.
+
+- **Under 1000 lines:** leave it, and re-evaluate when it grows.
+- **Over 1000:** name any functionality that deserves its own class, and why. Usually this one orchestrates and the part to lift drives a different workflow. Responsibility is a clean line to cut on and an easy one to spot.
+- **200+ lines on that other responsibility:** split it. Fewer is not worth a file of its own.
+
+Do the split in the pull request that already touches the file. Do not open a refactor-only pull request, and do not file an issue: a cleanup has no deadline, so it loses to every bug and every feature, and filing it only parks it. If it is not worth doing now, leave it, because the next change to the file will raise it again.
+
+Entry-point methods stay pure orchestration: a numbered list of single method calls on focused services, no inline logic. The `class_size_audit` agent runs this evaluation periodically and writes a report to `.claude/reports/`.
 
 ---
 
@@ -643,7 +661,7 @@ Exceptions are for genuinely unexpected failures (network down, corrupted data).
 
 - **One exported class or function set per file**, named to match the filename
 - **No circular dependencies**: if A imports B and B imports A, the design is wrong
-- **No god objects**: if a class has more than ~7 public methods, it is doing too much (see Design Review Checklist #6 for the longer discussion of when size is a smell)
+- **No god objects**: a class holding a second responsibility is doing too much, whatever its method count (see [No God Classes](#no-god-classes) for the thresholds)
 - **Computed properties are derived at read time**, not stored redundantly:
 <!-- tag: Generic -->
 
@@ -728,6 +746,8 @@ These show up as PR review questions.
 Do not change code to chase a symptom you have not seen yourself. Reproduce it first, under the conditions where it happens. Keep the evidence: a screenshot, a log line, or a failing test. A fix aimed at a described defect fixes the description.
 
 The real cost of skipping this is not the wasted change. It is that the wasted change usually works well enough to look like a fix, so the actual defect is now hidden behind something that resembles a solution.
+
+**A defect you cannot demonstrate does not get a pull request.** Spend the time trying to make it fail first: construct the ordering, run it, read the stored result. Code that is correct only because of how its callers happen to be arranged is worth tidying, but it is hygiene rather than a fix, so it rides along with the next change to that file instead of asking for a review of its own.
 
 This matters most for what a unit test cannot check. A test proves a number came from the right function. Only a screenshot proves the sentence fits on the screen.
 

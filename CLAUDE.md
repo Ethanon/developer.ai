@@ -134,7 +134,7 @@ No PWA / generic variants: single file per agent. Frontend-specific rules live i
 | `audit_groomer.md` | Turns weekly audit findings into pickup-ready issues for `feature_agent` |
 | `hanging_refs.md` | Dead imports, unused exports, orphan routes, stale env vars, CSS dead classes |
 | `naming_audit.md` | Suffix/contract mismatches against ENGINEERING_PRINCIPLES naming rules |
-| `class_size_audit.md` | Flags classes >= 300 lines or >= 8 public methods |
+| `class_size_audit.md` | Flags classes over 1000 lines of executable code |
 | `security_audit.md` | Auth middleware, schema validation, secret hygiene, logger leaks, cookie hygiene |
 | `prompt_audit.md` | Optional, for projects that ship LLM prompts |
 | `market_watch.md` | Weekly engineering-tool signals + tech ecosystem scan |
