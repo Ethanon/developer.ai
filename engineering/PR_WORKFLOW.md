@@ -95,7 +95,18 @@ When review comments arrive, **do not start changing the PR.** The flow has thre
 
 The "why" cites something: a decision doc, a principle in this kit, a prior round's disposition. Then stop and wait. **The disposition call belongs to the PR owner, not the reviewer and not the author.** A reviewer asking for a change is not authorization to make it.
 
+Six things decide whether that table is answerable or just a prettier wall of text:
+
+- **Number the rows globally**, 1..N across the whole table, never resetting per reviewer. The whole point is that the owner can reply `fix 1 3 5, don't fix 2 4` in one line.
+- **One table for the PR**, not one per reviewer. A reader comparing eight small tables is doing the collation the table was supposed to do for them.
+- **Only the latest review from each reviewer counts.** Earlier rounds are settled. A finding the owner already declined is listed as `don't fix`, citing the round it was declined in, rather than re-argued.
+- **A reviewer who approved with nothing to say still gets a row**, marked `(none)`. Silence is consent, and consent is worth recording: otherwise the owner cannot tell a clean review from a reviewer that failed to run.
+- **Verify each finding against the code before recommending on it.** A reviewer can be right about the smell and wrong about the remedy, or wrong outright. A recommendation nobody checked is worth no more than the finding it repeats.
+- **Fold the critics into the row they attack**, not into rows of their own. A critic agent challenging a first-pass finding is information about that finding.
+
 **Phase 3: apply exactly what was picked, then reply to every comment.** Make the changes on the same branch, push, and post an inline reply on every comment addressed: what changed and in which commit, what changed partially, or what is not changing and why. Declines are never silent. A reviewer whose finding is silently ignored has no way to tell the difference between "considered and rejected" and "missed."
+
+**Reply in the comment's own thread**, not as a top-level PR comment. On GitHub that is `POST /repos/{owner}/{repo}/pulls/{pr}/comments/{comment_id}/replies`. A top-level comment answering six inline findings at once leaves all six threads looking unanswered, which is the thing this rule exists to prevent.
 
 This applies to every PR including an agent's own. If a comment is ambiguous or you disagree with it, that belongs in the table's recommendation column, not in a guess at implementation.
 
