@@ -89,7 +89,9 @@ Alice and Bob carry their frontend-specific sections inline, tagged Architecture
 
 **Python** (`skills/python/`): receiving-code-review, test-driven-development, code-refactoring, visual-smoke.
 
-The installer copies the language set that matches your stack answer.
+**Any stack** (`skills/common/`): parallel-sessions, for giving each concurrent agent thread its own ports and its own names for anything it starts. Also covers the Windows path limit that makes worktrees undeletable. Ships a working `workspace.mjs` beside it.
+
+The installer copies the language set that matches your stack answer, plus everything in `skills/common/`.
 
 ### CI for other platforms (`ci/`)
 

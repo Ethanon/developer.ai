@@ -29,8 +29,21 @@ git worktree add .worktrees/<name> -b <branch> <default-branch>
 ```
 
 - Gitignore the worktree directory. One worktree per thread, named for the task.
-- A fresh worktree has no installed dependencies; install them there. Most package managers hardlink from a shared cache, so this is cheaper than it sounds.
 - Remove the worktree when the branch merges: `git worktree remove .worktrees/<name>`.
+
+**Share the dependency directory into the worktree rather than installing a second copy.** Link it with a directory symlink, or a junction on Windows, which needs no privilege. Do the linking from the package manager's own pre-install step. An agent harness that links dependencies for you covers only the worktrees *it* made. A pre-install hook covers every worktree, including ones a second AI tool created without ever reading your first tool's configuration.
+
+Disk space is the smaller reason. On Windows, a real dependency tree inside a worktree is what makes that worktree undeletable. Nested package paths under an already-deep worktree path cross the 260-character limit, so `git worktree remove` fails with `Filename too long` after it has already unregistered the worktree. The directory then stays until somebody finds the incantation, and they accumulate.
+<!-- tag: Ecosystem Specific; default-on -->
+<!-- override: ecosystems that resolve dependencies from a project-external store by default (Go modules, Cargo, most JVM setups) already share them and need none of this. Drop both paragraphs. -->
+
+**On Windows, turn long paths on once, and assert it in setup.** There are two switches and both are needed. `git config core.longpaths true` is per repository and needs no privilege. `LongPathsEnabled` under `HKLM\SYSTEM\CurrentControlSet\Control\FileSystem` is per machine, needs an administrator, and is what everything other than git obeys. Setting only the first leaves your package manager failing on paths git now handles, which reads as a broken install rather than a path limit. Offer the elevation only when a human is at the terminal. A UAC prompt raised inside an agent's shell is a command that never returns.
+<!-- tag: Platform Specific; default-on -->
+<!-- override: teams developing exclusively on macOS or Linux have no 260-character limit. Drop the paragraph. -->
+
+**Give each worktree its own ports, and its own name for anything else it starts.** Parallel threads collide on more than the checkout: a dev server, a database, an emulator, a browser profile. A port collision is the worst of these because it does not fail. The second bind loses, the first process keeps answering, and the losing thread reads another branch's output as its own. The `parallel-sessions` skill has the mechanism.
+<!-- tag: Personal Preference; default-on -->
+<!-- override: if your threads never start a long-running process, only the checkout can collide. Drop the paragraph. -->
 
 ---
 
