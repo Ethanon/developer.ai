@@ -6,3 +6,9 @@
 # The benchmark harness runs locally and is not part of the kit. Only the
 # numbers it produces get published, in BENCHMARKING.md.
 benchmark/
+
+# One worktree per agent thread, as PR_WORKFLOW.md asks for. A worktree directory
+# holds a `.git` file, so `git add -A` reads one as a submodule and stages a
+# gitlink pointing at whatever that branch was on. That is a commit nobody meant
+# to make, in a repository that has no submodules.
+.worktrees/
